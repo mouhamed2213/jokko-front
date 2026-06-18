@@ -4,6 +4,7 @@ import { Plus, X, Store } from "lucide-react";
 import { loginSuperAdmin } from "../services/index";
 import type { Shop } from "../types/index";
 import logo from "../assets/logo.svg";
+import { apiUrl } from "../services/api";
 
 export default function SuperAdmin() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("sa_token"));
@@ -27,7 +28,7 @@ export default function SuperAdmin() {
   const fetchShops = async (t: string) => {
     setLoading(true);
     try {
-      const res = await fetch("https://jokko-back.onrender.com/api/super-admin/shops", {
+      const res = await fetch(`${apiUrl}/super-admin/shops`, {
         headers: { Authorization: `Bearer ${t}` },
       });
       const data = await res.json();
@@ -58,7 +59,7 @@ export default function SuperAdmin() {
     }
     setSubmitting(true);
     try {
-      const res = await fetch("https://jokko-back.onrender.com/api/super-admin/shops", {
+      const res = await fetch(`${apiUrl}/super-admin/shops`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
@@ -76,7 +77,7 @@ export default function SuperAdmin() {
 
   const handleStatusChange = async (id: number, status: "ACTIVE" | "SUSPENDED" | "EXPIRED") => {
     try {
-      await fetch(`https://jokko-back.onrender.com/api/super-admin/shops/${id}/status`, {
+      await fetch(`${apiUrl}/super-admin/shops/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ status }),
@@ -89,7 +90,7 @@ export default function SuperAdmin() {
   const handleResetPassword = async () => {
     if (!resetId || !newPassword || newPassword.length < 6) return toast.error("Mot de passe trop court");
     try {
-      await fetch(`https://jokko-back.onrender.com/api/super-admin/shops/${resetId}/reset-password`, {
+      await fetch(`${apiUrl}/super-admin/shops/${resetId}/reset-password`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ newPassword }),
@@ -103,7 +104,7 @@ export default function SuperAdmin() {
   const handleDelete = async (id: number) => {
     if (!confirm("Supprimer cette boutique définitivement ?")) return;
     try {
-      await fetch(`https://jokko-back.onrender.com/api/super-admin/shops/${id}`, {
+      await fetch(`${apiUrl}/super-admin/shops/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

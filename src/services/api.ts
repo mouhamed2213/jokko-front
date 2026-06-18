@@ -1,8 +1,8 @@
 
 import axios from "axios";
-
+export const apiUrl = import.meta.env.DEV ?   "http://localhost:5000/api"  :  "https://jokko-back.onrender.com/api"
 export const api = axios.create({
-  baseURL: "https://jokko-back.onrender.com/api",
+  baseURL: apiUrl,
 });
 
 api.interceptors.request.use((config) => {

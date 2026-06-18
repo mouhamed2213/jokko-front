@@ -3,7 +3,7 @@
 // ============================================================
 import axios from "axios";
 
-export const api = axios.create({ baseURL: "https://jokko-back.onrender.com/api" });
+export const api = axios.create({ baseURL:`${apiUrl}` });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
@@ -35,6 +35,7 @@ export const loginSuperAdmin = async (data: { email: string; password: string })
 
 // ── Products ──────────────────────────────────────────────────
 import type { Product, Category, Client, Supplier, Sale, DashboardStats, Shop, User } from "../types/index";
+import { apiUrl } from "./api";
 
 export type CreateProductPayload = {
   name: string; description?: string; reference?: string; categoryId?: number | null;

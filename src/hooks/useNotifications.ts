@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { getProducts } from "../services/index";
+import { apiUrl } from "../services/api";
 
 type StockAlert = {
   id: number;
@@ -15,7 +16,7 @@ type NotificationState = {
   lastUpdate: Date | null;
 };
 
-const API_URL = import.meta.env.VITE_API_URL || "https://jokko-back.onrender.com/api";
+const API_URL = import.meta.env.VITE_API_URL || `${apiUrl}`;
 
 export function useNotifications() {
   const [alerts, setAlerts] = useState<NotificationState>({
