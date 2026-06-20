@@ -1,33 +1,56 @@
+import toast from "react-hot-toast";
+import type { AuthUser } from "../types/auth";
 import type { Sale } from "../types/index";
 
 // ============================================================
 //  Format A4 — facture professionnelle complète
 // ============================================================
 function buildA4(invoice: Sale, shopName: string, logoUrl?: string): string {
-  const num = invoice.invoiceNumber || `FAC-${String(invoice.id).padStart(5, "0")}`;
+  const num =
+    invoice.invoiceNumber || `FAC-${String(invoice.id).padStart(5, "0")}`;
   const date = new Date(invoice.createdAt).toLocaleString("fr-FR", {
-    day: "2-digit", month: "long", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
-  const clientName = invoice.client?.name || invoice.customerName || "Client non précisé";
+  const clientName =
+    invoice.client?.name || invoice.customerName || "Client non précisé";
   const clientPhone = invoice.client?.phone || "";
   const clientAddress = (invoice.client as any)?.address || "";
 
-  const statusColor = invoice.status === "PAID" ? "#059669" : invoice.status === "PARTIAL" ? "#d97706" : "#dc2626";
-  const statusBg    = invoice.status === "PAID" ? "#d1fae5" : invoice.status === "PARTIAL" ? "#fef3c7" : "#fee2e2";
-  const statusText  = invoice.status === "PAID" ? "PAYÉE" : invoice.status === "PARTIAL" ? "PARTIELLE" : "NON RÉGLÉE";
+  const statusColor =
+    invoice.status === "PAID"
+      ? "#059669"
+      : invoice.status === "PARTIAL"
+        ? "#d97706"
+        : "#dc2626";
+  const statusBg =
+    invoice.status === "PAID"
+      ? "#d1fae5"
+      : invoice.status === "PARTIAL"
+        ? "#fef3c7"
+        : "#fee2e2";
+  const statusText =
+    invoice.status === "PAID"
+      ? "PAYÉE"
+      : invoice.status === "PARTIAL"
+        ? "PARTIELLE"
+        : "NON RÉGLÉE";
 
-  const itemRows = invoice.items.map((item, i) => {
-    const bg = i % 2 === 0 ? "#ffffff" : "#f8fafc";
-    const imgHtml = item.productImageUrl
-      ? `<img src="${item.productImageUrl}" alt="${item.productName}"
+  const itemRows = invoice.items
+    .map((item, i) => {
+      const bg = i % 2 === 0 ? "#ffffff" : "#f8fafc";
+      const imgHtml = item.productImageUrl
+        ? `<img src="${item.productImageUrl}" alt="${item.productName}"
            style="width:42px;height:42px;object-fit:cover;border-radius:8px;margin-right:12px;
            vertical-align:middle;border:1px solid #e2e8f0;display:inline-block;flex-shrink:0" />`
-      : `<span style="display:inline-flex;align-items:center;justify-content:center;
+        : `<span style="display:inline-flex;align-items:center;justify-content:center;
            width:42px;height:42px;background:#e2e8f0;border-radius:8px;margin-right:12px;
            font-weight:700;color:#94a3b8;font-size:18px;flex-shrink:0">
            ${item.productName.charAt(0).toUpperCase()}</span>`;
-    return `
+      return `
       <tr style="background:${bg}">
         <td style="padding:12px 16px;vertical-align:middle">
           <div style="display:flex;align-items:center">
@@ -43,9 +66,12 @@ function buildA4(invoice: Sale, shopName: string, logoUrl?: string): string {
           ${item.totalAmount.toLocaleString("fr-FR")} FCFA
         </td>
       </tr>`;
-  }).join("");
+    })
+    .join("");
 
-  const paymentRows = invoice.payments.map((p) => `
+  const paymentRows = invoice.payments
+    .map(
+      (p) => `
     <tr>
       <td style="padding:8px 16px;font-size:13px;color:#475569">
         ${new Date(p.paidAt).toLocaleString("fr-FR")}
@@ -54,7 +80,9 @@ function buildA4(invoice: Sale, shopName: string, logoUrl?: string): string {
         +${p.amount.toLocaleString("fr-FR")} FCFA
       </td>
       <td style="padding:8px 16px;font-size:13px;color:#94a3b8">${p.note || "—"}</td>
-    </tr>`).join("");
+    </tr>`,
+    )
+    .join("");
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -145,12 +173,16 @@ function buildA4(invoice: Sale, shopName: string, logoUrl?: string): string {
         <span>Montant payé</span>
         <span>+${invoice.paidAmount.toLocaleString("fr-FR")} FCFA</span>
       </div>
-      ${invoice.remaining > 0 ? `
+      ${
+        invoice.remaining > 0
+          ? `
       <div style="padding:11px 16px;display:flex;justify-content:space-between;
         border-bottom:1px solid #e2e8f0;font-size:13px;color:#dc2626;font-weight:600;background:#fff5f5">
         <span>Reste à payer</span>
         <span>${invoice.remaining.toLocaleString("fr-FR")} FCFA</span>
-      </div>` : ""}
+      </div>`
+          : ""
+      }
       <div style="padding:15px 16px;display:flex;justify-content:space-between;
         background:#0f172a;color:white">
         <span style="font-size:14px;font-weight:700">TOTAL</span>
@@ -161,7 +193,9 @@ function buildA4(invoice: Sale, shopName: string, logoUrl?: string): string {
     </div>
   </div>
 
-  ${invoice.payments.length > 0 ? `
+  ${
+    invoice.payments.length > 0
+      ? `
   <!-- Historique paiements -->
   <div style="padding:0 36px 22px">
     <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;
@@ -177,16 +211,22 @@ function buildA4(invoice: Sale, shopName: string, logoUrl?: string): string {
       </thead>
       <tbody>${paymentRows}</tbody>
     </table>
-  </div>` : ""}
+  </div>`
+      : ""
+  }
 
-  ${invoice.note ? `
+  ${
+    invoice.note
+      ? `
   <div style="padding:0 36px 22px">
     <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:14px 18px">
       <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#92400e;
         font-weight:700;margin-bottom:5px">Note</div>
       <div style="font-size:13px;color:#78350f">${invoice.note}</div>
     </div>
-  </div>` : ""}
+  </div>`
+      : ""
+  }
 
   <!-- Footer -->
   <div style="background:#f8fafc;border-top:2px solid #10b981;padding:16px 36px;
@@ -205,17 +245,24 @@ function buildA4(invoice: Sale, shopName: string, logoUrl?: string): string {
 //  Compatible imprimantes thermiques POS (Epson, Bixolon, etc.)
 // ============================================================
 function buildThermal(invoice: Sale, shopName: string): string {
-  const num = invoice.invoiceNumber || `FAC-${String(invoice.id).padStart(5, "0")}`;
+  const num =
+    invoice.invoiceNumber || `FAC-${String(invoice.id).padStart(5, "0")}`;
   const date = new Date(invoice.createdAt).toLocaleString("fr-FR", {
-    day: "2-digit", month: "2-digit", year: "2-digit",
-    hour: "2-digit", minute: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   });
   const clientName = invoice.client?.name || invoice.customerName || "Client";
   const clientPhone = invoice.client?.phone || "";
 
-  const statusText = invoice.status === "PAID" ? "** SOLDEE **"
-    : invoice.status === "PARTIAL" ? "** PARTIELLE **"
-    : "** NON REGLEE **";
+  const statusText =
+    invoice.status === "PAID"
+      ? "** SOLDEE **"
+      : invoice.status === "PARTIAL"
+        ? "** PARTIELLE **"
+        : "** NON REGLEE **";
 
   // Ligne séparatrice
   const sep = "--------------------------------";
@@ -230,24 +277,40 @@ function buildThermal(invoice: Sale, shopName: string): string {
   };
 
   // Articles
-  const itemLines = invoice.items.map((item) => {
-    const name = item.productName.length > 26 ? item.productName.slice(0, 26) : item.productName;
-    const total = `${item.totalAmount.toLocaleString("fr-FR")} F`;
-    const detail = `  ${item.quantity} x ${item.unitPrice.toLocaleString("fr-FR")} F`;
-    return `${name}\n${line(detail, total)}`;
-  }).join("\n");
+  const itemLines = invoice.items
+    .map((item) => {
+      const name =
+        item.productName.length > 26
+          ? item.productName.slice(0, 26)
+          : item.productName;
+      const total = `${item.totalAmount.toLocaleString("fr-FR")} F`;
+      const detail = `  ${item.quantity} x ${item.unitPrice.toLocaleString("fr-FR")} F`;
+      return `${name}\n${line(detail, total)}`;
+    })
+    .join("\n");
 
   // Paiements
-  const paymentLines = invoice.payments.length > 0
-    ? invoice.payments.map((p) => {
-        const d = new Date(p.paidAt).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-        return line(`  ${d}`, `+${p.amount.toLocaleString("fr-FR")} F`);
-      }).join("\n")
-    : "";
+  const paymentLines =
+    invoice.payments.length > 0
+      ? invoice.payments
+          .map((p) => {
+            const d = new Date(p.paidAt).toLocaleString("fr-FR", {
+              day: "2-digit",
+              month: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+            return line(`  ${d}`, `+${p.amount.toLocaleString("fr-FR")} F`);
+          })
+          .join("\n")
+      : "";
 
   const receipt = [
     sepDouble,
-    shopName.toUpperCase().padStart(Math.floor((32 + shopName.length) / 2)).slice(0, 32),
+    shopName
+      .toUpperCase()
+      .padStart(Math.floor((32 + shopName.length) / 2))
+      .slice(0, 32),
     "Jokko Business".padStart(Math.floor((32 + 14) / 2)).slice(0, 32),
     sepDouble,
     "",
@@ -274,11 +337,15 @@ function buildThermal(invoice: Sale, shopName: string): string {
     invoice.note ? sep : null,
     invoice.note ? `Note: ${invoice.note}` : null,
     sep,
-    "Merci pour votre confiance !".padStart(Math.floor((32 + 28) / 2)).slice(0, 32),
+    "Merci pour votre confiance !"
+      .padStart(Math.floor((32 + 28) / 2))
+      .slice(0, 32),
     sepDouble,
     "",
-    "",  // Espace pour découpe
-  ].filter((l) => l !== null).join("\n");
+    "", // Espace pour découpe
+  ]
+    .filter((l) => l !== null)
+    .join("\n");
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -329,13 +396,24 @@ function buildThermal(invoice: Sale, shopName: string): string {
 // ============================================================
 export function printInvoice(
   invoice: Sale,
-  shopName: string,
+  user: AuthUser,
   format: "A4" | "THERMAL" = "A4",
-  logoUrl?: string
+  logoUrl?: string,
 ) {
-  const html = format === "THERMAL"
-    ? buildThermal(invoice, shopName)
-    : buildA4(invoice, shopName, logoUrl);
+  const shopName = user?.shopName || "Jokko Business";
+  const ShopPlan = user.plan;
+  if (ShopPlan && format === "A4") {
+    if (ShopPlan === "FREE") {
+      toast.error("Votre plan actuel ne vous permet pas d'imprimer ce format");
+
+      return;
+    }
+  }
+
+  const html =
+    format === "THERMAL"
+      ? buildThermal(invoice, shopName)
+      : buildA4(invoice, shopName, logoUrl);
 
   const w = window.open("", "_blank");
   if (!w) {
