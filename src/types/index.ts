@@ -21,6 +21,7 @@ export type Product = {
   createdAt: string;
   updatedAt: string;
   category?: { id: number; name: string } | null;
+  totalProducts : number
 };
 
 // ============================================================

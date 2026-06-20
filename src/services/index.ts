@@ -56,6 +56,7 @@ export type CreateProductPayload = {
 export type ProductListResponse = {
   data: Product[];
   pagination: { total: number; page: number; limit: number; totalPages: number };
+  totalProducts :number
 };
 
 export const getProducts = async (params?: { search?: string; categoryId?: number; page?: number; limit?: number }): Promise<ProductListResponse> => {
