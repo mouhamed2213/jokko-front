@@ -277,15 +277,14 @@ export default function Sales() {
     }
   };
 
+  if (!user) {
+    toast.error("User not found");
+    return;
+  }
+
   const printA4 = (sale: Sale) =>
-    doPrint(
-      sale,
-      user?.shopName || "Jokko Business",
-      "A4",
-      localStorage.getItem("shopLogo") || undefined,
-    );
-  const printThermal = (sale: Sale) =>
-    doPrint(sale, user?.shopName || "Jokko Business", "THERMAL");
+    doPrint(sale, user, "A4", localStorage.getItem("shopLogo") || undefined);
+  const printThermal = (sale: Sale) => doPrint(sale, user, "THERMAL");
 
   const statusBadge: Record<string, string> = {
     PAID: "bg-emerald-100 text-emerald-700",
