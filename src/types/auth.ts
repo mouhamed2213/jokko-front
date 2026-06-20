@@ -1,3 +1,5 @@
+import type { Plan } from "../pages/superAdmin/SuperAdmin";
+
 export type UserRole = "ADMIN" | "EMPLOYEE" | "SUPER_ADMIN";
 
 export type AuthUser = {
@@ -6,6 +8,7 @@ export type AuthUser = {
   email: string;
   role: UserRole;
   shopId: number;
+  plan: Plan;
   shopName: string;
 };
 
@@ -21,4 +24,5 @@ export const getStoredUser = (): AuthUser | null => {
 
 export const isAdmin = (): boolean => getStoredUser()?.role === "ADMIN";
 export const isEmployee = (): boolean => getStoredUser()?.role === "EMPLOYEE";
-export const isSuperAdmin = (): boolean => getStoredUser()?.role === "SUPER_ADMIN";
+export const isSuperAdmin = (): boolean =>
+  getStoredUser()?.role === "SUPER_ADMIN";

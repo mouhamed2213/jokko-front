@@ -6,13 +6,7 @@ import { apiUrl } from "../../services/api";
 import { loginSuperAdmin } from "../../services/index";
 import type { Shop } from "../../types/index";
 
-export type Plan = {
-
-  FREE : string
-  BASIC : string
-  PRO : string
-  PREMINIUM : string
-}
+export type Plan = "FREE" | "BASIC" | "PRO" | "PREMINIUM";
 
 export default function SuperAdmin() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("sa_token"));

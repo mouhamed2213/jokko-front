@@ -1,31 +1,60 @@
+import toast from "react-hot-toast";
+import type { Plan } from "../pages/superAdmin/SuperAdmin";
 import type { CashRegister, CashTransaction, Sale } from "../types/index";
 
 const fmtAmount = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
-const fmtDate = (d: string) => new Date(d).toLocaleDateString("fr-FR", {
-  weekday: "long", day: "numeric", month: "long", year: "numeric",
-});
-const fmtTime = (d: string) => new Date(d).toLocaleTimeString("fr-FR", {
-  hour: "2-digit", minute: "2-digit",
-});
+const fmtDate = (d: string) =>
+  new Date(d).toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+const fmtTime = (d: string) =>
+  new Date(d).toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 // ── Rapport de caisse journalier en PDF ───────────────────────
-export function exportCashReportPDF(session: CashRegister, shopName: string) {
-  const balance = session.closingAmount
-    ?? (session.openingAmount + session.totalIn - session.totalOut);
+export function exportCashReportPDF(
+  session: CashRegister,
+  shopName: string,
+  plan?: Plan,
+) {
+  if (plan) {
+    
+
+    //  Export ;imitation for FREE user
+    if (session.status === "CLOSED" && plan === "FREE") {
+          toast.error("Votre plan actuel ne vous permet pas d'exporter l'historique des caisses déjà clôturées.");
+
+      return;
+    }
+  }
+
+
+  const balance =
+    session.closingAmount ??
+    session.openingAmount + session.totalIn - session.totalOut;
 
   const transactions = session.transactions || [];
   const entrances = transactions.filter((t) => t.type === "IN");
   const exits = transactions.filter((t) => t.type === "OUT");
 
   // Lignes transactions
-  const txRows = transactions.map((t: CashTransaction) => `
+  const txRows = transactions
+    .map(
+      (t: CashTransaction) => `
     <tr style="border-bottom:1px solid #f1f5f9">
       <td style="padding:8px 12px;font-size:13px;color:#475569">${fmtTime(t.createdAt)}</td>
       <td style="padding:8px 12px;font-size:13px">${t.label}</td>
       <td style="padding:8px 12px;font-size:13px;text-align:right;font-weight:600;color:${t.type === "IN" ? "#059669" : "#dc2626"}">
         ${t.type === "IN" ? "+" : "-"}${fmtAmount(t.amount)}
       </td>
-    </tr>`).join("");
+    </tr>`,
+    )
+    .join("");
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -63,15 +92,43 @@ export function exportCashReportPDF(session: CashRegister, shopName: string) {
   <!-- Stats résumé -->
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:0 36px 24px">
     ${[
-      { label: "Ouverture", value: fmtAmount(session.openingAmount), color: "#f8fafc", border: "#e2e8f0", text: "#0f172a" },
-      { label: "Encaissements", value: fmtAmount(session.totalIn), color: "#f0fdf4", border: "#bbf7d0", text: "#059669" },
-      { label: "Décaissements", value: fmtAmount(session.totalOut), color: "#fff5f5", border: "#fecaca", text: "#dc2626" },
-      { label: "Clôture", value: fmtAmount(balance), color: "#0f172a", border: "#0f172a", text: "#ffffff" },
-    ].map(s => `
+      {
+        label: "Ouverture",
+        value: fmtAmount(session.openingAmount),
+        color: "#f8fafc",
+        border: "#e2e8f0",
+        text: "#0f172a",
+      },
+      {
+        label: "Encaissements",
+        value: fmtAmount(session.totalIn),
+        color: "#f0fdf4",
+        border: "#bbf7d0",
+        text: "#059669",
+      },
+      {
+        label: "Décaissements",
+        value: fmtAmount(session.totalOut),
+        color: "#fff5f5",
+        border: "#fecaca",
+        text: "#dc2626",
+      },
+      {
+        label: "Clôture",
+        value: fmtAmount(balance),
+        color: "#0f172a",
+        border: "#0f172a",
+        text: "#ffffff",
+      },
+    ]
+      .map(
+        (s) => `
       <div style="background:${s.color};border:1px solid ${s.border};border-radius:12px;padding:14px;text-align:center">
         <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:${s.text === "#ffffff" ? "rgba(255,255,255,0.6)" : "#94a3b8"};margin-bottom:6px">${s.label}</div>
         <div style="font-size:15px;font-weight:700;color:${s.text}">${s.value}</div>
-      </div>`).join("")}
+      </div>`,
+      )
+      .join("")}
   </div>
 
   <!-- Statistiques détaillées -->
@@ -80,30 +137,44 @@ export function exportCashReportPDF(session: CashRegister, shopName: string) {
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#4ade80;font-weight:700;margin-bottom:10px">
         Encaissements (${entrances.length} opération${entrances.length > 1 ? "s" : ""})
       </div>
-      ${entrances.length === 0
-        ? `<p style="font-size:13px;color:#94a3b8">Aucun encaissement</p>`
-        : entrances.map(t => `
+      ${
+        entrances.length === 0
+          ? `<p style="font-size:13px;color:#94a3b8">Aucun encaissement</p>`
+          : entrances
+              .map(
+                (t) => `
           <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px">
             <span style="color:#475569">${t.label}</span>
             <span style="font-weight:600;color:#059669">+${fmtAmount(t.amount)}</span>
-          </div>`).join("")}
+          </div>`,
+              )
+              .join("")
+      }
     </div>
     <div style="background:#fff5f5;border:1px solid #fecaca;border-radius:14px;padding:16px">
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#f87171;font-weight:700;margin-bottom:10px">
         Décaissements (${exits.length} opération${exits.length > 1 ? "s" : ""})
       </div>
-      ${exits.length === 0
-        ? `<p style="font-size:13px;color:#94a3b8">Aucun décaissement</p>`
-        : exits.map(t => `
+      ${
+        exits.length === 0
+          ? `<p style="font-size:13px;color:#94a3b8">Aucun décaissement</p>`
+          : exits
+              .map(
+                (t) => `
           <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px">
             <span style="color:#475569">${t.label}</span>
             <span style="font-weight:600;color:#dc2626">-${fmtAmount(t.amount)}</span>
-          </div>`).join("")}
+          </div>`,
+              )
+              .join("")
+      }
     </div>
   </div>
 
   <!-- Toutes les transactions -->
-  ${transactions.length > 0 ? `
+  ${
+    transactions.length > 0
+      ? `
   <div style="padding:0 36px 24px">
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;font-weight:700;margin-bottom:12px">
       Détail des ${transactions.length} transaction${transactions.length > 1 ? "s" : ""}
@@ -118,7 +189,9 @@ export function exportCashReportPDF(session: CashRegister, shopName: string) {
       </thead>
       <tbody>${txRows}</tbody>
     </table>
-  </div>` : ""}
+  </div>`
+      : ""
+  }
 
   <!-- Footer -->
   <div style="background:#f8fafc;border-top:2px solid #10b981;padding:16px 36px;display:flex;justify-content:space-between;align-items:center">
@@ -134,7 +207,10 @@ export function exportCashReportPDF(session: CashRegister, shopName: string) {
 </body></html>`;
 
   const w = window.open("", "_blank");
-  if (!w) { alert("Autorisez les popups pour imprimer."); return; }
+  if (!w) {
+    alert("Autorisez les popups pour imprimer.");
+    return;
+  }
   w.document.write(html);
   w.document.close();
   w.focus();
@@ -142,16 +218,31 @@ export function exportCashReportPDF(session: CashRegister, shopName: string) {
 }
 
 // ── Rapport des ventes en PDF ─────────────────────────────────
-export function exportSalesPDF(sales: Sale[], shopName: string, period?: string) {
+export function exportSalesPDF(
+  sales: Sale[],
+  shopName: string,
+  period?: string,
+) {
   const totalCA = sales.reduce((s, v) => s + v.totalAmount, 0);
   const totalPaid = sales.reduce((s, v) => s + v.paidAmount, 0);
   const totalRemaining = sales.reduce((s, v) => s + v.remaining, 0);
 
-  const rows = sales.map((sale, i) => {
-    const bg = i % 2 === 0 ? "#ffffff" : "#f8fafc";
-    const statusColor = sale.status === "PAID" ? "#059669" : sale.status === "PARTIAL" ? "#d97706" : "#dc2626";
-    const statusLabel = sale.status === "PAID" ? "Payée" : sale.status === "PARTIAL" ? "Partielle" : "Non réglée";
-    return `
+  const rows = sales
+    .map((sale, i) => {
+      const bg = i % 2 === 0 ? "#ffffff" : "#f8fafc";
+      const statusColor =
+        sale.status === "PAID"
+          ? "#059669"
+          : sale.status === "PARTIAL"
+            ? "#d97706"
+            : "#dc2626";
+      const statusLabel =
+        sale.status === "PAID"
+          ? "Payée"
+          : sale.status === "PARTIAL"
+            ? "Partielle"
+            : "Non réglée";
+      return `
       <tr style="background:${bg}">
         <td style="padding:9px 12px;font-size:12px;font-weight:600">${sale.invoiceNumber || `#${sale.id}`}</td>
         <td style="padding:9px 12px;font-size:12px;color:#475569">${new Date(sale.createdAt).toLocaleDateString("fr-FR")}</td>
@@ -163,7 +254,8 @@ export function exportSalesPDF(sales: Sale[], shopName: string, period?: string)
           <span style="background:${statusColor}20;color:${statusColor};padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600">${statusLabel}</span>
         </td>
       </tr>`;
-  }).join("");
+    })
+    .join("");
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -232,7 +324,10 @@ export function exportSalesPDF(sales: Sale[], shopName: string, period?: string)
 </body></html>`;
 
   const w = window.open("", "_blank");
-  if (!w) { alert("Autorisez les popups pour imprimer."); return; }
+  if (!w) {
+    alert("Autorisez les popups pour imprimer.");
+    return;
+  }
   w.document.write(html);
   w.document.close();
   w.focus();
