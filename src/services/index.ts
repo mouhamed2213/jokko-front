@@ -3,7 +3,7 @@
 // ============================================================
 import axios from "axios";
 
-export const api = axios.create({ baseURL:`${apiUrl}` });
+export const api = axios.create({ baseURL: `${apiUrl}` });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
@@ -20,7 +20,7 @@ api.interceptors.response.use(
       window.location.href = "/login";
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // ── Auth ──────────────────────────────────────────────────────
@@ -28,13 +28,25 @@ export const login = async (data: { email: string; password: string }) => {
   const res = await api.post("/auth/login", data);
   return res.data;
 };
-export const loginSuperAdmin = async (data: { email: string; password: string }) => {
+export const loginSuperAdmin = async (data: {
+  email: string;
+  password: string;
+}) => {
   const res = await api.post("/auth/super-admin/login", data);
   return res.data;
 };
 
 // ── Products ──────────────────────────────────────────────────
-import type { Product, Category, Client, Supplier, Sale, DashboardStats, Shop, User } from "../types/index";
+import type {
+  Category,
+  Client,
+  DashboardStats,
+  Product,
+  Sale,
+  Shop,
+  Supplier,
+  User,
+} from "../types/index";
 import { apiUrl } from "./api";
 
 export type CreateProductPayload = {

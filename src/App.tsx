@@ -1,21 +1,21 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 
-import DashboardLayout from "./layouts/DashboardLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import DashboardLayout from "./layouts/DashboardLayout";
 
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Products from "./pages/Products";
-import Stock from "./pages/Stock";
-import Sales from "./pages/Sales";
-import Invoices from "./pages/Invoices";
-import Clients from "./pages/Clients";
-import Suppliers from "./pages/Suppliers";
 import Cash from "./pages/Cash";
-import Users from "./pages/Users";
+import Clients from "./pages/Clients";
+import Dashboard from "./pages/Dashboard";
+import Invoices from "./pages/Invoices";
+import Login from "./pages/Login";
+import Products from "./pages/Products";
+import Sales from "./pages/Sales";
 import Settings from "./pages/Settings";
-import SuperAdmin from "./pages/SuperAdmin";
+import Stock from "./pages/Stock";
+import SuperAdmin from "./pages/superAdmin/SuperAdmin";
+import Suppliers from "./pages/Suppliers";
+import Users from "./pages/Users";
 
 export default function App() {
   return (

@@ -1,10 +1,18 @@
+import { Plus, Store, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { Plus, X, Store } from "lucide-react";
-import { loginSuperAdmin } from "../services/index";
-import type { Shop } from "../types/index";
-import logo from "../assets/logo.svg";
-import { apiUrl } from "../services/api";
+import logo from "../../assets/logo.svg";
+import { apiUrl } from "../../services/api";
+import { loginSuperAdmin } from "../../services/index";
+import type { Shop } from "../../types/index";
+
+export type Plan = {
+
+  FREE : string
+  BASIC : string
+  PRO : string
+  PREMINIUM : string
+}
 
 export default function SuperAdmin() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("sa_token"));
@@ -18,7 +26,7 @@ export default function SuperAdmin() {
 
   // Shop form
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ shopName: "", ownerName: "", email: "", phone: "", address: "", adminPassword: "", subscriptionEndDate: "" });
+  const [form, setForm] = useState({ shopName: "", ownerName: "", email: "", phone: "", address: "", adminPassword: "", subscriptionEndDate: "" , plan: "FREE" });
   const [submitting, setSubmitting] = useState(false);
 
   // Reset password
@@ -58,6 +66,7 @@ export default function SuperAdmin() {
       return toast.error("Champs obligatoires manquants");
     }
     setSubmitting(true);
+    
     try {
       const res = await fetch(`${apiUrl}/super-admin/shops`, {
         method: "POST",
@@ -68,7 +77,7 @@ export default function SuperAdmin() {
       if (!res.ok) throw new Error(data.message);
       toast.success("Boutique créée avec succès");
       setShowForm(false);
-      setForm({ shopName: "", ownerName: "", email: "", phone: "", address: "", adminPassword: "", subscriptionEndDate: "" });
+      setForm({ shopName: "", ownerName: "", email: "", phone: "", address: "", adminPassword: "", subscriptionEndDate: "" , plan: ''});
       if (token) fetchShops(token);
     } catch (error: any) {
       toast.error(error.message || "Erreur création");
@@ -225,6 +234,16 @@ export default function SuperAdmin() {
                 <input type="date" value={form.subscriptionEndDate}
                   onChange={(e) => setForm((p) => ({ ...p, subscriptionEndDate: e.target.value }))}
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500" />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Type d'abonnement</label>
+                <select  onChange={ (e) => setForm((p) => ({...p , plan : e.target.value}) ) }  value={form.plan} className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500" name="plan" id="plane">
+                  <option value="FREE"> Free</option>
+                  <option value="BASIC"> Basic </option>
+                  <option value="PRO"> Pro</option>
+                  <option value="PREMINIUM"> Preminium</option>
+                </select>
               </div>
               <div className="flex gap-3 sm:col-span-2">
                 <button type="submit" disabled={submitting} className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60">

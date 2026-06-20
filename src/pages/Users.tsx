@@ -1,7 +1,7 @@
+import { Plus, UserCog, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { Plus, X, UserCog } from "lucide-react";
-import { getUsers, createUser, updateUser, deleteUser } from "../services/index";
+import { createUser, deleteUser, getUsers, updateUser } from "../services/index";
 import type { User } from "../types/index";
 
 const emptyForm = { name: "", email: "", password: "", role: "EMPLOYEE" };

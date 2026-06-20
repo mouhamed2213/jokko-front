@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import { getProducts } from "../services/index";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { apiUrl } from "../services/api";
+import { getProducts } from "../services/index";
 
 type StockAlert = {
   id: number;
