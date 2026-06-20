@@ -1,5 +1,7 @@
+import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
-import type { Sale, StockMovement, Client, Supplier } from "../types/index";
+import type { AuthUser } from "../types/auth";
+import type { Client, Sale, StockMovement, Supplier } from "../types/index";
 
 // ── Helper formatage date ─────────────────────────────────────
 const fmtDate = (d: string) => new Date(d).toLocaleDateString("fr-FR");
@@ -7,25 +9,40 @@ const fmtDateTime = (d: string) => new Date(d).toLocaleString("fr-FR");
 const fmtAmount = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
 // ── Export ventes ─────────────────────────────────────────────
-export function exportSalesToExcel(sales: Sale[], shopName: string) {
+export function exportSalesToExcel(sales: Sale[], user: AuthUser) {
+  const shopName = user?.shopName || "Boutique";
+  const ShopPlan = user.plan;
+  if (ShopPlan) {
+    if (ShopPlan === "FREE") {
+      toast.error(
+        "Votre plan actuel ne vous permet pas d'exporter la list de vos client",
+      );
+
+      return;
+    }
+  }
+
   const rows = sales.flatMap((sale) =>
     sale.items.map((item) => ({
       "N° Facture": sale.invoiceNumber || `#${sale.id}`,
-      "Date": fmtDateTime(sale.createdAt),
-      "Client": sale.client?.name || sale.customerName || "Client non précisé",
+      Date: fmtDateTime(sale.createdAt),
+      Client: sale.client?.name || sale.customerName || "Client non précisé",
       "Téléphone client": sale.client?.phone || "",
-      "Produit": item.productName,
-      "Quantité": item.quantity,
+      Produit: item.productName,
+      Quantité: item.quantity,
       "Prix unitaire (FCFA)": item.unitPrice,
       "Montant article (FCFA)": item.totalAmount,
       "Total facture (FCFA)": sale.totalAmount,
       "Montant payé (FCFA)": sale.paidAmount,
       "Reste à payer (FCFA)": sale.remaining,
-      "Statut": sale.status === "PAID" ? "Payée"
-        : sale.status === "PARTIAL" ? "Partielle"
-        : "Non réglée",
-      "Note": sale.note || "",
-    }))
+      Statut:
+        sale.status === "PAID"
+          ? "Payée"
+          : sale.status === "PARTIAL"
+            ? "Partielle"
+            : "Non réglée",
+      Note: sale.note || "",
+    })),
   );
 
   // Ligne de totaux
@@ -36,27 +53,40 @@ export function exportSalesToExcel(sales: Sale[], shopName: string) {
   rows.push({} as any); // ligne vide
   rows.push({
     "N° Facture": "TOTAL",
-    "Date": "",
-    "Client": `${sales.length} vente(s)`,
+    Date: "",
+    Client: `${sales.length} vente(s)`,
     "Téléphone client": "",
-    "Produit": "",
-    "Quantité": sales.reduce((s, v) => s + v.items.reduce((a, i) => a + i.quantity, 0), 0),
+    Produit: "",
+    Quantité: sales.reduce(
+      (s, v) => s + v.items.reduce((a, i) => a + i.quantity, 0),
+      0,
+    ),
     "Prix unitaire (FCFA)": 0,
     "Montant article (FCFA)": 0,
     "Total facture (FCFA)": totalCA,
     "Montant payé (FCFA)": totalPaid,
     "Reste à payer (FCFA)": totalRemaining,
-    "Statut": "",
-    "Note": "",
+    Statut: "",
+    Note: "",
   } as any);
 
   const ws = XLSX.utils.json_to_sheet(rows);
 
   // Largeurs colonnes
   ws["!cols"] = [
-    { wch: 18 }, { wch: 18 }, { wch: 22 }, { wch: 15 },
-    { wch: 25 }, { wch: 10 }, { wch: 18 }, { wch: 20 },
-    { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 12 }, { wch: 20 },
+    { wch: 18 },
+    { wch: 18 },
+    { wch: 22 },
+    { wch: 15 },
+    { wch: 25 },
+    { wch: 10 },
+    { wch: 18 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 12 },
+    { wch: 20 },
   ];
 
   const wb = XLSX.utils.book_new();
@@ -84,26 +114,47 @@ export function exportSalesToExcel(sales: Sale[], shopName: string) {
 }
 
 // ── Export stock (mouvements) ─────────────────────────────────
-export function exportStockToExcel(movements: StockMovement[], shopName: string) {
+export function exportStockToExcel(movements: StockMovement[], user: AuthUser) {
+  const shopName = user?.shopName || "Boutique";
+  const ShopPlan = user.plan;
+  if (ShopPlan) {
+    if (ShopPlan === "FREE") {
+      toast.error(
+        "Votre plan actuel ne vous permet pas d'exporter la list de vos client",
+      );
+
+      return;
+    }
+  }
+
   const typeLabel: Record<string, string> = {
-    ENTRY: "Entrée", OUT: "Sortie", SALE: "Vente", ADJUST: "Ajustement",
+    ENTRY: "Entrée",
+    OUT: "Sortie",
+    SALE: "Vente",
+    ADJUST: "Ajustement",
   };
 
   const rows = movements.map((m) => ({
-    "Date": fmtDateTime(m.createdAt),
-    "Produit": m.product?.name || "-",
-    "Type": typeLabel[m.type] || m.type,
-    "Quantité": m.type === "OUT" || m.type === "SALE" ? -m.quantity : m.quantity,
+    Date: fmtDateTime(m.createdAt),
+    Produit: m.product?.name || "-",
+    Type: typeLabel[m.type] || m.type,
+    Quantité: m.type === "OUT" || m.type === "SALE" ? -m.quantity : m.quantity,
     "Coût unitaire (FCFA)": m.unitCost || "",
-    "Fournisseur": (m.supplier as any)?.name || "",
-    "Utilisateur": m.user?.name || "",
-    "Note": m.note || "",
+    Fournisseur: (m.supplier as any)?.name || "",
+    Utilisateur: m.user?.name || "",
+    Note: m.note || "",
   }));
 
   const ws = XLSX.utils.json_to_sheet(rows);
   ws["!cols"] = [
-    { wch: 18 }, { wch: 25 }, { wch: 12 }, { wch: 10 },
-    { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 25 },
+    { wch: 18 },
+    { wch: 25 },
+    { wch: 12 },
+    { wch: 10 },
+    { wch: 18 },
+    { wch: 20 },
+    { wch: 18 },
+    { wch: 25 },
   ];
 
   const wb = XLSX.utils.book_new();
@@ -114,23 +165,42 @@ export function exportStockToExcel(movements: StockMovement[], shopName: string)
 }
 
 // ── Export clients ────────────────────────────────────────────
-export function exportClientsToExcel(clients: Client[], shopName: string) {
+export function exportClientsToExcel(clients: Client[], user: AuthUser) {
+  const shopName = user?.shopName || "Boutique";
+  const ShoPlan = user.plan;
+  if (ShoPlan) {
+    if (ShoPlan === "FREE") {
+      toast.error(
+        "Votre plan actuel ne vous permet pas d'exporter la list de vos client",
+      );
+
+      return;
+    }
+  }
+
   const rows = clients.map((c) => ({
-    "Nom": c.name,
-    "Téléphone": c.phone,
-    "Email": c.email || "",
-    "Adresse": c.address || "",
+    Nom: c.name,
+    Téléphone: c.phone,
+    Email: c.email || "",
+    Adresse: c.address || "",
     "Total achats (FCFA)": c.totalPurchases || 0,
     "Total payé (FCFA)": c.totalPaid || 0,
     "Reste à payer (FCFA)": c.totalRemaining || 0,
-    "Statut": (c.totalRemaining || 0) > 0 ? "Débiteur" : "À jour",
+    Statut: (c.totalRemaining || 0) > 0 ? "Débiteur" : "À jour",
     "Membre depuis": fmtDate(c.createdAt),
   }));
 
   const ws = XLSX.utils.json_to_sheet(rows);
   ws["!cols"] = [
-    { wch: 22 }, { wch: 15 }, { wch: 25 }, { wch: 20 },
-    { wch: 20 }, { wch: 18 }, { wch: 20 }, { wch: 12 }, { wch: 16 },
+    { wch: 22 },
+    { wch: 15 },
+    { wch: 25 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 18 },
+    { wch: 20 },
+    { wch: 12 },
+    { wch: 16 },
   ];
 
   const wb = XLSX.utils.book_new();
@@ -141,22 +211,31 @@ export function exportClientsToExcel(clients: Client[], shopName: string) {
 }
 
 // ── Export fournisseurs ───────────────────────────────────────
-export function exportSuppliersToExcel(suppliers: Supplier[], shopName: string) {
+export function exportSuppliersToExcel(
+  suppliers: Supplier[],
+  shopName: string,
+) {
   const rows = suppliers.map((s) => ({
-    "Nom": s.name,
-    "Téléphone": s.phone || "",
-    "Email": s.email || "",
-    "Adresse": s.address || "",
+    Nom: s.name,
+    Téléphone: s.phone || "",
+    Email: s.email || "",
+    Adresse: s.address || "",
     "Total achats (FCFA)": (s as any).totalPurchases || 0,
     "Total payé (FCFA)": (s as any).totalPaid || 0,
     "Reste dû (FCFA)": s.totalDebt || 0,
-    "Statut": (s.totalDebt || 0) > 0 ? "Dette en cours" : "Soldé",
+    Statut: (s.totalDebt || 0) > 0 ? "Dette en cours" : "Soldé",
   }));
 
   const ws = XLSX.utils.json_to_sheet(rows);
   ws["!cols"] = [
-    { wch: 22 }, { wch: 15 }, { wch: 25 }, { wch: 20 },
-    { wch: 20 }, { wch: 18 }, { wch: 16 }, { wch: 16 },
+    { wch: 22 },
+    { wch: 15 },
+    { wch: 25 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 18 },
+    { wch: 16 },
+    { wch: 16 },
   ];
 
   const wb = XLSX.utils.book_new();

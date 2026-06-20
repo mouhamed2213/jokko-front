@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import type { Plan } from "../pages/superAdmin/SuperAdmin";
+import type { AuthUser } from "../types/auth";
 import type { CashRegister, CashTransaction, Sale } from "../types/index";
 
 const fmtAmount = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
@@ -17,22 +17,19 @@ const fmtTime = (d: string) =>
   });
 
 // ── Rapport de caisse journalier en PDF ───────────────────────
-export function exportCashReportPDF(
-  session: CashRegister,
-  shopName: string,
-  plan?: Plan,
-) {
-  if (plan) {
-    
+export function exportCashReportPDF(session: CashRegister, user: AuthUser) {
+  const shopPlan = user.plan;
+  const shopName = user.shopName || "Boutique";
 
-    //  Export ;imitation for FREE user
-    if (session.status === "CLOSED" && plan === "FREE") {
-          toast.error("Votre plan actuel ne vous permet pas d'exporter l'historique des caisses déjà clôturées.");
+  if (shopPlan) {
+    if (session.status === "CLOSED" && shopPlan === "FREE") {
+      toast.error(
+        "Votre plan actuel ne vous permet pas d'exporter l'historique des caisses déjà clôturées.",
+      );
 
       return;
     }
   }
-
 
   const balance =
     session.closingAmount ??
@@ -220,9 +217,21 @@ export function exportCashReportPDF(
 // ── Rapport des ventes en PDF ─────────────────────────────────
 export function exportSalesPDF(
   sales: Sale[],
-  shopName: string,
+  user: AuthUser,
   period?: string,
 ) {
+  const shopName = user?.shopName || "Boutique";
+  const ShopPlan = user.plan;
+  if (ShopPlan) {
+    if (ShopPlan === "FREE") {
+      toast.error(
+        "Votre plan actuel ne vous permet pas d'exporter la list de vos client",
+      );
+
+      return;
+    }
+  }
+
   const totalCA = sales.reduce((s, v) => s + v.totalAmount, 0);
   const totalPaid = sales.reduce((s, v) => s + v.paidAmount, 0);
   const totalRemaining = sales.reduce((s, v) => s + v.remaining, 0);
