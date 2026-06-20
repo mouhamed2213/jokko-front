@@ -237,6 +237,11 @@ export default function Cash() {
     }));
   };
 
+  if (!user) {
+    toast.error("User Not found");
+    return;
+  }
+
   if (loading)
     return (
       <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
@@ -542,9 +547,7 @@ export default function Cash() {
             </button>
             {cr && (
               <button
-                onClick={() =>
-                  exportCashReportPDF(cr, user?.shopName || "Boutique")
-                }
+                onClick={() => exportCashReportPDF(cr, user)}
                 className="flex items-center gap-2 rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
               >
                 <Download size={15} /> Rapport PDF
@@ -790,11 +793,7 @@ export default function Cash() {
 
                         // Comportement normal pour les plans payants
                         if (sessionDetail[session.id]) {
-                          exportCashReportPDF(
-                            sessionDetail[session.id],
-                            user?.shopName || "Boutique",
-                            shopPlan,
-                          );
+                          exportCashReportPDF(sessionDetail[session.id], user);
                         } else {
                           loadSessionDetail(session.id);
                           toast("Cliquez à nouveau pour télécharger", {
