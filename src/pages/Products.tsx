@@ -22,7 +22,7 @@ import {
   getSuppliers,
   updateProduct,
 } from "../services/index";
-import { isAdmin } from "../types/auth";
+import { getStoredUser, isAdmin } from "../types/auth";
 import type { Category, Product, Supplier } from "../types/index";
 
 const emptyForm = {
@@ -49,6 +49,8 @@ const emptySupplierForm = {
 const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
 export default function Products() {
+  const user = getStoredUser();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -76,7 +78,6 @@ export default function Products() {
 
   const admin = isAdmin();
   const limiteReached = totalProducts >= 50 ? true : false;
-
 
   const fetchData = async () => {
     setLoading(true);
@@ -935,7 +936,7 @@ export default function Products() {
                     </div>
                   )}
                   {/* Badge stock */}
-                  {(isLow || isOut) && (
+                  {(isLow || isOut) && user?.plan !== "FREE" && (
                     <div
                       className={`absolute top-2 right-2 flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${isOut ? "bg-red-500 text-white" : "bg-yellow-400 text-yellow-900"}`}
                     >
@@ -999,21 +1000,23 @@ export default function Products() {
                     )}
                   </div>
 
-                  <div
-                    className={`rounded-lg px-3 py-2 text-xs font-medium ${
-                      isOut
-                        ? "bg-red-100 text-red-700"
+                  {user?.plan !== "FREE" ? (
+                    <div
+                      className={`rounded-lg px-3 py-2 text-xs font-medium ${
+                        isOut
+                          ? "bg-red-100 text-red-700"
+                          : isLow
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {isOut
+                        ? "Rupture de stock"
                         : isLow
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
-                    {isOut
-                      ? "Rupture de stock"
-                      : isLow
-                        ? `⚠ Stock faible — ${product.quantity} restant(s)`
-                        : `Stock : ${product.quantity} unité(s)`}
-                  </div>
+                          ? `⚠ Stock faible — ${product.quantity} restant(s)`
+                          : `Stock : ${product.quantity} unité(s)`}
+                    </div>
+                  ) : null}
 
                   {admin && (
                     <div className="flex gap-2 pt-1">
@@ -1073,8 +1076,8 @@ export default function Products() {
                 Limite de Catalogue Atteinte
               </h3>
               <p className="mt-2 text-sm text-gray-500">
-                Le plan gratuit est limité à un maximum de 50 produits. Passez au
-                plan supérieur pour continuer à agrandir votre catalogue.
+                Le plan gratuit est limité à un maximum de 50 produits. Passez
+                au plan supérieur pour continuer à agrandir votre catalogue.
               </p>
             </div>
 

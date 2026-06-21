@@ -1,12 +1,24 @@
-import { useState, useRef, useEffect } from "react";
-import { Bell, X, AlertTriangle, Ban, Wifi, WifiOff } from "lucide-react";
-import { useNotifications } from "../hooks/useNotifications";
+import {
+  AlertTriangle,
+  Ban,
+  Bell,
+  Crown,
+  Wifi,
+  WifiOff,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useNotifications } from "../hooks/useNotifications";
+import { getStoredUser } from "../types/auth";
 
 export default function NotificationBell() {
   const { alerts, connected } = useNotifications();
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const user = getStoredUser();
+  const plan = user?.plan;
+
   const navigate = useNavigate();
 
   // Fermer le panel si clic à l'extérieur
@@ -32,14 +44,16 @@ export default function NotificationBell() {
         <Bell size={18} />
 
         {/* Badge compteur */}
-        {hasAlerts && (
+        {hasAlerts && plan !== "FREE" && (
           <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white animate-pulse">
             {alerts.total > 9 ? "9+" : alerts.total}
           </span>
         )}
 
         {/* Indicateur connexion SSE */}
-        <span className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white ${connected ? "bg-emerald-400" : "bg-gray-400"}`} />
+        <span
+          className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white ${connected ? "bg-emerald-400" : "bg-gray-400"}`}
+        />
       </button>
 
       {/* Panel notifications */}
@@ -50,18 +64,28 @@ export default function NotificationBell() {
             <div className="flex items-center gap-2">
               <Bell size={16} />
               <span className="text-sm font-semibold">Alertes stock</span>
-              {hasAlerts && (
+              {hasAlerts && plan !== "FREE" && (
                 <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold">
                   {alerts.total}
                 </span>
               )}
             </div>
             <div className="flex items-center gap-2">
-              {connected
-                ? <><Wifi size={12} className="text-emerald-400" /><span className="text-xs text-emerald-400">En direct</span></>
-                : <><WifiOff size={12} className="text-gray-400" /><span className="text-xs text-gray-400">Reconnexion...</span></>
-              }
-              <button onClick={() => setOpen(false)} className="ml-2 text-white/60 hover:text-white">
+              {connected ? (
+                <>
+                  <Wifi size={12} className="text-emerald-400" />
+                  <span className="text-xs text-emerald-400">En direct</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff size={12} className="text-gray-400" />
+                  <span className="text-xs text-gray-400">Reconnexion...</span>
+                </>
+              )}
+              <button
+                onClick={() => setOpen(false)}
+                className="ml-2 text-white/60 hover:text-white"
+              >
                 <X size={16} />
               </button>
             </div>
@@ -69,21 +93,24 @@ export default function NotificationBell() {
 
           {/* Contenu */}
           <div className="max-h-96 overflow-y-auto">
-            {!hasAlerts ? (
+            {!hasAlerts && plan !== "FREE" ? (
               <div className="flex flex-col items-center gap-3 py-8 text-center px-4">
                 <div className="rounded-full bg-emerald-100 p-3">
                   <Bell size={20} className="text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-700">Tout est en ordre ✅</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Aucune alerte de stock.</p>
+                  <p className="text-sm font-medium text-slate-700">
+                    Tout est en ordre ✅
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Aucune alerte de stock.
+                  </p>
                 </div>
               </div>
             ) : (
               <div className="divide-y divide-gray-100">
-
                 {/* Ruptures */}
-                {alerts.outOfStock.length > 0 && (
+                {alerts.outOfStock.length > 0 && plan !== "FREE" && (
                   <div>
                     <div className="flex items-center gap-2 bg-red-50 px-4 py-2">
                       <Ban size={13} className="text-red-500" />
@@ -92,14 +119,21 @@ export default function NotificationBell() {
                       </span>
                     </div>
                     {alerts.outOfStock.map((p) => (
-                      <div key={p.id}
-                        onClick={() => { navigate("/stock"); setOpen(false); }}
-                        className="flex items-center justify-between px-4 py-3 hover:bg-red-50 cursor-pointer transition">
+                      <div
+                        key={p.id}
+                        onClick={() => {
+                          navigate("/stock");
+                          setOpen(false);
+                        }}
+                        className="flex items-center justify-between px-4 py-3 hover:bg-red-50 cursor-pointer transition"
+                      >
                         <div className="flex items-center gap-2">
                           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-600">
                             {p.name.charAt(0).toUpperCase()}
                           </div>
-                          <span className="text-sm font-medium text-slate-800 truncate max-w-40">{p.name}</span>
+                          <span className="text-sm font-medium text-slate-800 truncate max-w-40">
+                            {p.name}
+                          </span>
                         </div>
                         <span className="shrink-0 rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600">
                           0 unité
@@ -110,7 +144,7 @@ export default function NotificationBell() {
                 )}
 
                 {/* Stock faible */}
-                {alerts.lowStock.length > 0 && (
+                {alerts.lowStock.length > 0 && plan !== "FREE" && (
                   <div>
                     <div className="flex items-center gap-2 bg-yellow-50 px-4 py-2">
                       <AlertTriangle size={13} className="text-yellow-600" />
@@ -119,14 +153,21 @@ export default function NotificationBell() {
                       </span>
                     </div>
                     {alerts.lowStock.map((p) => (
-                      <div key={p.id}
-                        onClick={() => { navigate("/stock"); setOpen(false); }}
-                        className="flex items-center justify-between px-4 py-3 hover:bg-yellow-50 cursor-pointer transition">
+                      <div
+                        key={p.id}
+                        onClick={() => {
+                          navigate("/stock");
+                          setOpen(false);
+                        }}
+                        className="flex items-center justify-between px-4 py-3 hover:bg-yellow-50 cursor-pointer transition"
+                      >
                         <div className="flex items-center gap-2">
                           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-yellow-100 text-xs font-bold text-yellow-600">
                             {p.name.charAt(0).toUpperCase()}
                           </div>
-                          <span className="text-sm font-medium text-slate-800 truncate max-w-40">{p.name}</span>
+                          <span className="text-sm font-medium text-slate-800 truncate max-w-40">
+                            {p.name}
+                          </span>
                         </div>
                         <span className="shrink-0 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-600">
                           {p.quantity} restant{p.quantity > 1 ? "s" : ""}
@@ -140,10 +181,13 @@ export default function NotificationBell() {
           </div>
 
           {/* Footer */}
-          {hasAlerts && (
+          {hasAlerts && plan !== "FREE" && (
             <div className="border-t border-gray-100 px-4 py-3 space-y-2">
               <button
-                onClick={() => { navigate("/stock"); setOpen(false); }}
+                onClick={() => {
+                  navigate("/stock");
+                  setOpen(false);
+                }}
                 className="w-full rounded-xl bg-slate-900 py-2 text-xs font-medium text-white hover:opacity-90 transition"
               >
                 Gérer le stock →
@@ -153,6 +197,27 @@ export default function NotificationBell() {
                   Mis à jour à {alerts.lastUpdate.toLocaleTimeString("fr-FR")}
                 </p>
               )}
+            </div>
+          )}
+          {plan === "FREE" && (
+            <div className="border-t border-gray-100 px-4 py-3 space-y-2">
+              {/* Petit message discret au-dessus du bouton */}
+              <p className="text-[11px] text-center text-gray-500">
+                Passez au plan supérieur pour débloquer les alertes et
+                notifications avancées.
+              </p>
+
+              <button
+                onClick={() => {
+                  // Redirige vers ta page de tarification / abonnements
+                  navigate("/settings/plans"); // Ajuste le chemin selon tes routes
+                  setOpen(false);
+                }}
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-linear-to-r from-amber-500 to-amber-600 py-2.5 text-xs font-semibold text-white shadow-sm hover:from-amber-600 hover:to-amber-700 transition animate-pulse"
+              >
+                <Crown size={12} />
+                <span>S'abonner au Plan Basic</span>
+              </button>
             </div>
           )}
         </div>
