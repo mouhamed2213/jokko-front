@@ -203,6 +203,16 @@ export type DashboardStats = {
   }[];
 };
 
+// export type DashboardStatsValue = keyof DashboardStats;
+export type DashboardStatType =
+  {
+    [K in keyof DashboardStats]: {
+      type: K;
+      value : DashboardStats[K]
+    }
+  }[keyof DashboardStats];
+
+
 // ============================================================
 //  types/shop.ts
 // ============================================================

@@ -50,7 +50,6 @@ const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
 export default function Products() {
   const user = getStoredUser();
-
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -103,6 +102,8 @@ export default function Products() {
   useEffect(() => {
     fetchData();
   }, [search, categoryFilter, page]);
+
+
 
   const totalCost =
     supplierForm.unitCost > 0 && form.quantity > 0
