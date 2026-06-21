@@ -1,5 +1,5 @@
 import { Toaster } from "react-hot-toast";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
@@ -8,6 +8,7 @@ import Cash from "./pages/Cash";
 import Clients from "./pages/Clients";
 import Dashboard from "./pages/Dashboard";
 import Invoices from "./pages/Invoices";
+import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Products from "./pages/Products";
 import Sales from "./pages/Sales";
@@ -18,6 +19,8 @@ import Suppliers from "./pages/Suppliers";
 import Users from "./pages/Users";
 
 export default function App() {
+  const isAuthenticated = !!localStorage.getItem("token");
+
   return (
     <BrowserRouter>
       <Toaster
@@ -28,11 +31,26 @@ export default function App() {
         }}
       />
       <Routes>
+        {/* Public routes */}
+        <Route path="/home" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/super-admin" element={<SuperAdmin />} />
 
+        {/* Root route - landing if not authenticated, dashboard if authenticated */}
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <LandingPage />
+            )
+          }
+        />
+
+        {/* Protected dashboard routes */}
         <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/products" element={<Products />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/suppliers" element={<Suppliers />} />

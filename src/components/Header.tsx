@@ -4,7 +4,7 @@ import { getStoredUser } from "../types/auth";
 import NotificationBell from "./NotificationBell";
 
 const pageConfig: Record<string, { title: string; description: string }> = {
-  "/":          { title: "Tableau de bord",  description: "Vue d'ensemble de votre activité." },
+  "/dashboard":  { title: "Tableau de bord",  description: "Vue d'ensemble de votre activité." },
   "/products":  { title: "Produits",         description: "Gérez vos produits et alertes de stock." },
   "/clients":   { title: "Clients",          description: "Gérez vos clients et suivez leurs comptes." },
   "/suppliers": { title: "Fournisseurs",     description: "Gérez vos fournisseurs et dettes." },

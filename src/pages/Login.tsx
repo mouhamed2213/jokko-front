@@ -11,7 +11,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem("token")) navigate("/", { replace: true });
+    if (localStorage.getItem("token")) navigate("/dashboard", { replace: true });
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,7 +35,7 @@ export default function Login() {
       } catch { /* pas grave si ça échoue */ }
 
       toast.success("Connexion réussie");
-      navigate("/", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Email ou mot de passe incorrect");
     } finally {

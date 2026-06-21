@@ -8,16 +8,16 @@ import { NavLink } from "react-router-dom";
 import logo from "../assets/logo.svg";
 
 const allLinks = [
-  { name: "Tableau de bord", path: "/",         icon: LayoutDashboard, adminOnly: false },
-  { name: "Caisse",          path: "/cash",      icon: Wallet,          adminOnly: false },
-  { name: "Produits",        path: "/products",  icon: Package,         adminOnly: false },
-  { name: "Clients",         path: "/clients",   icon: Users,           adminOnly: false },
-  { name: "Fournisseurs",    path: "/suppliers", icon: Truck,           adminOnly: false },
-  { name: "Stock",           path: "/stock",     icon: Boxes,           adminOnly: false },
-  { name: "Ventes",          path: "/sales",     icon: ShoppingCart,    adminOnly: false },
-  { name: "Factures",        path: "/invoices",  icon: FileText,        adminOnly: false },
-  { name: "Utilisateurs",    path: "/users",     icon: UserCog,         adminOnly: true  },
-  { name: "Paramètres",      path: "/settings",  icon: Settings,        adminOnly: true  },
+  { name: "Tableau de bord", path: "/dashboard",  icon: LayoutDashboard, adminOnly: false },
+  { name: "Caisse",          path: "/cash",       icon: Wallet,          adminOnly: false },
+  { name: "Produits",        path: "/products",   icon: Package,         adminOnly: false },
+  { name: "Clients",         path: "/clients",    icon: Users,           adminOnly: false },
+  { name: "Fournisseurs",    path: "/suppliers",  icon: Truck,           adminOnly: false },
+  { name: "Stock",           path: "/stock",      icon: Boxes,           adminOnly: false },
+  { name: "Ventes",          path: "/sales",      icon: ShoppingCart,    adminOnly: false },
+  { name: "Factures",        path: "/invoices",   icon: FileText,        adminOnly: false },
+  { name: "Utilisateurs",    path: "/users",      icon: UserCog,         adminOnly: true  },
+  { name: "Paramètres",      path: "/settings",   icon: Settings,        adminOnly: true  },
 ];
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
@@ -65,7 +65,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         {links.map((link) => {
           const Icon = link.icon;
           return (
-            <NavLink key={link.path} to={link.path} onClick={onClose} end={link.path === "/"}
+            <NavLink key={link.path} to={link.path} onClick={onClose} end={link.path === "/dashboard"}
               className={({ isActive }) =>
                 `group flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                   isActive ? "bg-white text-slate-900" : "text-white/70 hover:bg-white/10 hover:text-white"
