@@ -1,5 +1,9 @@
-import { Navigate } from "react-router-dom";
 import type { ReactElement } from "react";
+import { Navigate } from "react-router-dom";
+import { getStoredUser } from "../types/auth";
+type Props = {
+  children: React.ReactNode;
+};
 
 export default function ProtectedRoute({
   children,
@@ -13,4 +17,18 @@ export default function ProtectedRoute({
   }
 
   return children;
+}
+
+export function SubscriptionGuard({ children }: Props) {
+  const user = getStoredUser();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.plan === "FREE" || user.plan === "BASIC") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
 }

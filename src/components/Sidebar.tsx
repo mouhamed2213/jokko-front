@@ -16,15 +16,26 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import logo from "../assets/logo.svg";
 
 const allLinks = [
-  { name: "Tableau de bord", path: "/dashboard", icon: LayoutDashboard, adminOnly: false },
+  {
+    name: "Tableau de bord",
+    path: "/dashboard",
+    icon: LayoutDashboard,
+    adminOnly: false,
+  },
   { name: "Caisse", path: "/cash", icon: Wallet, adminOnly: false },
   { name: "Produits", path: "/products", icon: Package, adminOnly: false },
   { name: "Clients", path: "/clients", icon: Users, adminOnly: false },
-  { name: "Fournisseurs", path: "/suppliers", icon: Truck, adminOnly: false, premium: true }, // Marqué comme premium
+  {
+    name: "Fournisseurs",
+    path: "/suppliers",
+    icon: Truck,
+    adminOnly: false,
+    premium: true,
+  }, // Marqué comme premium
   { name: "Stock", path: "/stock", icon: Boxes, adminOnly: false },
   { name: "Ventes", path: "/sales", icon: ShoppingCart, adminOnly: false },
   { name: "Factures", path: "/invoices", icon: FileText, adminOnly: false },
@@ -32,15 +43,27 @@ const allLinks = [
   { name: "Paramètres", path: "/settings", icon: Settings, adminOnly: true },
 ];
 
-function SidebarContent({ onClose, onUpgradeClick }: { onClose?: () => void; onUpgradeClick: () => void }) {
-  const navigate = useNavigate();
+const isPremium = ["BASIC", "FREE"];
+
+function SidebarContent({
+  onClose,
+  onUpgradeClick,
+}: {
+  onClose?: () => void;
+  onUpgradeClick: () => void;
+}) {
+  // const navigate = useNavigate();
   const role = JSON.parse(localStorage.getItem("user") || "{}").role;
   const plan = JSON.parse(localStorage.getItem("user") || "{}").plan;
 
   const links = allLinks.filter((l) => !l.adminOnly || role === "ADMIN");
 
-  const [shopLogo, setShopLogo] = useState<string>(localStorage.getItem("shopLogo") || "");
-  const shopName = JSON.parse(localStorage.getItem("user") || "{}").shopName || "Jokko Business";
+  const [shopLogo, setShopLogo] = useState<string>(
+    localStorage.getItem("shopLogo") || "",
+  );
+  const shopName =
+    JSON.parse(localStorage.getItem("user") || "{}").shopName ||
+    "Jokko Business";
 
   useEffect(() => {
     const handler = () => setShopLogo(localStorage.getItem("shopLogo") || "");
@@ -59,7 +82,9 @@ function SidebarContent({ onClose, onUpgradeClick }: { onClose?: () => void; onU
               className="h-10 w-10 rounded-xl bg-white object-contain p-1"
             />
             <div>
-              <h1 className="text-lg font-bold truncate max-w-32.5">{shopName}</h1>
+              <h1 className="text-lg font-bold truncate max-w-32.5">
+                {shopName}
+              </h1>
               <p className="text-xs text-white/50">Gestion commerciale</p>
             </div>
           </div>
@@ -78,7 +103,7 @@ function SidebarContent({ onClose, onUpgradeClick }: { onClose?: () => void; onU
       <nav className="flex-1 space-y-0.5 px-3 py-4 overflow-y-auto">
         {links.map((link) => {
           const Icon = link.icon;
-          const isLocked = link.premium && plan === "FREE";
+          const isLocked = link.premium && isPremium.includes(plan);
 
           // Si la route est bloquée pour le plan FREE, on utilise un bouton au lieu d'un NavLink
           if (isLocked) {
@@ -122,7 +147,10 @@ function SidebarContent({ onClose, onUpgradeClick }: { onClose?: () => void; onU
                 <Icon size={17} />
                 <span>{link.name}</span>
               </div>
-              <ChevronRight size={14} className="opacity-30 group-hover:opacity-60" />
+              <ChevronRight
+                size={14}
+                className="opacity-30 group-hover:opacity-60"
+              />
             </NavLink>
           );
         })}

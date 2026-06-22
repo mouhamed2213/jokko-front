@@ -1,7 +1,7 @@
 import { Toaster } from "react-hot-toast";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute, { SubscriptionGuard } from "./components/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
 
 import Cash from "./pages/Cash";
@@ -49,11 +49,24 @@ export default function App() {
         />
 
         {/* Protected dashboard routes */}
-        <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+        <Route
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/products" element={<Products />} />
           <Route path="/clients" element={<Clients />} />
-          <Route path="/suppliers" element={<Suppliers />} />
+          <Route
+            path="/suppliers"
+            element={
+              <SubscriptionGuard>
+                <Suppliers />
+              </SubscriptionGuard>
+            }
+          />
           <Route path="/stock" element={<Stock />} />
           <Route path="/sales" element={<Sales />} />
           <Route path="/invoices" element={<Invoices />} />
