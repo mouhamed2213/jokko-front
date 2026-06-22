@@ -1,4 +1,4 @@
-import { Download, Lock, Plus, Printer, Search, X } from "lucide-react";
+import { Crown, Download, Lock, Plus, Printer, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import PaymentMethodSelect from "../components/Paymentmethodselect";
@@ -421,7 +421,7 @@ export default function Sales() {
             ) : (
               <Download size={15} />
             )}
-            <span>Excel</span>
+            <span>PDF</span>
           </button>
         </div>
       </div>

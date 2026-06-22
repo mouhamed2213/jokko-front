@@ -674,7 +674,7 @@ export default function Invoices() {
                                 Format A4
                                 {user?.plan === "FREE" && (
                                   <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-md font-semibold">
-                                    Pro
+                                    FBasic
                                   </span>
                                 )}
                               </p>
@@ -774,14 +774,14 @@ export default function Invoices() {
               </p>
               <ul className="space-y-2 text-sm text-slate-700">
                 <li className="flex items-center gap-2">
-                  📄 Factures <b>Format A4</b> 
+                  📄 Factures <b>Format A4</b>
                 </li>
                 <li className="flex items-center gap-2">
                   📊 Historique des caisses et exports Excel (Ventes, Stocks,
                   Clients) <b>illimités</b>
                 </li>
                 <li className="flex items-center gap-2">
-                  🚀 Suppression définitive du quota de  ventes mensuelles
+                  🚀 Suppression définitive du quota de ventes mensuelles
                 </li>
               </ul>
             </div>
