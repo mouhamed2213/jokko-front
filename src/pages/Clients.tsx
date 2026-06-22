@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   ChevronDown,
   ChevronUp,
   Download,
@@ -35,13 +36,27 @@ export default function Clients() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const admin = isAdmin();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-
+  const [limitCostumer, setLimitCostumer] = useState<number | null>(null);
   const shopPlan = user?.plan;
+  const maxCustomers = 50;
+
+  // Calcul des seuils critiques
+  const isLimitCustomerReached =
+    shopPlan === "FREE" &&
+    limitCostumer !== null &&
+    limitCostumer >= maxCustomers;
+  const isApproachingLimit =
+    shopPlan === "FREE" &&
+    limitCostumer !== null &&
+    limitCostumer >= maxCustomers - 10 &&
+    limitCostumer < maxCustomers;
+
   const fetchClients = async () => {
     try {
-      const data = await getClients();
-      setClients(data);
-      setFiltered(data);
+      const { client, customerCount } = await getClients();
+      setClients(client);
+      setFiltered(client);
+      setLimitCostumer(customerCount);
     } catch {
       toast.error("Erreur chargement clients");
     } finally {
@@ -121,6 +136,47 @@ export default function Clients() {
 
   return (
     <section className="space-y-6">
+      {/* 1. Message si la limite est atteinte */}
+      {isLimitCustomerReached && (
+        <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={18} className="text-red-600 shrink-0" />
+            <span>
+              <b>Limite atteinte !</b> Vous avez enregistré {limitCostumer}/
+              {maxCustomers} clients. Passez au Plan Basic pour obtenir un
+              carnet d'adresses illimité.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsUpgradeModalOpen(true)}
+            className="text-xs font-bold underline uppercase tracking-wider text-red-950 hover:text-red-900 transition shrink-0"
+          >
+            Augmenter la limite
+          </button>
+        </div>
+      )}
+
+      {/* 2. Message préventif (approche de la limite) */}
+      {isApproachingLimit && (
+        <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={18} className="text-amber-600 shrink-0" />
+            <span>
+              <b>Attention :</b> Il ne vous reste plus que{" "}
+              <b>{maxCustomers - limitCostumer}</b> places disponibles dans
+              votre carnet clients gratuit ({limitCostumer}/{maxCustomers}).
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsUpgradeModalOpen(true)}
+            className="text-xs font-bold underline uppercase tracking-wider text-amber-950 hover:text-amber-900 transition shrink-0"
+          >
+            Passer au Plan Basic
+          </button>
+        </div>
+      )}
       {/* Barre actions */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-50">

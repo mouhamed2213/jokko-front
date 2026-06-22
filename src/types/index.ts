@@ -39,6 +39,7 @@ export type Category = {
 //  types/client.ts
 // ============================================================
 export type Client = {
+  // data: {
   id: number;
   shopId: number;
   name: string;
@@ -49,6 +50,8 @@ export type Client = {
   totalPurchases?: number;
   totalPaid?: number;
   totalRemaining?: number;
+  // };
+  customerCount: number | null;
 };
 
 // ============================================================

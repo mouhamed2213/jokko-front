@@ -90,7 +90,14 @@ export const deleteCategory = async (id: number): Promise<void> => { await api.d
 
 // ── Clients ───────────────────────────────────────────────────
 export type ClientPayload = { name: string; phone: string; email?: string; address?: string };
-export const getClients = async (): Promise<Client[]> => (await api.get("/clients")).data;
+export const getClients = async (): Promise<{
+  client: Client[];
+  customerCount: number;
+}> => {
+  const data = (await api.get("/clients")).data;
+
+  return { client: data.data, customerCount: data.customerCount };
+};
 export const getClientById = async (id: number) => (await api.get(`/clients/${id}`)).data;
 export const createClient = async (payload: ClientPayload): Promise<Client> => (await api.post("/clients", payload)).data.client;
 export const updateClient = async (id: number, payload: ClientPayload): Promise<Client> => (await api.put(`/clients/${id}`, payload)).data.client;
