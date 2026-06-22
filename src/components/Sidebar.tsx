@@ -42,8 +42,7 @@ const allLinks = [
   { name: "Utilisateurs", path: "/users", icon: UserCog, adminOnly: true },
   { name: "Paramètres", path: "/settings", icon: Settings, adminOnly: true },
 ];
-
-const isPremium = ["BASIC", "FREE"];
+const notAllowedPlan = ["BASIC", "FREE"];
 
 function SidebarContent({
   onClose,
@@ -103,7 +102,7 @@ function SidebarContent({
       <nav className="flex-1 space-y-0.5 px-3 py-4 overflow-y-auto">
         {links.map((link) => {
           const Icon = link.icon;
-          const isLocked = link.premium && isPremium.includes(plan);
+          const isLocked = link.premium && notAllowedPlan.includes(plan);
 
           // Si la route est bloquée pour le plan FREE, on utilise un bouton au lieu d'un NavLink
           if (isLocked) {
