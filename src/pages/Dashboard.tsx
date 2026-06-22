@@ -5,6 +5,7 @@ import {
   Boxes,
   CreditCard,
   Crown,
+  Lock,
   ShoppingCart,
   TrendingUp,
   Truck,
@@ -41,7 +42,7 @@ function StatCard({
     orange: "bg-orange-100 text-orange-700",
   };
 
-  const premiumStats = [
+  const basicStats = [
     "lowStockProducts",
     "outOfStockProducts",
     "customerCredits",
@@ -50,7 +51,11 @@ function StatCard({
     "totalSuppliers",
   ];
   const isLocked =
-    user?.plan === "FREE" && statType && premiumStats.includes(statType);
+    user?.plan === "FREE" && statType && basicStats.includes(statType);
+
+  const isLockedSupplier =
+    user?.plan === "FREE" ||
+    (user?.plan === "BASIC" && statType && statType === "totalSuppliers");
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
@@ -80,10 +85,26 @@ function StatCard({
       </div>
 
       {/* Badge cadenas — positionné en bas à droite, discret */}
-      {isLocked && (
+      {isLocked && user?.plan === "FREE" && (
         <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
           <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md">
-            <Crown size={10} /> Plan Basic
+            {user?.plan === "FREE" && statType !== "totalSuppliers" ? (
+              <>
+                <Lock size={10} /> Plan Basic
+              </>
+            ) : (
+              <>
+                <Crown size={10} /> PRO
+              </>
+            )}
+          </span>
+        </div>
+      )}
+
+      {isLockedSupplier && user?.plan === "BASIC" && (
+        <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
+          <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md">
+            <Crown size={10} /> PRO
           </span>
         </div>
       )}
@@ -286,7 +307,7 @@ export default function Dashboard() {
                   Top 5 produits vendus
                 </span>
                 <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md">
-                  <Crown size={10} /> Plan Basic
+                  <Lock size={10} /> Plan Basic
                 </span>
               </div>
 

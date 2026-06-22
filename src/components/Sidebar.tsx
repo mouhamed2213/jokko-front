@@ -123,7 +123,7 @@ function SidebarContent({
                     Pro
                   </span>
                 </div>
-                <Lock size={13} className="opacity-60" />
+                <Crown size={13} className="opacity-60" />
               </button>
             );
           }
