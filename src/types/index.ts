@@ -198,6 +198,7 @@ export type DashboardStats = {
   totalSupplierDebt: number;
   cashOpen: boolean;
   currentBalance: number | null;
+  currentMonthSalesAmount: number;
   topProducts: {
     productId: number | null;
     productName: string;

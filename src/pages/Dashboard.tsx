@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { getDashboardStats } from "../services/index";
 import { getStoredUser } from "../types/auth";
 import type { DashboardStats } from "../types/index";
+
 function StatCard({
   statType,
   user,
@@ -28,7 +29,7 @@ function StatCard({
   statType?: string;
   user?: any;
   title: string;
-  value: string | number;
+  value: any;
   subtitle: string;
   icon: React.ReactNode;
   color?: "slate" | "emerald" | "yellow" | "red" | "blue" | "orange";
@@ -50,12 +51,14 @@ function StatCard({
     "stockValue",
     "totalSuppliers",
   ];
+
+  const shopPlan = user?.plan;
   const isLocked =
-    user?.plan === "FREE" && statType && basicStats.includes(statType);
+    shopPlan === "FREE" && statType && basicStats.includes(statType);
 
   const isLockedSupplier =
-    user?.plan === "FREE" ||
-    (user?.plan === "BASIC" && statType && statType === "totalSuppliers");
+    shopPlan === "FREE" ||
+    (shopPlan === "BASIC" && statType && statType === "totalSuppliers");
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
@@ -65,13 +68,13 @@ function StatCard({
           <p className="text-sm font-medium text-gray-500">{title}</p>
 
           {/* Valeur : blurrée si locked */}
-          <h3
+          <div
             className={`mt-2 text-2xl font-bold text-slate-900 transition-all ${
               isLocked ? "blur-sm select-none text-slate-300" : ""
             }`}
           >
             {isLocked ? "———" : value}
-          </h3>
+          </div>
 
           <p className="mt-1 text-xs text-gray-400">{subtitle}</p>
         </div>
@@ -85,10 +88,10 @@ function StatCard({
       </div>
 
       {/* Badge cadenas — positionné en bas à droite, discret */}
-      {isLocked && user?.plan === "FREE" && (
+      {isLocked && shopPlan === "FREE" && (
         <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
           <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md">
-            {user?.plan === "FREE" && statType !== "totalSuppliers" ? (
+            {shopPlan === "FREE" && statType !== "totalSuppliers" ? (
               <>
                 <Lock size={10} /> Plan Basic
               </>
@@ -101,7 +104,7 @@ function StatCard({
         </div>
       )}
 
-      {isLockedSupplier && user?.plan === "BASIC" && (
+      {isLockedSupplier && shopPlan === "BASIC" && (
         <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
           <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md">
             <Crown size={10} /> PRO
@@ -111,6 +114,7 @@ function StatCard({
     </div>
   );
 }
+
 const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
 export default function Dashboard() {
@@ -118,6 +122,15 @@ export default function Dashboard() {
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false); // Ajout d'un état local pour le modal
+
+  const shopPlan = user?.plan;
+
+  const isLockedSupplier =
+    shopPlan === "FREE" ||
+    (shopPlan === "BASIC");
+
+
 
   useEffect(() => {
     getDashboardStats()
@@ -137,8 +150,59 @@ export default function Dashboard() {
   if (!user) {
     return null;
   }
+
+  // Configurations et calculs des limites de Chiffre d'Affaires
+  const maxMonthlyCA = 1000000;
+  const currentMonthCA = stats?.currentMonthSalesAmount ?? 0;
+  const isFreePlan = shopPlan === "FREE";
+
+  const isCALimitReached = isFreePlan && currentMonthCA >= maxMonthlyCA;
+  const isApproachingCALimit =
+    isFreePlan &&
+    currentMonthCA >= maxMonthlyCA - 150000 &&
+    currentMonthCA < maxMonthlyCA;
+
   return (
     <section className="space-y-6">
+{/* Bandeau : Limite de CA atteinte — Ventes bloquées */}
+{isCALimitReached && (
+  <div className="flex items-center justify-between rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800 animate-in fade-in">
+    <div className="flex items-center gap-2">
+      <AlertTriangle size={18} className="text-red-600 shrink-0" />
+      <span>
+<b>Enregistrement des ventes bloqué !</b> Vous avez atteint la limite maximale de {fmt(maxMonthlyCA)} de vente ce mois-ci pour le plan gratuit. Passez au Plan Basic pour continuer à vendre des produits.      </span>
+    </div>
+    <button 
+      type="button"
+      onClick={() => setIsUpgradeModalOpen(true)}
+      className="text-xs font-bold underline uppercase tracking-wider text-red-950 hover:text-red-900 transition shrink-0 ml-4"
+    >
+      Passer au Plan Basic
+    </button>
+  </div>
+)}
+
+      {/* Bandeau d'alerte : Limite mensuelle proche */}
+      {isApproachingCALimit && (
+        <div className="flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800 animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={18} className="text-amber-600 shrink-0" />
+            <span>
+              <b>Attention :</b> Vous approchez de la limite de chiffre
+              d'affaires du plan gratuit ({fmt(currentMonthCA)} /{" "}
+              {fmt(maxMonthlyCA)}).
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsUpgradeModalOpen(true)}
+            className="text-xs font-bold underline uppercase tracking-wider text-amber-950 hover:text-amber-900 transition shrink-0 ml-4"
+          >
+            Mettre à niveau
+          </button>
+        </div>
+      )}
+
       {/* Alerte caisse fermée */}
       {!stats?.cashOpen && (
         <div className="rounded-2xl bg-yellow-50 border border-yellow-200 px-5 py-4 text-sm text-yellow-800">
@@ -198,7 +262,7 @@ export default function Dashboard() {
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">
           Ventes & Finances
         </h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <StatCard
             title="Total ventes"
             value={stats?.totalSales ?? 0}
@@ -206,13 +270,25 @@ export default function Dashboard() {
             icon={<ShoppingCart size={20} />}
             color="blue"
           />
+
+          {/* 1. CHIFFRE D'AFFAIRES MENSUEL (Soumis à restriction) */}
           <StatCard
-            title="Chiffre d'affaires"
+            title="CA du mois"
+            value={fmt(currentMonthCA)}
+            subtitle={`Limite : ${fmt(maxMonthlyCA)}`}
+            icon={<BarChart3 size={20} />}
+            color={isCALimitReached ? "yellow" : "emerald"}
+          />
+
+          {/* 2. CHIFFRE D'AFFAIRES HISTORIQUE / GLOBAL */}
+          <StatCard
+            title="CA Global"
             value={fmt(stats?.totalSalesAmount ?? 0)}
             subtitle="Montant total facturé"
-            icon={<BarChart3 size={20} />}
+            icon={<TrendingUp size={20} />}
             color="emerald"
           />
+
           <StatCard
             title="Créances clients"
             value={fmt(stats?.totalClientDebt ?? 0)}
@@ -268,14 +344,15 @@ export default function Dashboard() {
             <div className="rounded-xl bg-slate-900 p-4 text-white">
               <p className="text-xs text-white/60">Valeur du stock</p>
               <p className="mt-1 text-xl font-bold">
-                {fmt(stats?.stockValue ?? 0)}
+
+                 {isLockedSupplier ? "———" : fmt(stats?.stockValue ?? 0)}
               </p>
             </div>
             <div className="rounded-xl bg-emerald-50 p-4">
               <p className="text-xs text-emerald-700">
                 Chiffre d'affaires total
               </p>
-              <p className="mt-1 text-xl font-bold text-emerald-800">
+              <p className="mt-1 text-xl font-bold text-emerald-800 flex items-center gap-1.5">
                 {fmt(stats?.totalSalesAmount ?? 0)}
               </p>
             </div>
@@ -297,10 +374,11 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
         {/* Top produits */}
         <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm">
           {/* Overlay Premium transparent avec texte explicatif pour le Top Produits */}
-          {user?.plan === "FREE" && (
+          {shopPlan === "FREE" && (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-end bg-slate-50/85 backdrop-blur-[1px] p-6 text-center select-none">
               <div className="mb-auto flex w-full items-center justify-between border-b border-gray-100 pb-2">
                 <span className="text-sm font-bold text-slate-900">
@@ -315,7 +393,10 @@ export default function Dashboard() {
                 Identifiez vos produits les plus populaires pour mieux gérer vos
                 stocks et maximiser vos ventes.
               </p>
-              <span className="text-xs text-emerald-600 font-semibold hover:underline cursor-pointer">
+              <span
+                onClick={() => setIsUpgradeModalOpen(true)}
+                className="text-xs text-emerald-600 font-semibold hover:underline cursor-pointer"
+              >
                 Débloquer le classement →
               </span>
             </div>
@@ -324,7 +405,7 @@ export default function Dashboard() {
           {/* Contenu du bloc (flouté si l'utilisateur est sur le plan FREE) */}
           <div
             className={
-              user?.plan === "FREE" ? "opacity-10 blur-[2px] select-none" : ""
+              shopPlan === "FREE" ? "opacity-10 blur-[2px] select-none" : ""
             }
           >
             <h3 className="mb-4 text-lg font-bold text-slate-900">

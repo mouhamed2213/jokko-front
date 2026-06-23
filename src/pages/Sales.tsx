@@ -1,4 +1,4 @@
-import { Crown, Download, Lock, Plus, Printer, Search, X } from "lucide-react";
+import { Download, Lock, Plus, Printer, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import PaymentMethodSelect from "../components/Paymentmethodselect";
@@ -90,7 +90,7 @@ export default function Sales() {
       setTotal(salesRes.pagination.total);
       setTotalPages(salesRes.pagination.totalPages);
       setProducts(prods.data);
-      setClients(cls);
+      setClients(cls.client);
     } catch {
       toast.error("Erreur chargement ventes");
     } finally {
