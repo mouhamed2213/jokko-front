@@ -361,7 +361,7 @@ export default function Sales() {
             href="/settings/upgrade"
             className="shrink-0 rounded-xl bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600 transition"
           >
-            Passer au lan Basic →
+            Passer au plan Basic →
           </a>
         </div>
       )}

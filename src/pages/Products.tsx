@@ -19,11 +19,17 @@ import {
   deleteProduct,
   getCategories,
   getProducts,
+  getSubscription,
   getSuppliers,
   updateProduct,
 } from "../services/index";
 import { getStoredUser, isAdmin } from "../types/auth";
-import type { Category, Product, Supplier } from "../types/index";
+import type {
+  Category,
+  Product,
+  SubscriptionInfo,
+  Supplier,
+} from "../types/index";
 
 const emptyForm = {
   name: "",
@@ -50,6 +56,7 @@ const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
 export default function Products() {
   const user = getStoredUser();
+  const [subscription, setSubscription] = useState<SubscriptionInfo>();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -76,11 +83,20 @@ export default function Products() {
   const [totalProducts, setTotalProducts] = useState(0);
 
   const admin = isAdmin();
-  const limiteReached = totalProducts >= 50 ? true : false;
+  // let maxProducts = subscription?.limits.products;
+  let maxProducts = subscription?.limits.products;
+  if (!maxProducts) {
+    maxProducts = 50;
+  }
+  const warningThreshold = Math.floor(maxProducts * 0.8);
+  const isAlmostReached = totalProducts >= warningThreshold;
+  const limiteReached = 50 >= maxProducts;
 
   const fetchData = async () => {
     setLoading(true);
     try {
+      getSubscription().then(setSubscription);
+
       const [prodRes, cats, sups] = await Promise.all([
         getProducts({ search, categoryId: categoryFilter, page, limit: 6 }),
         getCategories(),
@@ -102,8 +118,6 @@ export default function Products() {
   useEffect(() => {
     fetchData();
   }, [search, categoryFilter, page]);
-
-
 
   const totalCost =
     supplierForm.unitCost > 0 && form.quantity > 0
@@ -286,7 +300,7 @@ export default function Products() {
 
   return (
     <section className="space-y-6">
-      {totalProducts > 40 && (
+      {(isAlmostReached || limiteReached) && (
         <div
           className={`mb-4 flex items-center justify-between rounded-xl p-4 text-sm border ${
             limiteReached
@@ -301,20 +315,21 @@ export default function Products() {
             />
             <span>
               {limiteReached
-                ? `Limite atteinte : Vous avez atteint le quota maximum de ${totalProducts}/50 produits du plan gratuit.`
-                : `Attention : Vous approchez de la limite de produits (${totalProducts}/50).`}
+                ? `Limite atteinte : Vous avez atteint le quota maximum de ${totalProducts}/${maxProducts} produits autorisés par votre abonnement.`
+                : `Attention : Vous approchez de la limite de produits (${totalProducts}/${maxProducts}).`}
             </span>
           </div>
-          <button
-            onClick={() => setIsUpgradeModalOpen(true)}
-            className={`text-xs font-bold underline uppercase tracking-wider ${
+
+          <a
+            href="/settings/upgrade"
+            className={
               limiteReached
-                ? "text-red-950 hover:text-red-900"
-                : "text-amber-950 hover:text-amber-900"
-            }`}
+                ? "shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
+                : "shrink-0 rounded-xl bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600 transition"
+            }
           >
-            Augmenter la limite
-          </button>
+            Passer au plan Basic →
+          </a>
         </div>
       )}
       {/* Barre de recherche */}
