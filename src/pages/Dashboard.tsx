@@ -123,14 +123,11 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false); // Ajout d'un état local pour le modal
+  const currentMonthCA = stats?.currentMonthSalesAmount ?? 0;
 
   const shopPlan = user?.plan;
 
-  const isLockedSupplier =
-    shopPlan === "FREE" ||
-    (shopPlan === "BASIC");
-
-
+  const isLockedSupplier = shopPlan === "FREE" || shopPlan === "BASIC";
 
   useEffect(() => {
     getDashboardStats()
@@ -151,58 +148,8 @@ export default function Dashboard() {
     return null;
   }
 
-  // Configurations et calculs des limites de Chiffre d'Affaires
-  const maxMonthlyCA = 1000000;
-  const currentMonthCA = stats?.currentMonthSalesAmount ?? 0;
-  const isFreePlan = shopPlan === "FREE";
-
-  const isCALimitReached = isFreePlan && currentMonthCA >= maxMonthlyCA;
-  const isApproachingCALimit =
-    isFreePlan &&
-    currentMonthCA >= maxMonthlyCA - 150000 &&
-    currentMonthCA < maxMonthlyCA;
-
   return (
     <section className="space-y-6">
-{/* Bandeau : Limite de CA atteinte — Ventes bloquées */}
-{isCALimitReached && (
-  <div className="flex items-center justify-between rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800 animate-in fade-in">
-    <div className="flex items-center gap-2">
-      <AlertTriangle size={18} className="text-red-600 shrink-0" />
-      <span>
-<b>Enregistrement des ventes bloqué !</b> Vous avez atteint la limite maximale de {fmt(maxMonthlyCA)} de vente ce mois-ci pour le plan gratuit. Passez au Plan Basic pour continuer à vendre des produits.      </span>
-    </div>
-    <button 
-      type="button"
-      onClick={() => setIsUpgradeModalOpen(true)}
-      className="text-xs font-bold underline uppercase tracking-wider text-red-950 hover:text-red-900 transition shrink-0 ml-4"
-    >
-      Passer au Plan Basic
-    </button>
-  </div>
-)}
-
-      {/* Bandeau d'alerte : Limite mensuelle proche */}
-      {isApproachingCALimit && (
-        <div className="flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800 animate-in fade-in">
-          <div className="flex items-center gap-2">
-            <AlertTriangle size={18} className="text-amber-600 shrink-0" />
-            <span>
-              <b>Attention :</b> Vous approchez de la limite de chiffre
-              d'affaires du plan gratuit ({fmt(currentMonthCA)} /{" "}
-              {fmt(maxMonthlyCA)}).
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsUpgradeModalOpen(true)}
-            className="text-xs font-bold underline uppercase tracking-wider text-amber-950 hover:text-amber-900 transition shrink-0 ml-4"
-          >
-            Mettre à niveau
-          </button>
-        </div>
-      )}
-
       {/* Alerte caisse fermée */}
       {!stats?.cashOpen && (
         <div className="rounded-2xl bg-yellow-50 border border-yellow-200 px-5 py-4 text-sm text-yellow-800">
@@ -275,9 +222,9 @@ export default function Dashboard() {
           <StatCard
             title="CA du mois"
             value={fmt(currentMonthCA)}
-            subtitle={`Limite : ${fmt(maxMonthlyCA)}`}
+            subtitle={`Chiffre d'affaire par mois`}
             icon={<BarChart3 size={20} />}
-            color={isCALimitReached ? "yellow" : "emerald"}
+            color={"yellow"}
           />
 
           {/* 2. CHIFFRE D'AFFAIRES HISTORIQUE / GLOBAL */}
@@ -344,8 +291,7 @@ export default function Dashboard() {
             <div className="rounded-xl bg-slate-900 p-4 text-white">
               <p className="text-xs text-white/60">Valeur du stock</p>
               <p className="mt-1 text-xl font-bold">
-
-                 {isLockedSupplier ? "———" : fmt(stats?.stockValue ?? 0)}
+                {isLockedSupplier ? "———" : fmt(stats?.stockValue ?? 0)}
               </p>
             </div>
             <div className="rounded-xl bg-emerald-50 p-4">

@@ -129,6 +129,7 @@ export type Sale = {
   client?: Client | null;
   items: SaleItem[];
   payments: SalePayment[];
+  meta: any;
 };
 
 // ============================================================

@@ -68,6 +68,8 @@ export default function Sales() {
   const [printMenuFor, setPrintMenuFor] = useState<number | null>(null);
   const [productSearch, setProductSearch] = useState("");
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [salesCount, setSalesCount] = useState<number>(0);
+  const maxLimit = 100;
 
   const checkCash = async () => {
     try {
@@ -87,6 +89,7 @@ export default function Sales() {
         getClients(),
       ]);
       setSales(salesRes.data);
+      setSalesCount(salesRes.meta.salescount);
       setTotal(salesRes.pagination.total);
       setTotalPages(salesRes.pagination.totalPages);
       setProducts(prods.data);
@@ -97,6 +100,10 @@ export default function Sales() {
       setLoading(false);
     }
   };
+
+  const isLimitReached = user?.plan === "FREE" && salesCount >= maxLimit;
+  const isLimitReachedApproche =
+    user?.plan === "FREE" && maxLimit - salesCount <= 10;
 
   useEffect(() => {
     fetchData();
@@ -336,9 +343,57 @@ export default function Sales() {
         </div>
       )}
 
+      {isLimitReachedApproche && !isLimitReached && (
+        <div className="rounded-2xl bg-yellow-50 border border-yellow-200 px-5 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <p className="font-semibold text-yellow-800">
+                Plus que {maxLimit - salesCount} ventes disponibles ce mois
+              </p>
+              <p className="text-sm text-yellow-700 mt-0.5">
+                Vous approchez de la limite du plan Gratuit (100 ventes/mois).
+              </p>
+            </div>
+          </div>
+
+          <a
+            href="/settings/upgrade"
+            className="shrink-0 rounded-xl bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600 transition"
+          >
+            Passer au lan Basic →
+          </a>
+        </div>
+      )}
+
+      {/*  limit */}
+      {isLimitReached && (
+        <div className="rounded-2xl bg-red-50 border border-red-200 px-5 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🚫</span>
+            <div>
+              <p className="font-semibold text-red-800">
+                Limite mensuelle atteinte — Ventes bloquées
+              </p>
+              <p className="text-sm text-red-600 mt-0.5">
+                Vous avez utilisé vos 100 ventes ce mois. Réinitialisation le
+                1er du mois prochain.
+              </p>
+            </div>
+          </div>
+
+          <a
+            href="/settings/upgrade"
+            className="shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
+          >
+            Upgrader maintenant →
+          </a>
+        </div>
+      )}
+
       {/* Actions + filtres */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[180px]">
+        <div className="relative flex-1 min-w-45">
           <Search
             size={16}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
