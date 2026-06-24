@@ -44,6 +44,7 @@ import type {
   Product,
   Sale,
   Shop,
+  SubscriptionInfo,
   Supplier,
   User,
 } from "../types/index";
@@ -205,7 +206,7 @@ export type SaleListResponse = {
     limit: number;
     totalPages: number;
   };
-  meta : any
+  meta: any;
 };
 export const getSales = async (params?: {
   status?: string;
@@ -310,7 +311,6 @@ export const getDashboardStats = async (): Promise<DashboardStats> =>
 export const getShops = async (): Promise<Shop[]> =>
   (await api.get("/super-admin/shops")).data;
 export const createShop = async (data: any) =>
-  
   (await api.post("/super-admin/shops", data)).data;
 export const updateShopStatus = async (id: number, status: string) =>
   (await api.patch(`/super-admin/shops/${id}/status`, { status })).data;
@@ -335,3 +335,15 @@ export const updateUser = async (id: number, data: any): Promise<User> =>
 export const deleteUser = async (id: number): Promise<void> => {
   await api.delete(`/users/${id}`);
 };
+
+// ──  Subscription ─────────────────────────────────────────────────────
+export const getSubscription = async (): Promise<SubscriptionInfo> => {
+  const res = (await api.get("subscription")).data.subscription;
+  console.log(res)
+  
+
+  return res;
+};
+
+
+

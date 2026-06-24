@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { login } from "../services/index";
+import { useNavigate } from "react-router-dom";
 import logo from "../assets/logooo.svg";
+import { login } from "../services/index";
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
 
   useEffect(() => {
     if (localStorage.getItem("token")) navigate("/dashboard", { replace: true });
@@ -19,6 +20,7 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await login({ email, password });
+      console.log(res)
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
       localStorage.setItem("shopName", res.user.shopName || "Jokko Business");
@@ -42,6 +44,8 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">

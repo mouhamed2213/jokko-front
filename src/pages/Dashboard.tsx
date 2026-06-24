@@ -13,21 +13,22 @@ import {
   Wallet,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getDashboardStats } from "../services/index";
+import { getDashboardStats, getSubscription } from "../services/index";
 import { getStoredUser } from "../types/auth";
-import type { DashboardStats } from "../types/index";
+import type { DashboardStats, SubscriptionInfo } from "../types/index";
+import { hasFeature } from "../utils/subscription.checker";
 
 function StatCard({
+  subscription,
   statType,
-  user,
   title,
   value,
   subtitle,
   icon,
   color = "slate",
 }: {
+  subscription?: SubscriptionInfo;
   statType?: string;
-  user?: any;
   title: string;
   value: any;
   subtitle: string;
@@ -44,21 +45,22 @@ function StatCard({
   };
 
   const basicStats = [
-    "lowStockProducts",
-    "outOfStockProducts",
-    "customerCredits",
-    "totalSupplierDebt",
-    "stockValue",
-    "totalSuppliers",
+    "LOW_STOCK_ALERT",
+    "OUT_OF_STOCK_ALERT",
+    "TOTAL_SUPPLIER_DEPT",
+    // "",
+    "STOCK_VALUES",
+    "TOTAL_SUPPLIERS",
   ];
 
-  const shopPlan = user?.plan;
-  const isLocked =
-    shopPlan === "FREE" && statType && basicStats.includes(statType);
+  const isExclude = hasFeature(
+    subscription as SubscriptionInfo,
+    "LOW_STOCK_ALERT",
+  );
+  const isLocked = !isExclude && statType && basicStats.includes(statType);
 
   const isLockedSupplier =
-    shopPlan === "FREE" ||
-    (shopPlan === "BASIC" && statType && statType === "totalSuppliers");
+    !isExclude && statType && statType === "TOTAL_SUPPLIERS";
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
@@ -70,10 +72,10 @@ function StatCard({
           {/* Valeur : blurrée si locked */}
           <div
             className={`mt-2 text-2xl font-bold text-slate-900 transition-all ${
-              isLocked ? "blur-sm select-none text-slate-300" : ""
+              !isLocked ? "" : "blur-sm select-none text-slate-300"
             }`}
           >
-            {isLocked ? "———" : value}
+            {!isLocked ? value : "———"}
           </div>
 
           <p className="mt-1 text-xs text-gray-400">{subtitle}</p>
@@ -88,10 +90,11 @@ function StatCard({
       </div>
 
       {/* Badge cadenas — positionné en bas à droite, discret */}
-      {isLocked && shopPlan === "FREE" && (
+      {isLocked && (
         <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
           <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md">
-            {shopPlan === "FREE" && statType !== "totalSuppliers" ? (
+            {(isLocked && statType !== "TOTAL_SUPPLIERS" &&  statType !== "TOTAL_SUPPLIER_DEPT") 
+            ? (
               <>
                 <Lock size={10} /> Plan Basic
               </>
@@ -104,7 +107,7 @@ function StatCard({
         </div>
       )}
 
-      {isLockedSupplier && shopPlan === "BASIC" && (
+      {isLockedSupplier && (
         <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
           <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md">
             <Crown size={10} /> PRO
@@ -122,19 +125,30 @@ export default function Dashboard() {
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false); // Ajout d'un état local pour le modal
-  const currentMonthCA = stats?.currentMonthSalesAmount ?? 0;
-
-  const shopPlan = user?.plan;
-
-  const isLockedSupplier = shopPlan === "FREE" || shopPlan === "BASIC";
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(
+    null,
+  );
 
   useEffect(() => {
+    getSubscription().then(setSubscription);
     getDashboardStats()
       .then(setStats)
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+  if (!subscription) {
+    return;
+  }
+
+  const currentMonthCA = stats?.currentMonthSalesAmount ?? 0;
+  const shopPlan = subscription?.plan.code;
+  const canUseSuppliers = hasFeature(
+    subscription as SubscriptionInfo,
+    "SUPPLIER_MANAGEMENT",
+  );
+  const isLockedSupplier = !canUseSuppliers;
+
+  console.log(isLockedSupplier);
 
   if (loading) {
     return (
@@ -175,8 +189,9 @@ export default function Dashboard() {
             color="slate"
           />
           <StatCard
-            statType="lowStockProducts"
-            user={user}
+            subscription={subscription}
+            statType="LOW_STOCK_ALERT"
+            // user={user}
             title="Stock faible"
             value={stats?.lowStockProducts ?? 0}
             subtitle="Sous le seuil d'alerte"
@@ -184,8 +199,8 @@ export default function Dashboard() {
             color="yellow"
           />
           <StatCard
-            statType="outOfStockProducts"
-            user={user}
+            statType="OUT_OF_STOCK_ALERT"
+            // user={user}
             title="Rupture de stock"
             value={stats?.outOfStockProducts ?? 0}
             subtitle="Produits épuisés"
@@ -193,8 +208,8 @@ export default function Dashboard() {
             color="red"
           />
           <StatCard
-            statType="stockValue"
-            user={user}
+            statType="STOCK_VALUES"
+            // user={user}
             title="Valeur du stock"
             value={fmt(stats?.stockValue ?? 0)}
             subtitle="Prix d'achat total"
@@ -244,8 +259,8 @@ export default function Dashboard() {
             color="orange"
           />
           <StatCard
-            statType="totalSupplierDebt"
-            user={user}
+            statType="TOTAL_SUPPLIER_DEPT"
+            // user={user}
             title="Dettes fournisseurs"
             value={fmt(stats?.totalSupplierDebt ?? 0)}
             subtitle="Montants à payer"
@@ -269,8 +284,8 @@ export default function Dashboard() {
             color="blue"
           />
           <StatCard
-            statType="totalSuppliers"
-            user={user}
+            statType="TOTAL_SUPPLIERS"
+            // user={user}
             title="Total fournisseurs"
             value={stats?.totalSuppliers ?? 0}
             subtitle="Fournisseurs enregistrés"
@@ -340,7 +355,7 @@ export default function Dashboard() {
                 stocks et maximiser vos ventes.
               </p>
               <span
-                onClick={() => setIsUpgradeModalOpen(true)}
+                // onClick={() => setIsUpgradeModalOpen(true)}
                 className="text-xs text-emerald-600 font-semibold hover:underline cursor-pointer"
               >
                 Débloquer le classement →

@@ -23,12 +23,12 @@ export default function SuperAdmin() {
   // Shop form
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
-    shopName: "",
-    ownerName: "",
-    email: "",
-    phone: "",
-    address: "",
-    adminPassword: "",
+    shopName: "Free Shop",
+    ownerName: "Free",
+    email: "free@test.test",
+    phone: "77779978",
+    address: "Dakar",
+    adminPassword: "Free1234",
     subscriptionEndDate: "",
     planType: "FREE",
   });

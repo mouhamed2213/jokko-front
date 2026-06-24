@@ -82,13 +82,13 @@ const MethodIcon = ({
       <img
         src={config.logo}
         alt={config.name}
-        className={`${cls} rounded-xl object-contain bg-white p-1 shadow-sm flex-shrink-0 border border-gray-100`}
+        className={`${cls} rounded-xl object-contain bg-white p-1 shadow-sm shrink-0 border border-gray-100`}
       />
     );
   }
   return (
     <div
-      className={`${cls} rounded-xl ${config.bg} border border-gray-200 flex items-center justify-center flex-shrink-0 text-xl`}
+      className={`${cls} rounded-xl ${config.bg} border border-gray-200 flex items-center justify-center shrink-0 text-xl`}
     >
       {config.emoji}
     </div>

@@ -1,5 +1,4 @@
-import type { Plan } from "../pages/superAdmin/SuperAdmin";
-
+import type { PlanType } from "../pages/superAdmin/SuperAdmin";
 export type UserRole = "ADMIN" | "EMPLOYEE" | "SUPER_ADMIN";
 
 export type AuthUser = {
@@ -8,7 +7,7 @@ export type AuthUser = {
   email: string;
   role: UserRole;
   shopId: number;
-  plan: Plan;
+  plan:  PlanType;
   shopName: string;
 };
 
@@ -21,6 +20,11 @@ export const getStoredUser = (): AuthUser | null => {
     return null;
   }
 };
+
+export  const me = async () => {
+  // const res = await api.post("/auth/login");
+  // return res.data;
+}
 
 export const isAdmin = (): boolean => getStoredUser()?.role === "ADMIN";
 export const isEmployee = (): boolean => getStoredUser()?.role === "EMPLOYEE";

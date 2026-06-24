@@ -1,3 +1,41 @@
+// SUBSCRIPTION
+export type PlanCode =
+  | "FREE"
+  | "BASIC"
+  | "PRO"
+  | "PREMIUM";
+
+export type FeatureCode =
+  | "EXPORT_PDF"
+  | "EXPORT_EXCEL"
+  | "LOW_STOCK_ALERT"
+  | "TOP_PRODUCTS"
+  | "STOCK_VALUE"
+  | "SUPPLIER_MANAGEMENT"
+  | "ADVANCED_REPORTS"
+  | "ACCOUNTING"
+  | "MULTI_STORE"
+  | "API_ACCESS"
+  | "OUT_OF_STOCK_ALERT"
+
+export type SubscriptionInfo = {
+  id: number;
+  status: "ACTIVE" | "EXPIRED" | "SUSPENDED";
+  plan: {
+    code: PlanCode;
+    name: string;
+  };
+
+  limits: {
+    sales: number | null;
+    products: number | null;
+    users: number | null;
+    stores: number | null;
+  };
+
+  features: FeatureCode[];
+};
+
 // ============================================================
 //  types/product.ts
 // ============================================================
@@ -21,7 +59,7 @@ export type Product = {
   createdAt: string;
   updatedAt: string;
   category?: { id: number; name: string } | null;
-  totalProducts : number
+  totalProducts: number;
 };
 
 // ============================================================
@@ -209,14 +247,12 @@ export type DashboardStats = {
 };
 
 // export type DashboardStatsValue = keyof DashboardStats;
-export type DashboardStatType =
-  {
-    [K in keyof DashboardStats]: {
-      type: K;
-      value : DashboardStats[K]
-    }
-  }[keyof DashboardStats];
-
+export type DashboardStatType = {
+  [K in keyof DashboardStats]: {
+    type: K;
+    value: DashboardStats[K];
+  };
+}[keyof DashboardStats];
 
 // ============================================================
 //  types/shop.ts
