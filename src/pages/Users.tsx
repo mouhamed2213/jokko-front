@@ -101,8 +101,7 @@ export default function Users() {
             <AlertTriangle size={18} className="text-red-600 shrink-0" />
             <span>
               Fonctionnalité restreinte : Le plan gratuit ne permet pas l'ajout
-              d'employés. Passez au Plan Basic/Pro pour acceder à cette
-              fonctionnalitée
+              d'employés. Passez au Plan Basic/Pro pour acceder à cette fonctionnalitée
             </span>
           </div>
           <button

@@ -337,12 +337,32 @@ export const deleteUser = async (id: number): Promise<void> => {
 };
 
 // ──  Subscription ─────────────────────────────────────────────────────
-export const getSubscription = async (): Promise<SubscriptionInfo> => {
-  const res = (await api.get("subscription")).data.subscription;
-  console.log(res)
-  
+let subscriptionCache: SubscriptionInfo | null = null;
+let subscriptionPromise: Promise<SubscriptionInfo> | null = null;
 
-  return res;
+export const getSubscription = async (): Promise<SubscriptionInfo> => {
+  if (subscriptionCache) {
+    return subscriptionCache;
+  }
+
+  if (subscriptionPromise) {
+    return subscriptionPromise;
+  }
+
+  subscriptionPromise = api
+    .get("subscription")
+    .then((res) => {
+      const subscription = res.data.subscription;
+
+      subscriptionCache = subscription;
+
+      return subscription;
+    })
+    .finally(() => {
+      subscriptionPromise = null;
+    });
+
+  return subscriptionPromise;
 };
 
 

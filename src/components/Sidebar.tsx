@@ -4,7 +4,7 @@ import {
   Crown,
   FileText,
   LayoutDashboard,
-  Lock,
+
   Menu,
   Package,
   Settings,
@@ -18,6 +18,9 @@ import {
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import logo from "../assets/logo.svg";
+import { getSubscription } from "../services";
+import type { SubscriptionInfo } from "../types";
+import { hasFeature } from "../utils/subscription.checker";
 
 const allLinks = [
   {
@@ -42,7 +45,6 @@ const allLinks = [
   { name: "Utilisateurs", path: "/users", icon: UserCog, adminOnly: true },
   { name: "Paramètres", path: "/settings", icon: Settings, adminOnly: true },
 ];
-const notAllowedPlan = ["BASIC", "FREE"];
 
 function SidebarContent({
   onClose,
@@ -51,9 +53,9 @@ function SidebarContent({
   onClose?: () => void;
   onUpgradeClick: () => void;
 }) {
-  // const navigate = useNavigate();
   const role = JSON.parse(localStorage.getItem("user") || "{}").role;
-  const plan = JSON.parse(localStorage.getItem("user") || "{}").plan;
+  const [subscription, setSubscription] = useState<SubscriptionInfo>();
+  const [isExlude, setIsExclude] = useState(false);
 
   const links = allLinks.filter((l) => !l.adminOnly || role === "ADMIN");
 
@@ -64,8 +66,14 @@ function SidebarContent({
     JSON.parse(localStorage.getItem("user") || "{}").shopName ||
     "Jokko Business";
 
+  //
+
   useEffect(() => {
+    getSubscription().then(setSubscription);
     const handler = () => setShopLogo(localStorage.getItem("shopLogo") || "");
+    setIsExclude(
+      hasFeature(subscription as SubscriptionInfo, "SUPPLIER_MANAGEMENT"),
+    );
     window.addEventListener("shopLogoUpdated", handler);
     return () => window.removeEventListener("shopLogoUpdated", handler);
   }, []);
@@ -102,7 +110,7 @@ function SidebarContent({
       <nav className="flex-1 space-y-0.5 px-3 py-4 overflow-y-auto">
         {links.map((link) => {
           const Icon = link.icon;
-          const isLocked = link.premium && notAllowedPlan.includes(plan);
+          const isLocked = link.premium && !isExlude;
 
           // Si la route est bloquée pour le plan FREE, on utilise un bouton au lieu d'un NavLink
           if (isLocked) {

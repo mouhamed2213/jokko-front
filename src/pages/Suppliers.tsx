@@ -6,7 +6,7 @@ import {
   addSupplierDebt, addSupplierPayment, getCurrentCash,
 } from "../services/index";
 import PaymentMethodSelect from "../components/Paymentmethodselect";
-import type { Supplier, SupplierDebt } from "../types/index";
+import type { SubscriptionInfo, Supplier, SupplierDebt } from "../types/index";
 
 const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 const emptyForm = { name: "", phone: "", email: "", address: "" };
