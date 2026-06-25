@@ -35,10 +35,10 @@ export default function Users() {
   const limiteReached = users.length >= maxLimitUser ? true : false;
   const limiteMessage =
     limiteReached && subscription?.plan.code === "FREE"
-      ? `     Fonctionnalité restreinte : Le plan gratuit ne permet pas l'ajout
-              d'employés. Passez au Plan Basic/Pro pour acceder à cette
-              fonctionnalitée`
-      : "Vous avez atteind le nombre d'utilisateur avec le plan Basic";
+      ? ` Ajout d'employés indisponible avec le plan gratuit.
+          Pour gérer des employés, passez au Plan Basic (1 employé inclus)
+          ou au Plan Pro (jusqu'à 3 employés inclus).`
+      : `Limite atteinte : le Plan Basic permet jusqu'à 1 employé. Passez au Plan Pro pour ajouter jusqu'à 3 employés.`;
 
   const fetchUsers = async () => {
     try {
