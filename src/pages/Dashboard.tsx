@@ -54,7 +54,7 @@ function StatCard({
 
   let isLocked;
   let isInclude;
-  console.log(subscription)
+  // console.log(subscription)
   if (subscription?.plan.code === "FREE") {
     isLocked = !isInclude && statType && basicStats.has(statType);
     isInclude = hasFeature(subscription as SubscriptionInfo, "LOW_STOCK_ALERT");
@@ -73,7 +73,11 @@ function StatCard({
           {/* Valeur : blurrée si locked */}
           <div
             className={`mt-2 text-2xl font-bold text-slate-900 transition-all ${
-              !isLocked ? "" : "blur-sm select-none text-slate-300"
+              !isLocked &&
+              statType !== "TOTAL_SUPPLIERS" &&
+              statType !== "TOTAL_SUPPLIER_DEPT"
+                ? ""
+                : "blur-sm select-none text-slate-300"
             }`}
           >
             {!isLocked ? value : "———"}
@@ -130,7 +134,7 @@ export default function Dashboard() {
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(
     null,
   );
-  
+
   useEffect(() => {
     getSubscription().then(setSubscription);
     getDashboardStats()
@@ -141,7 +145,7 @@ export default function Dashboard() {
   if (!subscription) {
     return;
   }
-    console.log(subscription);
+  // console.log(subscription);
 
   const currentMonthCA = stats?.currentMonthSalesAmount ?? 0;
   const shopPlan = subscription?.plan.code;
