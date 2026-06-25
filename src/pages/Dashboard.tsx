@@ -44,24 +44,24 @@ function StatCard({
     orange: "bg-orange-100 text-orange-700",
   };
 
-  const basicStats = [
+  const basicStats = new Set([
     "LOW_STOCK_ALERT",
     "OUT_OF_STOCK_ALERT",
     "TOTAL_SUPPLIER_DEPT",
-    // "",
     "STOCK_VALUES",
     "TOTAL_SUPPLIERS",
-  ];
+  ]);
 
-  const isExclude = hasFeature(
-    subscription as SubscriptionInfo,
-    "LOW_STOCK_ALERT",
-  );
-
-  const isLocked = !isExclude && statType && basicStats.includes(statType);
+  let isLocked;
+  let isInclude;
+  console.log(subscription)
+  if (subscription?.plan.code === "FREE") {
+    isLocked = !isInclude && statType && basicStats.has(statType);
+    isInclude = hasFeature(subscription as SubscriptionInfo, "LOW_STOCK_ALERT");
+  }
 
   const isLockedSupplier =
-    !isExclude && statType && statType === "TOTAL_SUPPLIERS";
+    !isInclude && statType && statType === "TOTAL_SUPPLIERS";
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
@@ -94,8 +94,9 @@ function StatCard({
       {isLocked && (
         <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
           <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md">
-            {(isLocked && statType !== "TOTAL_SUPPLIERS" &&  statType !== "TOTAL_SUPPLIER_DEPT") 
-            ? (
+            {isLocked &&
+            statType !== "TOTAL_SUPPLIERS" &&
+            statType !== "TOTAL_SUPPLIER_DEPT" ? (
               <>
                 <Lock size={10} /> Plan Basic
               </>
@@ -129,8 +130,7 @@ export default function Dashboard() {
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(
     null,
   );
-  // console.log(subscription)
-
+  
   useEffect(() => {
     getSubscription().then(setSubscription);
     getDashboardStats()
@@ -141,6 +141,7 @@ export default function Dashboard() {
   if (!subscription) {
     return;
   }
+    console.log(subscription);
 
   const currentMonthCA = stats?.currentMonthSalesAmount ?? 0;
   const shopPlan = subscription?.plan.code;
@@ -149,8 +150,6 @@ export default function Dashboard() {
     "SUPPLIER_MANAGEMENT",
   );
   const isLockedSupplier = !canUseSuppliers;
-
-  console.log(isLockedSupplier);
 
   if (loading) {
     return (
@@ -201,6 +200,7 @@ export default function Dashboard() {
             color="yellow"
           />
           <StatCard
+            subscription={subscription}
             statType="OUT_OF_STOCK_ALERT"
             // user={user}
             title="Rupture de stock"
@@ -210,6 +210,7 @@ export default function Dashboard() {
             color="red"
           />
           <StatCard
+            subscription={subscription}
             statType="STOCK_VALUES"
             // user={user}
             title="Valeur du stock"
@@ -261,6 +262,7 @@ export default function Dashboard() {
             color="orange"
           />
           <StatCard
+            subscription={subscription}
             statType="TOTAL_SUPPLIER_DEPT"
             // user={user}
             title="Dettes fournisseurs"
@@ -286,6 +288,7 @@ export default function Dashboard() {
             color="blue"
           />
           <StatCard
+            subscription={subscription}
             statType="TOTAL_SUPPLIERS"
             // user={user}
             title="Total fournisseurs"

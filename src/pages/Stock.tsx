@@ -6,11 +6,18 @@ import {
   addStockOut,
   getProducts,
   getStockMovements,
+  getSubscription,
   getSuppliers,
 } from "../services/index";
 import { getStoredUser } from "../types/auth";
-import type { Product, StockMovement, Supplier } from "../types/index";
+import type {
+  Product,
+  StockMovement,
+  SubscriptionInfo,
+  Supplier,
+} from "../types/index";
 import { exportStockToExcel } from "../utils/exportExcel";
+import { hasFeature } from "../utils/subscription.checker";
 
 const fmt = (v: number) => v.toLocaleString("fr-FR");
 const fmtCFA = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
@@ -27,6 +34,7 @@ export default function Stock() {
   const [submittingEntry, setSubmittingEntry] = useState(false);
   const [submittingOut, setSubmittingOut] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [subscription, setSubscription] = useState<SubscriptionInfo>();
 
   // Formulaire entrée
   const [entryForm, setEntryForm] = useState({
@@ -48,9 +56,18 @@ export default function Stock() {
 
   // Afficher sections optionnelles
   const [showSupplierSection, setShowSupplierSection] = useState(false);
+  // , locales, {})
+  const isInclude = hasFeature(
+    subscription as SubscriptionInfo,
+    "SUPPLIER_MANAGEMENT",
+  );
+
+  console.log(isInclude);
 
   const fetchData = async () => {
     setLoading(true);
+    getSubscription().then(setSubscription);
+
     try {
       const [prodRes, sups, movRes] = await Promise.all([
         getProducts({ limit: 200 }),
@@ -224,20 +241,22 @@ export default function Stock() {
             </div>
 
             {/* Toggle fournisseur */}
-            <button
-              type="button"
-              onClick={() => setShowSupplierSection((v) => !v)}
-              className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700"
-            >
-              {showSupplierSection ? (
-                <ChevronUp size={16} />
-              ) : (
-                <ChevronDown size={16} />
-              )}
-              {showSupplierSection
-                ? "Masquer les infos fournisseur"
-                : "Lier à un fournisseur (optionnel)"}
-            </button>
+            {isInclude && (
+              <button
+                type="button"
+                onClick={() => setShowSupplierSection((v) => !v)}
+                className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700"
+              >
+                {showSupplierSection ? (
+                  <ChevronUp size={16} />
+                ) : (
+                  <ChevronDown size={16} />
+                )}
+                {showSupplierSection
+                  ? "Masquer les infos fournisseur"
+                  : "Lier à un fournisseur (optionnel)"}
+              </button>
+            )}
 
             {/* Section fournisseur */}
             {showSupplierSection && (

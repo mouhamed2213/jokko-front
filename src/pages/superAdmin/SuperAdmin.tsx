@@ -6,7 +6,7 @@ import { apiUrl } from "../../services/api";
 import { loginSuperAdmin } from "../../services/index";
 import type { Shop } from "../../types/index";
 
-export type PlanType = "FREE" | "BASIC" | "PRO" | "PREMINIUM";
+export type PlanType = "FREE" | "BASIC" | "PRO" | "PREMIUM";
 
 export default function SuperAdmin() {
   const [token, setToken] = useState<string | null>(
@@ -396,7 +396,7 @@ export default function SuperAdmin() {
                   <option value="FREE"> Free</option>
                   <option value="BASIC"> Basic </option>
                   <option value="PRO"> Pro</option>
-                  <option value="PREMINIUM"> Preminium</option>
+                  <option value="PREMIUM"> Premium</option>
                 </select>
               </div>
               <div className="flex gap-3 sm:col-span-2">
