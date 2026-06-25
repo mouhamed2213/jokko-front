@@ -315,7 +315,7 @@ export default function Dashboard() {
             <div className="rounded-xl bg-slate-900 p-4 text-white">
               <p className="text-xs text-white/60">Valeur du stock</p>
               <p className="mt-1 text-xl font-bold">
-                {isLockedSupplier ? "———" : fmt(stats?.stockValue ?? 0)}
+                {shopPlan === "FREE" ? "———" : fmt(stats?.stockValue ?? 0)}
               </p>
             </div>
             <div className="rounded-xl bg-emerald-50 p-4">

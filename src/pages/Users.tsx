@@ -4,10 +4,11 @@ import toast from "react-hot-toast";
 import {
   createUser,
   deleteUser,
+  getSubscription,
   getUsers,
   updateUser,
 } from "../services/index";
-import type { User } from "../types/index";
+import type { SubscriptionInfo, User } from "../types/index";
 
 const emptyForm = { name: "", email: "", password: "", role: "EMPLOYEE" };
 
@@ -28,10 +29,20 @@ export default function Users() {
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-  const limiteReached = users.length >= 1 ? true : false;
+  const [subscription, setSubscription] = useState<SubscriptionInfo>();
+
+  const maxLimitUser = subscription?.limits?.users ?? 0;
+  const limiteReached = users.length >= maxLimitUser ? true : false;
+  const limiteMessage =
+    limiteReached && subscription?.plan.code === "FREE"
+      ? `     Fonctionnalité restreinte : Le plan gratuit ne permet pas l'ajout
+              d'employés. Passez au Plan Basic/Pro pour acceder à cette
+              fonctionnalitée`
+      : "Vous avez atteind le nombre d'utilisateur avec le plan Basic";
 
   const fetchUsers = async () => {
     try {
+      getSubscription().then(setSubscription);
       setUsers(await getUsers());
     } catch {
       toast.error("Erreur chargement utilisateurs");
@@ -40,6 +51,7 @@ export default function Users() {
     }
   };
 
+  console.log(subscription?.limits.users);
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -99,10 +111,7 @@ export default function Users() {
         <div className="mb-4 flex items-center justify-between rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 animate-in fade-in duration-200">
           <div className="flex items-center gap-2">
             <AlertTriangle size={18} className="text-red-600 shrink-0" />
-            <span>
-              Fonctionnalité restreinte : Le plan gratuit ne permet pas l'ajout
-              d'employés. Passez au Plan Basic/Pro pour acceder à cette fonctionnalitée
-            </span>
+            <span>{limiteMessage}</span>
           </div>
           <button
             onClick={() => setIsUpgradeModalOpen(true)}
