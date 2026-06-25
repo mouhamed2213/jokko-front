@@ -31,14 +31,26 @@ export default function Users() {
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [subscription, setSubscription] = useState<SubscriptionInfo>();
 
-  const maxLimitUser = subscription?.limits?.users ?? 0;
-  const limiteReached = users.length >= maxLimitUser ? true : false;
-  const limiteMessage =
-    limiteReached && subscription?.plan.code === "FREE"
-      ? ` Ajout d'employés indisponible avec le plan gratuit.
-          Pour gérer des employés, passez au Plan Basic (1 employé inclus)
-          ou au Plan Pro (jusqu'à 3 employés inclus).`
-      : `Limite atteinte : le Plan Basic permet jusqu'à 1 employé. Passez au Plan Pro pour ajouter jusqu'à 3 employés.`;
+  const maxUsers = subscription?.limits.users ?? 0;
+  const limiteReached = users.length >= maxUsers ? true : false;
+
+let limiteMessage;
+
+switch (subscription?.plan.code) {
+  case "FREE":
+    limiteMessage =
+      "Ajout d'employés indisponible avec le plan Gratuit. Passez à une offre supérieure pour gérer des employés.";
+    break;
+
+  case "BASIC":
+  case "PRO":
+    limiteMessage = `Limite atteinte : votre abonnement permet jusqu'à ${maxUsers} employé${maxUsers > 1 ? "s" : ""}.`;
+    break;
+
+  default:
+    limiteMessage =
+      "Limite d'employés atteinte pour votre abonnement.";
+}
 
   const fetchUsers = async () => {
     try {
