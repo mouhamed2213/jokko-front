@@ -63,7 +63,7 @@ switch (subscription?.plan.code) {
     }
   };
 
-  console.log(subscription?.limits.users);
+  // console.log(subscription?.limits.users);
   useEffect(() => {
     fetchUsers();
   }, []);

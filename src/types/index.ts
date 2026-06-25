@@ -29,6 +29,7 @@ export type SubscriptionInfo = {
   limits: {
     sales: number | null;
     products: number | null;
+    maxCutomers: number | null;
     users: number | null;
     stores: number | null;
   };

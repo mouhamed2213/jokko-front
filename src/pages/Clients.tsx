@@ -14,10 +14,11 @@ import {
   createClient,
   deleteClient,
   getClients,
+  getSubscription,
   updateClient,
 } from "../services/index";
 import { getStoredUser, isAdmin } from "../types/auth";
-import type { Client } from "../types/index";
+import type { Client, SubscriptionInfo } from "../types/index";
 import { exportClientsToExcel } from "../utils/exportExcel";
 
 const emptyForm = { name: "", phone: "", email: "", address: "" };
@@ -37,14 +38,13 @@ export default function Clients() {
   const admin = isAdmin();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [limitCostumer, setLimitCostumer] = useState<number | null>(null);
-  const shopPlan = user?.plan;
-  const maxCustomers = 50;
+  const [subscription, setSubscription] = useState<SubscriptionInfo>();
+  const shopPlan = subscription?.plan.code;
+  const maxCustomers = subscription?.limits.maxCutomers ?? 50;
 
   // Calcul des seuils critiques
-  const isLimitCustomerReached =
-    shopPlan === "FREE" &&
-    limitCostumer !== null &&
-    limitCostumer >= maxCustomers;
+  const isLimitCustomerReached = true;
+  shopPlan == "FREE" && limitCostumer !== null && limitCostumer >= maxCustomers;
   const isApproachingLimit =
     shopPlan === "FREE" &&
     limitCostumer !== null &&
@@ -53,6 +53,7 @@ export default function Clients() {
 
   const fetchClients = async () => {
     try {
+      getSubscription().then(setSubscription);
       const { client, customerCount } = await getClients();
       setClients(client);
       setFiltered(client);
@@ -150,7 +151,7 @@ export default function Clients() {
           <button
             type="button"
             onClick={() => setIsUpgradeModalOpen(true)}
-            className="text-xs font-bold underline uppercase tracking-wider text-red-950 hover:text-red-900 transition shrink-0"
+            className="shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
           >
             Augmenter la limite
           </button>
@@ -171,7 +172,7 @@ export default function Clients() {
           <button
             type="button"
             onClick={() => setIsUpgradeModalOpen(true)}
-            className="text-xs font-bold underline uppercase tracking-wider text-amber-950 hover:text-amber-900 transition shrink-0"
+            className="shrink-0 rounded-xl bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600 transition"
           >
             Passer au Plan Basic
           </button>
@@ -194,29 +195,38 @@ export default function Clients() {
         </div>
         <button
           onClick={() => {
+            if (shopPlan === "FREE" && isLimitCustomerReached) {
+              setIsUpgradeModalOpen(true); // Ouvre le modal de conversion
+              return;
+            }
             setShowForm(true);
             setEditingId(null);
             setForm(emptyForm);
           }}
-          className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition"
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition ${
+            isLimitCustomerReached
+              ? "bg-amber-600 hover:bg-amber-700 shadow-sm" // Style si limite atteinte
+              : "bg-emerald-600 hover:bg-emerald-700" // Style normal
+          }`}
         >
-          <Plus size={16} /> Nouveau client
+          {isLimitCustomerReached ? <Lock size={16} /> : <Plus size={16} />}
+          Nouveau client (Rappler pour refaire les modals)
         </button>
         <button
           onClick={() => {
-            if (user?.plan === "FREE") {
+            if (shopPlan === "FREE") {
               setIsUpgradeModalOpen(true); // Ouvre le modal de conversion
               return;
             }
             exportClientsToExcel(clients, user);
           }}
           className={`flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm transition ${
-            user?.plan === "FREE"
+            shopPlan === "FREE"
               ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100" // Mode premium/verrouillé
               : "border-gray-300 text-gray-700 hover:bg-gray-50" // Mode normal
           }`}
         >
-          {user?.plan === "FREE" ? (
+          {shopPlan === "FREE" ? (
             <Lock size={15} className="text-amber-600" />
           ) : (
             <Download size={15} />
@@ -434,7 +444,7 @@ export default function Clients() {
                 <Lock size={24} />
               </div>
               <h3 className="text-lg font-bold text-slate-900">
-                Export de données Premium
+                Change the modal to containn all information subs about the page
               </h3>
               <p className="mt-2 text-sm text-gray-500">
                 L'exportation de votre base de données clients au format Excel
