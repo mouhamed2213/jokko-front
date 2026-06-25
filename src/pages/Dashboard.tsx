@@ -57,6 +57,7 @@ function StatCard({
     subscription as SubscriptionInfo,
     "LOW_STOCK_ALERT",
   );
+
   const isLocked = !isExclude && statType && basicStats.includes(statType);
 
   const isLockedSupplier =
@@ -128,6 +129,7 @@ export default function Dashboard() {
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(
     null,
   );
+  // console.log(subscription)
 
   useEffect(() => {
     getSubscription().then(setSubscription);

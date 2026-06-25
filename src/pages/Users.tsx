@@ -28,7 +28,7 @@ export default function Users() {
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-  const limiteReached = users.length >= 2 ? true : false;
+  const limiteReached = users.length >= 1 ? true : false;
 
   const fetchUsers = async () => {
     try {
@@ -100,13 +100,14 @@ export default function Users() {
           <div className="flex items-center gap-2">
             <AlertTriangle size={18} className="text-red-600 shrink-0" />
             <span>
-              Vous avez atteint le nombre maximum d'utilisateurs autorisés dans
-              votre plan actuel.
+              Fonctionnalité restreinte : Le plan gratuit ne permet pas l'ajout
+              d'employés. Passez au Plan Basic/Pro pour acceder à cette
+              fonctionnalitée
             </span>
           </div>
           <button
             onClick={() => setIsUpgradeModalOpen(true)}
-            className="text-xs font-bold underline uppercase tracking-wider text-red-950 hover:text-red-900 transition"
+            className="shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
           >
             Augmenter la limite
           </button>
