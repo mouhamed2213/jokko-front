@@ -1,21 +1,21 @@
-import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
-  Check,
-  X,
-  Package,
-  ShoppingCart,
-  Users,
-  Wallet,
   BarChart3,
   Bell,
-  Truck,
   Building2,
-  Phone,
+  Check,
   Mail,
   MapPin,
+  Package,
+  Phone,
+  ShoppingCart,
   Store,
+  Truck,
+  Users,
+  Wallet,
+  X,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 
 type Plan = {
@@ -43,12 +43,14 @@ const plans: Plan[] = [
     badge: "Gratuit",
     badgeClass: "bg-slate-100 text-slate-600",
     features: [
-      "1 utilisateur",
+      "1 utilisateur ( proriétaire )",
       "Jusqu'à 50 produits",
-      "30 ventes par mois",
-      "Gestion stock basique",
+      "150 ventes par mois",
+      "50 clients max",
+      "Tickets thermiques uniquement",
+      "Caisses ( limitée )",
     ],
-    excluded: ["Export PDF / Excel", "Clients & fournisseurs", "Gestion de caisse"],
+    excluded: ["Alertes stock", "Export PDF / Excel", "Fournisseurs"],
     cta: "Commencer gratuitement",
     ctaVariant: "outline",
   },
@@ -57,18 +59,20 @@ const plans: Plan[] = [
     name: "Starter",
     price: 10000,
     description: "Pour les petites boutiques",
-    badge: "Populaire",
+    badge: "⭐",
     badgeClass: "bg-emerald-100 text-emerald-700",
     features: [
-      "2 utilisateurs",
+      "2 utilisateurs (proriétaire + 1 employé)",
       "Produits illimités",
       "Ventes illimitées",
+      "Clients illimités",
       "Caisse journalière",
-      "Gestion clients basique",
-      "Factures PDF",
-      "Alertes de stock",
+      "Alertes stock faible & rupture",
+      "Top produits vendus",
+      "Factures PDF A4",
+      "Export Excel / PDF",
     ],
-    excluded: ["Export Excel", "Fournisseurs"],
+    excluded: ["Fournisseurs", "Rapports & statistiques"],
     cta: "Essayer maintenant",
     highlighted: true,
     ctaVariant: "filled",
@@ -78,15 +82,18 @@ const plans: Plan[] = [
     name: "Pro",
     price: 15000,
     description: "Pour les boutiques en croissance",
-    badge: "Recommandé",
+    badge: "🚀 Recommandé",
     badgeClass: "bg-blue-100 text-blue-700",
     features: [
+      "5 utilisateurs",
       "Tout le Starter inclus",
-      "Fournisseurs complets",
-      "Export Excel",
+      "Gestion fournisseurs complète",
+      "Suivi dettes fournisseurs",
+      "Historique achats par client",
+      "Relance clients débiteurs (WhatsApp)",
       "Paiements par tranches",
       "Rapports & statistiques",
-      "Historique complet",
+      "Historique complet des caisses",
     ],
     cta: "Essayer maintenant",
     ctaVariant: "outline",
@@ -96,14 +103,15 @@ const plans: Plan[] = [
     name: "Premium",
     price: 25000,
     description: "Pour les structures sérieuses",
-    badge: "Premium",
+    badge: "💎 Premium",
     badgeClass: "bg-purple-100 text-purple-700",
     features: [
-      "Tout le Pro inclus",
       "Utilisateurs illimités",
-      "Multi-boutiques (5 max)",
+      "Tout le Pro inclus",
+      "Multi-boutiques (jusqu'à 5)",
+      "Clients partagés entre boutiques",
       "Rôles & permissions avancés",
-      "Tableau de bord avancé",
+      "Suivi activité employés",
       "Support prioritaire",
     ],
     cta: "Contacter l'équipe",
@@ -115,32 +123,38 @@ const features = [
   {
     icon: Package,
     title: "Gestion des stocks",
-    description: "Suivi en temps réel, inventaires, alertes de rupture et mouvements automatisés",
+    description:
+      "Suivi en temps réel, inventaires, alertes de rupture et mouvements automatisés",
   },
   {
     icon: ShoppingCart,
     title: "Ventes & facturation",
-    description: "Tickets de caisse, factures A4 professionnelles, devis et bons de livraison",
+    description:
+      "Tickets de caisse, factures A4 professionnelles, devis et bons de livraison",
   },
   {
     icon: Wallet,
     title: "Gestion de caisse",
-    description: "Encaissements, décaissements et suivi quotidien de la trésorerie",
+    description:
+      "Encaissements, décaissements et suivi quotidien de la trésorerie",
   },
   {
     icon: Users,
     title: "Gestion clients",
-    description: "Fiches clients, historique d'achats, suivi des dettes et fidélisation",
+    description:
+      "Fiches clients, historique d'achats, suivi des dettes et fidélisation",
   },
   {
     icon: Truck,
     title: "Fournisseurs & achats",
-    description: "Commandes, approvisionnements et suivi des dettes fournisseurs",
+    description:
+      "Commandes, approvisionnements et suivi des dettes fournisseurs",
   },
   {
     icon: BarChart3,
     title: "Rapports & statistiques",
-    description: "Chiffre d'affaires, produits les plus vendus, analyses de rentabilité",
+    description:
+      "Chiffre d'affaires, produits les plus vendus, analyses de rentabilité",
   },
   {
     icon: Bell,
@@ -150,7 +164,8 @@ const features = [
   {
     icon: Building2,
     title: "Multi-boutiques",
-    description: "Gérez plusieurs points de vente depuis un seul compte avec rôles & permissions",
+    description:
+      "Gérez plusieurs points de vente depuis un seul compte avec rôles & permissions",
   },
 ];
 
@@ -158,17 +173,20 @@ const steps = [
   {
     num: "1",
     title: "Créez votre compte",
-    description: "Inscription gratuite en quelques secondes, aucune carte bancaire requise",
+    description:
+      "Inscription gratuite en quelques secondes, aucune carte bancaire requise",
   },
   {
     num: "2",
     title: "Ajoutez vos produits",
-    description: "Importez ou saisissez votre catalogue avec catégories et prix",
+    description:
+      "Importez ou saisissez votre catalogue avec catégories et prix",
   },
   {
     num: "3",
     title: "Commencez à vendre",
-    description: "Enregistrez vos ventes, générez des factures et suivez votre caisse",
+    description:
+      "Enregistrez vos ventes, générez des factures et suivez votre caisse",
   },
   {
     num: "4",
@@ -215,21 +233,37 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white font-sans">
-
       {/* ── NAVIGATION ── */}
       <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={logo} alt="Jokko Business" className="h-9 w-9" />
             <div>
-              <p className="text-base font-semibold text-slate-900 leading-tight">Jokko Business</p>
+              <p className="text-base font-semibold text-slate-900 leading-tight">
+                Jokko Business
+              </p>
               <p className="text-xs text-slate-500">Gestion commerciale</p>
             </div>
           </div>
           <div className="hidden md:flex items-center gap-6">
-            <a href="#features" className="text-sm text-slate-600 hover:text-slate-900 transition">Fonctionnalités</a>
-            <a href="#pricing" className="text-sm text-slate-600 hover:text-slate-900 transition">Tarifs</a>
-            <a href="#faq" className="text-sm text-slate-600 hover:text-slate-900 transition">FAQ</a>
+            <a
+              href="#features"
+              className="text-sm text-slate-600 hover:text-slate-900 transition"
+            >
+              Fonctionnalités
+            </a>
+            <a
+              href="#pricing"
+              className="text-sm text-slate-600 hover:text-slate-900 transition"
+            >
+              Tarifs
+            </a>
+            <a
+              href="#faq"
+              className="text-sm text-slate-600 hover:text-slate-900 transition"
+            >
+              FAQ
+            </a>
           </div>
           <button
             onClick={() => navigate("/login")}
@@ -247,11 +281,13 @@ export default function LandingPage() {
             <MapPin size={13} /> Conçu pour les commerçants sénégalais
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-tight mb-5">
-            Gérez votre commerce<br />
+            Gérez votre commerce
+            <br />
             <span className="text-emerald-600">en toute simplicité</span>
           </h1>
           <p className="text-lg text-slate-600 max-w-xl mx-auto mb-8 leading-relaxed">
-            Stocks, ventes, clients, caisse — tout dans une seule application. Accessible 24h/24 depuis votre téléphone ou ordinateur.
+            Stocks, ventes, clients, caisse — tout dans une seule application.
+            Accessible 24h/24 depuis votre téléphone ou ordinateur.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
@@ -287,7 +323,9 @@ export default function LandingPage() {
 
       {/* ── SOCIAL PROOF ── */}
       <div className="border-b border-slate-200 px-6 py-4 flex flex-wrap items-center justify-center gap-3">
-        <span className="text-xs text-slate-500 whitespace-nowrap">Adapté pour :</span>
+        <span className="text-xs text-slate-500 whitespace-nowrap">
+          Adapté pour :
+        </span>
         {proofTags.map((tag) => (
           <span
             key={tag}
@@ -302,10 +340,15 @@ export default function LandingPage() {
       <section id="features" className="px-6 py-20 sm:py-24">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-12">
-            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-2">Fonctionnalités</p>
-            <h2 className="text-3xl font-bold text-slate-900 mb-3">Tout ce dont vous avez besoin, rien de superflu</h2>
+            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-2">
+              Fonctionnalités
+            </p>
+            <h2 className="text-3xl font-bold text-slate-900 mb-3">
+              Tout ce dont vous avez besoin, rien de superflu
+            </h2>
             <p className="text-slate-600 max-w-lg mx-auto">
-              Une plateforme complète pensée pour le terrain — prise en main en quelques minutes.
+              Une plateforme complète pensée pour le terrain — prise en main en
+              quelques minutes.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -317,8 +360,12 @@ export default function LandingPage() {
                 <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mb-3">
                   <Icon size={20} className="text-emerald-600" />
                 </div>
-                <h3 className="text-sm font-semibold text-slate-900 mb-1.5">{title}</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">{description}</p>
+                <h3 className="text-sm font-semibold text-slate-900 mb-1.5">
+                  {title}
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  {description}
+                </p>
               </div>
             ))}
           </div>
@@ -329,9 +376,15 @@ export default function LandingPage() {
       <section className="bg-slate-50 border-y border-slate-200 px-6 py-20 sm:py-24">
         <div className="mx-auto max-w-5xl">
           <div className="text-center mb-12">
-            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-2">Comment ça marche</p>
-            <h2 className="text-3xl font-bold text-slate-900 mb-3">Opérationnel en 3 minutes</h2>
-            <p className="text-slate-600">Pas d'installation, pas de serveur. Juste un navigateur.</p>
+            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-2">
+              Comment ça marche
+            </p>
+            <h2 className="text-3xl font-bold text-slate-900 mb-3">
+              Opérationnel en 3 minutes
+            </h2>
+            <p className="text-slate-600">
+              Pas d'installation, pas de serveur. Juste un navigateur.
+            </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 border border-slate-200 rounded-xl overflow-hidden bg-white">
             {steps.map(({ num, title, description }) => (
@@ -339,8 +392,12 @@ export default function LandingPage() {
                 <div className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm font-semibold mb-4">
                   {num}
                 </div>
-                <h3 className="text-sm font-semibold text-slate-900 mb-2">{title}</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">{description}</p>
+                <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                  {title}
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  {description}
+                </p>
               </div>
             ))}
           </div>
@@ -351,9 +408,16 @@ export default function LandingPage() {
       <section id="pricing" className="px-6 py-20 sm:py-24">
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-12">
-            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-2">Tarification</p>
-            <h2 className="text-3xl font-bold text-slate-900 mb-3">Simple et transparent</h2>
-            <p className="text-slate-600">Commencez gratuitement, évoluez selon vos besoins. Pas de frais cachés.</p>
+            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-2">
+              Tarification
+            </p>
+            <h2 className="text-3xl font-bold text-slate-900 mb-3">
+              Simple et transparent
+            </h2>
+            <p className="text-slate-600">
+              Commencez gratuitement, évoluez selon vos besoins. Pas de frais
+              cachés.
+            </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-start">
@@ -368,16 +432,26 @@ export default function LandingPage() {
               >
                 {/* Header */}
                 <div className="p-5 border-b border-slate-100">
-                  <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full mb-3 ${plan.badgeClass}`}>
+                  <span
+                    className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full mb-3 ${plan.badgeClass}`}
+                  >
                     {plan.badge}
                   </span>
-                  <h3 className="text-xl font-bold text-slate-900 mb-1">{plan.name}</h3>
-                  <p className="text-xs text-slate-500 mb-4">{plan.description}</p>
+                  <h3 className="text-xl font-bold text-slate-900 mb-1">
+                    {plan.name}
+                  </h3>
+                  <p className="text-xs text-slate-500 mb-4">
+                    {plan.description}
+                  </p>
 
                   {plan.price === 0 ? (
                     <div>
-                      <span className="text-2xl font-bold text-emerald-600">Gratuit</span>
-                      <p className="text-xs text-slate-400 mt-0.5">/mois pour toujours</p>
+                      <span className="text-2xl font-bold text-emerald-600">
+                        Gratuit
+                      </span>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        /mois pour toujours
+                      </p>
                     </div>
                   ) : (
                     <div className="flex items-baseline gap-1">
@@ -404,8 +478,13 @@ export default function LandingPage() {
                 <div className="p-5 flex-1 bg-white space-y-3">
                   {plan.features.map((feat) => (
                     <div key={feat} className="flex items-start gap-2.5">
-                      <Check size={15} className="text-emerald-600 mt-0.5 shrink-0" />
-                      <span className="text-xs text-slate-700 leading-relaxed">{feat}</span>
+                      <Check
+                        size={15}
+                        className="text-emerald-600 mt-0.5 shrink-0"
+                      />
+                      <span className="text-xs text-slate-700 leading-relaxed">
+                        {feat}
+                      </span>
                     </div>
                   ))}
 
@@ -415,9 +494,17 @@ export default function LandingPage() {
                         Non inclus
                       </p>
                       {plan.excluded.map((feat) => (
-                        <div key={feat} className="flex items-start gap-2.5 opacity-40">
-                          <X size={15} className="text-slate-400 mt-0.5 shrink-0" />
-                          <span className="text-xs text-slate-500 leading-relaxed">{feat}</span>
+                        <div
+                          key={feat}
+                          className="flex items-start gap-2.5 opacity-40"
+                        >
+                          <X
+                            size={15}
+                            className="text-slate-400 mt-0.5 shrink-0"
+                          />
+                          <span className="text-xs text-slate-500 leading-relaxed">
+                            {feat}
+                          </span>
                         </div>
                       ))}
                     </>
@@ -430,8 +517,12 @@ export default function LandingPage() {
           {/* Custom */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4 bg-slate-50 border border-slate-200 rounded-xl px-6 py-5">
             <div>
-              <p className="font-semibold text-slate-900 mb-1">Besoin d'une solution sur mesure ?</p>
-              <p className="text-sm text-slate-500">Plus de 5 boutiques, intégration spécifique — discutons-en.</p>
+              <p className="font-semibold text-slate-900 mb-1">
+                Besoin d'une solution sur mesure ?
+              </p>
+              <p className="text-sm text-slate-500">
+                Plus de 5 boutiques, intégration spécifique — discutons-en.
+              </p>
             </div>
             <a
               href="tel:+221783333838"
@@ -444,16 +535,28 @@ export default function LandingPage() {
       </section>
 
       {/* ── FAQ ── */}
-      <section id="faq" className="bg-slate-50 border-y border-slate-200 px-6 py-20 sm:py-24">
+      <section
+        id="faq"
+        className="bg-slate-50 border-y border-slate-200 px-6 py-20 sm:py-24"
+      >
         <div className="mx-auto max-w-3xl">
           <div className="text-center mb-12">
-            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-2">FAQ</p>
-            <h2 className="text-3xl font-bold text-slate-900">Questions fréquentes</h2>
+            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-2">
+              FAQ
+            </p>
+            <h2 className="text-3xl font-bold text-slate-900">
+              Questions fréquentes
+            </h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             {faqs.map(({ q, a }) => (
-              <div key={q} className="bg-white border border-slate-200 rounded-xl p-5">
-                <h3 className="text-sm font-semibold text-slate-900 mb-2">{q}</h3>
+              <div
+                key={q}
+                className="bg-white border border-slate-200 rounded-xl p-5"
+              >
+                <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                  {q}
+                </h3>
                 <p className="text-sm text-slate-500 leading-relaxed">{a}</p>
               </div>
             ))}
@@ -464,9 +567,12 @@ export default function LandingPage() {
       {/* ── CTA BANNER ── */}
       <section className="px-6 py-12">
         <div className="mx-auto max-w-5xl bg-emerald-600 rounded-2xl px-8 py-14 text-center text-white">
-          <h2 className="text-3xl font-bold mb-3">Prêt à simplifier votre gestion ?</h2>
+          <h2 className="text-3xl font-bold mb-3">
+            Prêt à simplifier votre gestion ?
+          </h2>
           <p className="text-emerald-100 mb-8 text-base">
-            Rejoignez des commerçants sénégalais qui font confiance à Jokko Business au quotidien
+            Rejoignez des commerçants sénégalais qui font confiance à Jokko
+            Business au quotidien
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
@@ -497,24 +603,55 @@ export default function LandingPage() {
                 <span className="text-white font-semibold">Jokko Business</span>
               </div>
               <p className="text-sm leading-relaxed">
-                La solution de gestion commerciale pensée pour les commerçants sénégalais
+                La solution de gestion commerciale pensée pour les commerçants
+                sénégalais
               </p>
             </div>
             <div>
               <h4 className="text-sm font-semibold text-white mb-4">Produit</h4>
               <ul className="space-y-2.5 text-sm">
-                <li><a href="#features" className="hover:text-white transition">Fonctionnalités</a></li>
-                <li><a href="#pricing" className="hover:text-white transition">Tarification</a></li>
-                <li><a href="#" className="hover:text-white transition">Sécurité</a></li>
-                <li><a href="#" className="hover:text-white transition">Mises à jour</a></li>
+                <li>
+                  <a href="#features" className="hover:text-white transition">
+                    Fonctionnalités
+                  </a>
+                </li>
+                <li>
+                  <a href="#pricing" className="hover:text-white transition">
+                    Tarification
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition">
+                    Sécurité
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition">
+                    Mises à jour
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-white mb-4">Entreprise</h4>
+              <h4 className="text-sm font-semibold text-white mb-4">
+                Entreprise
+              </h4>
               <ul className="space-y-2.5 text-sm">
-                <li><a href="#" className="hover:text-white transition">À propos</a></li>
-                <li><a href="#" className="hover:text-white transition">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition">Contact</a></li>
+                <li>
+                  <a href="#" className="hover:text-white transition">
+                    À propos
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition">
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition">
+                    Contact
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
@@ -522,11 +659,21 @@ export default function LandingPage() {
               <ul className="space-y-3 text-sm">
                 <li className="flex items-center gap-2">
                   <Phone size={14} className="text-emerald-400 shrink-0" />
-                  <a href="tel:+221783333838" className="hover:text-white transition">+221 78 333 38 38</a>
+                  <a
+                    href="tel:+221783333838"
+                    className="hover:text-white transition"
+                  >
+                    +221 78 333 38 38
+                  </a>
                 </li>
                 <li className="flex items-center gap-2">
                   <Mail size={14} className="text-emerald-400 shrink-0" />
-                  <a href="mailto:contact@jokko.sn" className="hover:text-white transition">contact@jokko.sn</a>
+                  <a
+                    href="mailto:contact@jokko.sn"
+                    className="hover:text-white transition"
+                  >
+                    contact@jokko.sn
+                  </a>
                 </li>
                 <li className="flex items-center gap-2">
                   <MapPin size={14} className="text-emerald-400 shrink-0" />

@@ -54,7 +54,6 @@ function StatCard({
 
   let isLocked;
   let isInclude;
-  // console.log(subscription)
   if (subscription?.plan.code === "FREE") {
     isLocked = !isInclude && statType && basicStats.has(statType);
     isInclude = hasFeature(subscription as SubscriptionInfo, "LOW_STOCK_ALERT");
@@ -134,13 +133,14 @@ export default function Dashboard() {
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(
     null,
   );
-
+  
   useEffect(() => {
     getSubscription().then(setSubscription);
     getDashboardStats()
-      .then(setStats)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    .then(setStats)
+    .catch(console.error)
+    
+    .finally(() => setLoading(false));
   }, []);
   if (!subscription) {
     return;

@@ -1,11 +1,15 @@
+import { ChevronDown, ChevronUp, CreditCard, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { Plus, X, ChevronDown, ChevronUp, CreditCard } from "lucide-react";
-import {
-  getSuppliers, createSupplier, updateSupplier, deleteSupplier,
-  addSupplierDebt, addSupplierPayment, getCurrentCash,
-} from "../services/index";
 import PaymentMethodSelect from "../components/Paymentmethodselect";
+import {
+  addSupplierDebt, addSupplierPayment,
+  createSupplier,
+  deleteSupplier,
+  getCurrentCash,
+  getSuppliers,
+  updateSupplier,
+} from "../services/index";
 import type { Supplier, SupplierDebt } from "../types/index";
 
 const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;

@@ -358,7 +358,7 @@ export const getSubscription = async (): Promise<SubscriptionInfo> => {
   }
 
   subscriptionPromise = api
-    .get("subscription")
+  .get("subscription")
     .then((res) => {
       const subscription = res.data.subscription;
 
