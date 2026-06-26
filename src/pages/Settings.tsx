@@ -1,8 +1,40 @@
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { Upload, Trash2, Save, Building2, Phone, MapPin, User } from "lucide-react";
+import {
+  Upload,
+  Trash2,
+  Save,
+  Building2,
+  Phone,
+  MapPin,
+  User,
+  Crown,
+  Check,
+  AlertTriangle,
+  Clock,
+  Zap,
+} from "lucide-react";
 import { api } from "../services/api";
 import { getStoredUser } from "../types/auth";
+
+type Plan = {
+  id: number;
+  code: "FREE" | "STARTER" | "PRO" | "PREMIUM";
+  name: string;
+  maxSalesPerMonth: number | null;
+  maxProducts: number | null;
+  maxCustomers: number | null;
+  maxUsers: number;
+  maxStores: number;
+};
+
+type Subscription = {
+  id: number;
+  status: "TRIAL" | "ACTIVE" | "EXPIRED";
+  startDate: string;
+  endDate: string | null;
+  plan: Plan;
+};
 
 type ShopInfo = {
   id: number;
@@ -13,9 +45,79 @@ type ShopInfo = {
   address: string | null;
   logoUrl: string | null;
   status: string;
-  subscriptions: { plan: string; status: string; endDate: string }[];
-  _count: { users: number; products: number; sales: number; clients: number };
+  subscriptions: Subscription[];
+  _count: {
+    users: number;
+    products: number;
+    sales: number;
+    clients: number;
+  };
 };
+
+// ── Données des plans pour la section upgrade ──
+const PLANS_INFO = [
+  {
+    code: "FREE",
+    name: "Gratuit",
+    price: 0,
+    color: "slate",
+    features: ["1 utilisateur", "50 produits", "90 ventes/mois", "50 clients"],
+  },
+  {
+    code: "STARTER",
+    name: "Starter",
+    price: 5000,
+    color: "emerald",
+    features: [
+      "2 utilisateurs",
+      "Produits illimités",
+      "Ventes illimitées",
+      "Clients illimités",
+      "Factures PDF A4",
+      "Export Excel",
+      "Alertes stock",
+    ],
+  },
+  {
+    code: "PRO",
+    name: "Pro",
+    price: 10000,
+    color: "blue",
+    features: [
+      "5 utilisateurs",
+      "Tout Starter inclus",
+      "Gestion fournisseurs",
+      "Rapports & statistiques",
+      "Paiements par tranches",
+      "Historique complet",
+    ],
+  },
+  {
+    code: "PREMIUM",
+    name: "Premium",
+    price: 20000,
+    color: "purple",
+    features: [
+      "Utilisateurs illimités",
+      "Tout Pro inclus",
+      "Multi-boutiques (5 max)",
+      "Rôles & permissions avancés",
+      "Support prioritaire",
+    ],
+  },
+];
+
+const PLAN_ORDER = ["FREE", "STARTER", "PRO", "PREMIUM"];
+
+function getPlanIndex(code: string) {
+  return PLAN_ORDER.indexOf(code);
+}
+
+function getDaysRemaining(endDate: string | null): number | null {
+  if (!endDate) return null;
+  const diff = new Date(endDate).getTime() - new Date().getTime();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
 
 export default function Settings() {
   const user = getStoredUser();
@@ -27,7 +129,10 @@ export default function Settings() {
   const [uploading, setUploading] = useState(false);
 
   const [form, setForm] = useState({
-    name: "", ownerName: "", phone: "", address: "",
+    name: "",
+    ownerName: "",
+    phone: "",
+    address: "",
   });
 
   const [logoPreview, setLogoPreview] = useState<string>("");
@@ -44,8 +149,6 @@ export default function Settings() {
         address: res.data.address || "",
       });
       setLogoPreview(res.data.logoUrl || "");
-
-      // Sauvegarder le logo en localStorage pour la sidebar et les factures
       if (res.data.logoUrl) {
         localStorage.setItem("shopLogo", res.data.logoUrl);
         localStorage.setItem("shopName", res.data.name);
@@ -57,7 +160,9 @@ export default function Settings() {
     }
   };
 
-  useEffect(() => { fetchShop(); }, []);
+  useEffect(() => {
+    fetchShop();
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,30 +174,27 @@ export default function Settings() {
       const res = await api.put("/shop/settings", form);
       setShop(res.data.shop);
       localStorage.setItem("shopName", res.data.shop.name);
-      // Mettre à jour le user en localStorage
       const currentUser = getStoredUser();
       if (currentUser) {
-        localStorage.setItem("user", JSON.stringify({
-          ...currentUser,
-          shopName: res.data.shop.name,
-        }));
+        localStorage.setItem(
+          "user",
+          JSON.stringify({ ...currentUser, shopName: res.data.shop.name })
+        );
       }
       toast.success("Paramètres sauvegardés");
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Erreur");
     } finally {
-      setSaving(false); }
+      setSaving(false);
+    }
   };
 
   const handleLogoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Preview immédiat
     const reader = new FileReader();
     reader.onload = (ev) => setLogoPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
-
     setUploading(true);
     try {
       const formData = new FormData();
@@ -103,7 +205,6 @@ export default function Settings() {
       setLogoPreview(res.data.logoUrl);
       localStorage.setItem("shopLogo", res.data.logoUrl);
       toast.success("Logo mis à jour — visible sur vos factures");
-      // Forcer le rechargement de la sidebar
       window.dispatchEvent(new Event("shopLogoUpdated"));
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Erreur upload logo");
@@ -127,14 +228,26 @@ export default function Settings() {
     }
   };
 
-  if (loading) return <div className="rounded-2xl bg-white p-8 text-center text-gray-400">Chargement...</div>;
+  if (loading)
+    return (
+      <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
+        Chargement...
+      </div>
+    );
 
-  const subscription = shop?.subscriptions?.[0];
+  const subscription = shop?.subscriptions?.[0] ?? null;
+  const currentPlan = subscription?.plan ?? null;
+  const currentPlanCode = currentPlan?.code ?? "FREE";
+  const currentPlanIndex = getPlanIndex(currentPlanCode);
+  const daysRemaining = getDaysRemaining(subscription?.endDate ?? null);
+  const isTrialing = subscription?.status === "TRIAL";
+  const isExpired = subscription?.status === "EXPIRED";
+  const isActive = subscription?.status === "ACTIVE";
 
   return (
     <section className="space-y-6 max-w-3xl">
 
-      {/* Infos boutique rapides */}
+      {/* ── Stats rapides ── */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
           { label: "Produits", value: shop?._count?.products ?? 0 },
@@ -142,50 +255,282 @@ export default function Settings() {
           { label: "Ventes", value: shop?._count?.sales ?? 0 },
           { label: "Utilisateurs", value: shop?._count?.users ?? 0 },
         ].map((s) => (
-          <div key={s.label} className="rounded-2xl bg-white p-4 shadow-sm text-center">
+          <div
+            key={s.label}
+            className="rounded-2xl bg-white p-4 shadow-sm text-center"
+          >
             <p className="text-2xl font-bold text-slate-900">{s.value}</p>
             <p className="mt-1 text-xs text-gray-500">{s.label}</p>
           </div>
         ))}
       </div>
 
-      {/* Abonnement */}
+      {/* ── Bloc abonnement actuel ── */}
       {subscription && (
-        <div className={`rounded-2xl px-5 py-4 flex items-center justify-between ${
-          subscription.status === "ACTIVE" ? "bg-emerald-50 border border-emerald-200"
-          : "bg-red-50 border border-red-200"
-        }`}>
-          <div>
-            <p className={`font-semibold ${subscription.status === "ACTIVE" ? "text-emerald-800" : "text-red-800"}`}>
-              Abonnement {subscription.plan} —{" "}
-              {subscription.status === "ACTIVE" ? "✅ Actif" : "❌ Expiré"}
-            </p>
-            <p className={`text-sm mt-0.5 ${subscription.status === "ACTIVE" ? "text-emerald-600" : "text-red-600"}`}>
-              Expire le {new Date(subscription.endDate).toLocaleDateString("fr-FR", {
-                day: "numeric", month: "long", year: "numeric"
-              })}
-            </p>
+        <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
+          {/* Header statut */}
+          <div
+            className={`px-6 py-4 flex items-center justify-between ${
+              isTrialing
+                ? "bg-blue-50 border-b border-blue-100"
+                : isExpired
+                ? "bg-red-50 border-b border-red-100"
+                : "bg-emerald-50 border-b border-emerald-100"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                  isTrialing
+                    ? "bg-blue-100"
+                    : isExpired
+                    ? "bg-red-100"
+                    : "bg-emerald-100"
+                }`}
+              >
+                {isTrialing ? (
+                  <Clock
+                    size={18}
+                    className="text-blue-600"
+                  />
+                ) : isExpired ? (
+                  <AlertTriangle size={18} className="text-red-600" />
+                ) : (
+                  <Zap size={18} className="text-emerald-600" />
+                )}
+              </div>
+              <div>
+                <p
+                  className={`font-semibold text-sm ${
+                    isTrialing
+                      ? "text-blue-800"
+                      : isExpired
+                      ? "text-red-800"
+                      : "text-emerald-800"
+                  }`}
+                >
+                  Plan {currentPlan?.name ?? "Gratuit"}
+                  {isTrialing && " — Période d'essai"}
+                  {isActive && " — Actif"}
+                  {isExpired && " — Expiré"}
+                </p>
+                <p
+                  className={`text-xs mt-0.5 ${
+                    isTrialing
+                      ? "text-blue-600"
+                      : isExpired
+                      ? "text-red-600"
+                      : "text-emerald-600"
+                  }`}
+                >
+                  {isTrialing && daysRemaining !== null && (
+                    <>
+                      {daysRemaining > 0
+                        ? `${daysRemaining} jour${daysRemaining > 1 ? "s" : ""} d'essai restant${daysRemaining > 1 ? "s" : ""}`
+                        : "Essai expiré aujourd'hui"}
+                    </>
+                  )}
+                  {isActive && subscription.endDate && (
+                    <>
+                      Renouvellement le{" "}
+                      {new Date(subscription.endDate).toLocaleDateString(
+                        "fr-FR",
+                        { day: "numeric", month: "long", year: "numeric" }
+                      )}
+                    </>
+                  )}
+                  {isActive && !subscription.endDate && <>Sans date d'expiration</>}
+                  {isExpired && "Votre abonnement a expiré — passez à un plan payant"}
+                </p>
+              </div>
+            </div>
+
+            {/* Badge plan */}
+            <span
+              className={`text-xs font-bold px-3 py-1 rounded-full ${
+                currentPlanCode === "FREE"
+                  ? "bg-slate-100 text-slate-600"
+                  : currentPlanCode === "STARTER"
+                  ? "bg-emerald-100 text-emerald-700"
+                  : currentPlanCode === "PRO"
+                  ? "bg-blue-100 text-blue-700"
+                  : "bg-purple-100 text-purple-700"
+              }`}
+            >
+              {currentPlan?.name ?? "Gratuit"}
+            </span>
           </div>
+
+          {/* Limites du plan actuel */}
+          {currentPlan && (
+            <div className="px-6 py-4 grid grid-cols-2 gap-3 sm:grid-cols-4 border-b border-slate-100">
+              {[
+                {
+                  label: "Utilisateurs",
+                  value:
+                    currentPlan.maxUsers === -1
+                      ? "Illimité"
+                      : currentPlan.maxUsers,
+                },
+                {
+                  label: "Produits",
+                  value:
+                    currentPlan.maxProducts === null
+                      ? "Illimité"
+                      : currentPlan.maxProducts,
+                },
+                {
+                  label: "Ventes/mois",
+                  value:
+                    currentPlan.maxSalesPerMonth === null
+                      ? "Illimité"
+                      : currentPlan.maxSalesPerMonth,
+                },
+                {
+                  label: "Boutiques",
+                  value:
+                    currentPlan.maxStores === -1
+                      ? "Illimité"
+                      : currentPlan.maxStores,
+                },
+              ].map((item) => (
+                <div key={item.label} className="text-center">
+                  <p className="text-base font-bold text-slate-900">
+                    {item.value}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">{item.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* CTA upgrade si pas Premium */}
+          {currentPlanCode !== "PREMIUM" && (
+            <div className="px-6 py-4">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                {isExpired ? "Réactivez votre abonnement" : "Passer à un plan supérieur"}
+              </p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                {PLANS_INFO.filter(
+                  (p) => getPlanIndex(p.code) > currentPlanIndex
+                ).map((plan) => (
+                  <div
+                    key={plan.code}
+                    className={`rounded-xl border p-4 cursor-pointer hover:shadow-sm transition ${
+                      plan.code === "STARTER"
+                        ? "border-emerald-200 bg-emerald-50"
+                        : plan.code === "PRO"
+                        ? "border-blue-200 bg-blue-50"
+                        : "border-purple-200 bg-purple-50"
+                    }`}
+                    onClick={() =>
+                      toast("Contactez-nous au +221 78 333 38 38 pour activer ce plan", {
+                        icon: "📞",
+                      })
+                    }
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span
+                        className={`text-sm font-bold ${
+                          plan.code === "STARTER"
+                            ? "text-emerald-700"
+                            : plan.code === "PRO"
+                            ? "text-blue-700"
+                            : "text-purple-700"
+                        }`}
+                      >
+                        {plan.name}
+                      </span>
+                      <Crown
+                        size={14}
+                        className={
+                          plan.code === "STARTER"
+                            ? "text-emerald-500"
+                            : plan.code === "PRO"
+                            ? "text-blue-500"
+                            : "text-purple-500"
+                        }
+                      />
+                    </div>
+                    <p className="text-lg font-bold text-slate-900">
+                      {plan.price.toLocaleString("fr-FR")}{" "}
+                      <span className="text-xs font-normal text-slate-500">
+                        FCFA/mois
+                      </span>
+                    </p>
+                    <ul className="mt-2 space-y-1">
+                      {plan.features.slice(0, 3).map((f) => (
+                        <li
+                          key={f}
+                          className="flex items-center gap-1.5 text-xs text-slate-600"
+                        >
+                          <Check size={11} className="text-emerald-500 shrink-0" />
+                          {f}
+                        </li>
+                      ))}
+                      {plan.features.length > 3 && (
+                        <li className="text-xs text-slate-400">
+                          +{plan.features.length - 3} autres...
+                        </li>
+                      )}
+                    </ul>
+                    <button
+                      className={`mt-3 w-full py-1.5 rounded-lg text-xs font-semibold transition ${
+                        plan.code === "STARTER"
+                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                          : plan.code === "PRO"
+                          ? "bg-blue-600 text-white hover:bg-blue-700"
+                          : "bg-purple-600 text-white hover:bg-purple-700"
+                      }`}
+                    >
+                      Passer au {plan.name}
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-gray-400 text-center">
+                📞 Contactez-nous au{" "}
+                <a
+                  href="tel:+221783333838"
+                  className="text-emerald-600 font-medium hover:underline"
+                >
+                  +221 78 333 38 38
+                </a>{" "}
+                pour activer votre plan
+              </p>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Logo de la boutique */}
+      {/* ── Logo de la boutique ── */}
       <div className="rounded-2xl bg-white p-6 shadow-sm">
-        <h3 className="mb-1 text-lg font-bold text-slate-900">Logo de la boutique</h3>
+        <h3 className="mb-1 text-lg font-bold text-slate-900">
+          Logo de la boutique
+        </h3>
         <p className="mb-5 text-sm text-gray-500">
           Ce logo apparaîtra dans la barre latérale et sur toutes vos factures.
         </p>
 
         <div className="flex items-start gap-6">
-          {/* Preview logo */}
           <div
-            onClick={() => isAdmin && !uploading && fileInputRef.current?.click()}
+            onClick={() =>
+              isAdmin && !uploading && fileInputRef.current?.click()
+            }
             className={`relative flex h-28 w-28 shrink-0 items-center justify-center rounded-2xl border-2 overflow-hidden transition
               ${isAdmin ? "cursor-pointer" : "cursor-default"}
-              ${logoPreview ? "border-emerald-300 bg-emerald-50" : "border-dashed border-gray-300 bg-gray-50 hover:border-emerald-400"}`}
+              ${
+                logoPreview
+                  ? "border-emerald-300 bg-emerald-50"
+                  : "border-dashed border-gray-300 bg-gray-50 hover:border-emerald-400"
+              }`}
           >
             {logoPreview ? (
-              <img src={logoPreview} alt="Logo boutique" className="h-full w-full object-contain p-2" />
+              <img
+                src={logoPreview}
+                alt="Logo boutique"
+                className="h-full w-full object-contain p-2"
+              />
             ) : (
               <div className="flex flex-col items-center gap-1 text-gray-400">
                 <Building2 size={28} />
@@ -199,7 +544,6 @@ export default function Settings() {
             )}
           </div>
 
-          {/* Actions */}
           {isAdmin && (
             <div className="flex-1 space-y-3">
               <input
@@ -216,7 +560,11 @@ export default function Settings() {
                 className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
               >
                 <Upload size={15} />
-                {uploading ? "Upload en cours..." : logoPreview ? "Changer le logo" : "Uploader un logo"}
+                {uploading
+                  ? "Upload en cours..."
+                  : logoPreview
+                  ? "Changer le logo"
+                  : "Uploader un logo"}
               </button>
 
               {logoPreview && (
@@ -229,26 +577,34 @@ export default function Settings() {
                 </button>
               )}
 
-              <p className="text-xs text-gray-400">JPG, PNG, WebP ou SVG — max 3MB</p>
+              <p className="text-xs text-gray-400">
+                JPG, PNG, WebP ou SVG — max 3MB
+              </p>
               <p className="text-xs text-emerald-600 font-medium">
-                💡 Le logo sera immédiatement visible sur vos nouvelles factures.
+                💡 Le logo sera immédiatement visible sur vos nouvelles
+                factures.
               </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Informations de la boutique */}
+      {/* ── Informations de la boutique ── */}
       <div className="rounded-2xl bg-white p-6 shadow-sm">
-        <h3 className="mb-1 text-lg font-bold text-slate-900">Informations de la boutique</h3>
+        <h3 className="mb-1 text-lg font-bold text-slate-900">
+          Informations de la boutique
+        </h3>
         <p className="mb-5 text-sm text-gray-500">
           Ces informations apparaissent sur vos factures.
-          {!isAdmin && <span className="ml-1 text-orange-500">Seul l'administrateur peut modifier ces informations.</span>}
+          {!isAdmin && (
+            <span className="ml-1 text-orange-500">
+              Seul l'administrateur peut modifier ces informations.
+            </span>
+          )}
         </p>
 
         <form onSubmit={handleSave} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 <Building2 size={14} className="inline mr-1.5 text-gray-400" />
@@ -257,7 +613,9 @@ export default function Settings() {
               <input
                 type="text"
                 value={form.name}
-                onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, name: e.target.value }))
+                }
                 disabled={!isAdmin}
                 className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
                 placeholder="Ex: Boutique Fatou"
@@ -272,7 +630,9 @@ export default function Settings() {
               <input
                 type="text"
                 value={form.ownerName}
-                onChange={(e) => setForm((p) => ({ ...p, ownerName: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, ownerName: e.target.value }))
+                }
                 disabled={!isAdmin}
                 className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
                 placeholder="Ex: Fatou Diallo"
@@ -287,7 +647,9 @@ export default function Settings() {
               <input
                 type="text"
                 value={form.phone}
-                onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, phone: e.target.value }))
+                }
                 disabled={!isAdmin}
                 className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
                 placeholder="Ex: 77 000 00 00"
@@ -302,7 +664,9 @@ export default function Settings() {
               <input
                 type="text"
                 value={form.address}
-                onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, address: e.target.value }))
+                }
                 disabled={!isAdmin}
                 className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
                 placeholder="Ex: Dakar, Sénégal"
@@ -310,16 +674,20 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Email (non modifiable) */}
+          {/* Email non modifiable */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Email (identifiant de connexion)</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Email (identifiant de connexion)
+            </label>
             <input
               type="email"
               value={shop?.email || ""}
               disabled
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500"
             />
-            <p className="mt-1 text-xs text-gray-400">L'email ne peut être modifié que par le Super Administrateur.</p>
+            <p className="mt-1 text-xs text-gray-400">
+              L'email ne peut être modifié que par le Super Administrateur.
+            </p>
           </div>
 
           {isAdmin && (
@@ -334,7 +702,6 @@ export default function Settings() {
           )}
         </form>
       </div>
-
     </section>
   );
 }
