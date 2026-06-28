@@ -129,10 +129,9 @@ export default function Cash() {
   const [txMethod, setTxMethod] = useState("CASH");
   const [submitting, setSubmitting] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-  const shopPlan = user?.plan;
 
+  const hasFeature = hasFeatures(subscription as SubscriptionInfo);
 
-  hasFeatures(subscription as SubscriptionInfo);
   const fetchData = async () => {
     try {
       const [subscription, current, hist] = await Promise.all([
@@ -725,10 +724,7 @@ export default function Cash() {
                 <div
                   className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 cursor-pointer hover:bg-gray-50 transition"
                   onClick={() => {
-                    if (
-                      (shopPlan === "FREE" && session.status === "CLOSED") ||
-                      session.status === "OPEN"
-                    ) {
+                    if (!hasFeature.exportPdf) {
                       setIsUpgradeModalOpen(true);
                       return;
                     }
@@ -797,10 +793,7 @@ export default function Cash() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (
-                          shopPlan === "FREE" &&
-                          session.status === "CLOSED"
-                        ) {
+                        if (!hasFeature.exportPdf) {
                           setIsUpgradeModalOpen(true);
                           return;
                         }
@@ -817,12 +810,12 @@ export default function Cash() {
                         }
                       }}
                       className={`flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs transition ${
-                        shopPlan === "FREE"
+                        !hasFeature.exportPdf
                           ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
                           : "border-gray-200 text-gray-600 hover:bg-gray-50"
                       }`}
                     >
-                      {shopPlan === "FREE" ? (
+                      {!hasFeature.exportPdf ? (
                         <Lock size={12} className="text-amber-600" />
                       ) : (
                         <Download size={12} />

@@ -17,7 +17,7 @@ import type {
   Supplier,
 } from "../types/index";
 import { exportStockToExcel } from "../utils/exportExcel";
-import { hasFeature } from "../utils/subscription.checker";
+import {  hasFeatures } from "../utils/subscription.checker";
 
 const fmt = (v: number) => v.toLocaleString("fr-FR");
 const fmtCFA = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
@@ -57,12 +57,8 @@ export default function Stock() {
   // Afficher sections optionnelles
   const [showSupplierSection, setShowSupplierSection] = useState(false);
   // , locales, {})
-  const isInclude = hasFeature(
-    subscription as SubscriptionInfo,
-    "SUPPLIER_MANAGEMENT",
-  );
+  const hasFeature = hasFeatures(subscription as SubscriptionInfo)
 
-  console.log(isInclude);
 
   const fetchData = async () => {
     setLoading(true);
@@ -241,7 +237,7 @@ export default function Stock() {
             </div>
 
             {/* Toggle fournisseur */}
-            {isInclude && (
+            {hasFeature.supplierManagement && (
               <button
                 type="button"
                 onClick={() => setShowSupplierSection((v) => !v)}
