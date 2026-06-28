@@ -17,7 +17,7 @@ import type {
   Supplier,
 } from "../types/index";
 import { exportStockToExcel } from "../utils/exportExcel";
-import {  hasFeatures } from "../utils/subscription.checker";
+import { hasFeatures } from "../utils/subscription.checker";
 
 const fmt = (v: number) => v.toLocaleString("fr-FR");
 const fmtCFA = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
@@ -57,8 +57,8 @@ export default function Stock() {
   // Afficher sections optionnelles
   const [showSupplierSection, setShowSupplierSection] = useState(false);
   // , locales, {})
-  const hasFeature = hasFeatures(subscription as SubscriptionInfo)
-
+  const hasFeature = hasFeatures(subscription as SubscriptionInfo);
+  console.log(hasFeature.supplierManagement);
 
   const fetchData = async () => {
     setLoading(true);
@@ -237,22 +237,26 @@ export default function Stock() {
             </div>
 
             {/* Toggle fournisseur */}
-            {hasFeature.supplierManagement && (
-              <button
-                type="button"
-                onClick={() => setShowSupplierSection((v) => !v)}
-                className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700"
-              >
-                {showSupplierSection ? (
-                  <ChevronUp size={16} />
-                ) : (
-                  <ChevronDown size={16} />
-                )}
-                {showSupplierSection
-                  ? "Masquer les infos fournisseur"
-                  : "Lier à un fournisseur (optionnel)"}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => {
+                if (!hasFeature.supplierManagement) {
+                  setIsUpgradeModalOpen(true);
+                  return;
+                }
+                setShowSupplierSection((v) => !v);
+              }}
+              className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700"
+            >
+              {showSupplierSection ? (
+                <ChevronUp size={16} />
+              ) : (
+                <ChevronDown size={16} />
+              )}
+              {showSupplierSection
+                ? "Masquer les infos fournisseur"
+                : "Lier à un fournisseur (optionnel)"}
+            </button>
 
             {/* Section fournisseur */}
             {showSupplierSection && (

@@ -30,6 +30,7 @@ import type {
   SubscriptionInfo,
   Supplier,
 } from "../types/index";
+import { hasFeatures } from "../utils/subscription.checker";
 
 const emptyForm = {
   name: "",
@@ -81,6 +82,7 @@ export default function Products() {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [totalProducts, setTotalProducts] = useState(0);
+  const hasFeature = hasFeatures(subscription as SubscriptionInfo);
 
   const admin = isAdmin();
   // let maxProducts = subscription?.limits.products;
@@ -778,7 +780,13 @@ export default function Products() {
               <div className="border-t pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowSupplierSection((v) => !v)}
+                  onClick={() => {
+                    if (!hasFeature.supplierManagement) {
+                      setIsUpgradeModalOpen(true);
+                      return;
+                    }
+                    setShowSupplierSection((v) => !v);
+                  }}
                   className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700"
                 >
                   {showSupplierSection ? (
