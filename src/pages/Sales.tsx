@@ -10,10 +10,11 @@ import {
   getCurrentCash,
   getProducts,
   getSales,
+  getSubscription,
   getSuggestedPrice,
 } from "../services/index";
 import { getStoredUser, isAdmin } from "../types/auth";
-import type { Client, Product, Sale } from "../types/index";
+import type { Client, Product, Sale, SubscriptionInfo } from "../types/index";
 import { exportSalesToExcel } from "../utils/exportExcel";
 import { exportSalesPDF } from "../utils/exportPDF";
 import { printInvoice as doPrint } from "../utils/printInvoice";
@@ -69,6 +70,7 @@ export default function Sales() {
   const [productSearch, setProductSearch] = useState("");
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [salesCount, setSalesCount] = useState<number>(0);
+  const [subscription, setSubscription] = useState<SubscriptionInfo>();
   const maxLimit = 100;
 
   const checkCash = async () => {
@@ -83,11 +85,13 @@ export default function Sales() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [salesRes, prods, cls] = await Promise.all([
+      const [subscription, salesRes, prods, cls] = await Promise.all([
+        getSubscription(),
         getSales({ status: statusFilter || undefined, page, limit: 5 }),
         getProducts({ limit: 200 }),
         getClients(),
       ]);
+      setSubscription(subscription);
       setSales(salesRes.data);
       setSalesCount(salesRes.meta.salescount);
       setTotal(salesRes.pagination.total);
@@ -101,9 +105,11 @@ export default function Sales() {
     }
   };
 
-  const isLimitReached = user?.plan === "FREE" && salesCount >= maxLimit;
+  const isLimitReached =
+    subscription?.plan.code === "FREE" && salesCount >= maxLimit;
+
   const isLimitReachedApproche =
-    user?.plan === "FREE" && maxLimit - salesCount <= 10;
+    subscription?.plan.code === "FREE" && maxLimit - salesCount <= 10;
 
   useEffect(() => {
     fetchData();

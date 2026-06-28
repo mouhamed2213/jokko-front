@@ -64,7 +64,7 @@ const plans: Plan[] = [
     features: [
       "2 utilisateurs (proriétaire + 1 employé)", // important ✅  
       "Jusqu'à 500 produits", // important ✅  
-      "1500 ventes par mois", // important 
+      "Ventes illimité", // important ✅
       "Alertes stock faibles & ruptures", // important
       "Clients illimités", // important
       "Suivi dettes client", // important
