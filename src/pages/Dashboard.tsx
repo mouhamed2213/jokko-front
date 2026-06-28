@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { getDashboardStats, getSubscription } from "../services/index";
 import { getStoredUser } from "../types/auth";
 import type { DashboardStats, SubscriptionInfo } from "../types/index";
-import { hasFeature, hasFeatures } from "../utils/subscription.checker";
+import { hasFeatures } from "../utils/subscription.checker";
 
 function StatCard({
   subscription,
@@ -44,48 +44,36 @@ function StatCard({
     orange: "bg-orange-100 text-orange-700",
   };
 
-  const basicStats = new Set([
-    "EXPORT_PDF",
-    "EXPORT_EXCEL",
-    "LOW_STOCK_ALERT",
-    "OUT_OF_STOCK_ALERT",
-    "TOP_PRODUCTS",
-    "STOCK_VALUE",
-    "SUPPLIER_MANAGEMENT",
-    "ADVANCED_REPORTS",
-    "ACCOUNTING",
-    "MULTI_STORE",
-    "API_ACCESS",
-  ]);
+  const plan = subscription?.plan.code;
 
-  let isLocked;
-  let isInclude;
-  if (subscription?.plan.code === "FREE") {
-    isLocked = !isInclude && statType && basicStats.has(statType);
-    isInclude = hasFeature(subscription as SubscriptionInfo, "LOW_STOCK_ALERT");
-  }
+  const isHiddenStats = plan === "FREE" && statType ? true : false;
+  console.log(isHiddenStats)
 
-  const isLockedSupplier =
-    !isInclude && statType && statType === "TOTAL_SUPPLIERS";
+
+  const isHiddenSupplierStats =
+   plan === "FREE" ||
+    plan === "BASIC" &&
+    statType === "SUPPLIER_MANAGEMENT";
+
+  console.log(isHiddenSupplierStats);
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-start justify-between gap-4">
-        {/* Titre et subtitle — toujours visibles */}
+        {/* card title */}
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-500">{title}</p>
 
-          {/* Valeur : blurrée si locked */}
+          {/* card value displayed based on plan  */}
+
           <div
             className={`mt-2 text-2xl font-bold text-slate-900 transition-all ${
-              !isLocked &&
-              statType !== "TOTAL_SUPPLIERS" &&
-              statType !== "TOTAL_SUPPLIER_DEPT"
-                ? ""
-                : "blur-sm select-none text-slate-300"
+              isHiddenStats || isHiddenSupplierStats
+                ? "blur-sm select-none text-slate-300"
+                : ""
             }`}
           >
-            {!isLocked ? value : "———"}
+            {isHiddenStats || isHiddenSupplierStats ? "———" : value}
           </div>
 
           <p className="mt-1 text-xs text-gray-400">{subtitle}</p>
@@ -93,38 +81,38 @@ function StatCard({
 
         {/* Icône — toujours visible */}
         <div
-          className={`rounded-xl p-3 shrink-0 ${colors[color]} ${isLocked ? "opacity-40" : ""}`}
+          className={`rounded-xl p-3 shrink-0 ${colors[color]} ${isHiddenStats ? "opacity-40" : ""}`}
         >
           {icon}
         </div>
       </div>
 
-      {/* Badge cadenas — positionné en bas à droite, discret */}
-      {isLocked && (
+      {/* Display badge based on plan */}
+      {isHiddenStats && (
         <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
           <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md">
-            {isLocked &&
-            statType !== "TOTAL_SUPPLIERS" &&
-            statType !== "TOTAL_SUPPLIER_DEPT" ? (
+            {statType === "SUPPLIER_MANAGEMENT" ? (
               <>
-                <Lock size={10} /> Plan Basic
+                <Crown size={10} /> PRO
               </>
             ) : (
               <>
-                <Crown size={10} /> PRO
+                <Lock size={10} /> Plan Basic
               </>
             )}
           </span>
         </div>
       )}
 
-      {isLockedSupplier && (
+      {isHiddenSupplierStats && statType=== "SUPPLIER_MANAGEMENT" && (
         <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
           <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md">
             <Crown size={10} /> PRO
           </span>
         </div>
       )}
+
+      
     </div>
   );
 }
@@ -157,7 +145,8 @@ export default function Dashboard() {
   const shopPlan = subscription?.plan.code;
   const featureIsInclude = hasFeatures(subscription);
 
-  console.log(featureIsInclude)
+  // console.log(featureIsInclude)
+
   if (loading) {
     return (
       <div className="rounded-2xl bg-white p-8 shadow-sm text-center text-gray-400">
@@ -270,7 +259,7 @@ export default function Dashboard() {
           />
           <StatCard
             subscription={subscription}
-            statType="TOTAL_SUPPLIER_DEPT"
+            statType="SUPPLIER_MANAGEMENT"
             // user={user}
             title="Dettes fournisseurs"
             value={fmt(stats?.totalSupplierDebt ?? 0)}
@@ -296,7 +285,7 @@ export default function Dashboard() {
           />
           <StatCard
             subscription={subscription}
-            statType="TOTAL_SUPPLIERS"
+            statType="SUPPLIER_MANAGEMENT"
             // user={user}
             title="Total fournisseurs"
             value={stats?.totalSuppliers ?? 0}

@@ -10,13 +10,14 @@ export type FeatureCode =
   | "EXPORT_EXCEL"
   | "LOW_STOCK_ALERT"
   | "TOP_PRODUCTS"
-  | "STOCK_VALUE"
+  | "STOCK_VALUES"
   | "SUPPLIER_MANAGEMENT"
   | "ADVANCED_REPORTS"
   | "ACCOUNTING"
   | "MULTI_STORE"
   | "API_ACCESS"
   | "OUT_OF_STOCK_ALERT"
+  | "TOTAL_SUPPLIER_DEPT";
 
 export type SubscriptionInfo = {
   id: number;

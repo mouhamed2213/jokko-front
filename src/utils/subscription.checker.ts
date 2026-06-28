@@ -15,14 +15,15 @@ export const hasFeatures = (subscription: SubscriptionInfo) => {
     lowStockAlert: "LOW_STOCK_ALERT",
     topProducts: "TOP_PRODUCTS",
     outOfStockAlert: "OUT_OF_STOCK_ALERT",
-    stockValues: "STOCK_VALUE",
+    supplierDept: "TOTAL_SUPPLIER_DEPT",
+    stockValues: "STOCK_VALUES",
     supplierManagement: "SUPPLIER_MANAGEMENT",
     exportExcel: "EXPORT_EXCEL",
     advancedReports: "ADVANCED_REPORTS",
     accounting: "ACCOUNTING",
     multiStore: "MULTI_STORE",
     apiAccess: "API_ACCESS",
-  };
+   };
 
   if (!features) {
     return {}; 
