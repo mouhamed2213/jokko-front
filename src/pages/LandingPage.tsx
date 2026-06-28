@@ -78,28 +78,29 @@ const plans: Plan[] = [
     highlighted: true,
     ctaVariant: "filled",
   },
-  // {
-  //   id: "pro",
-  //   name: "Pro",
-  //   price: 14500,
-  //   description: "Pour les boutiques en croissance",
-  //   badge: "🚀 Recommandé",
-  //   badgeClass: "bg-blue-100 text-blue-700",
-  //   features: [
-  //     "5 utilisateurs",
-  //     "Tout le Starter inclus",
-  //     "Produits illimités",
-  //     "Ventes illimités",
-  //     "Gestion fournisseurs complète",
-  //     "Suivi dettes fournisseurs",
-  //     "Relance clients débiteurs (WhatsApp)",
-  //     // "Paiements par tranches",
-  //     "Rapports & statistiques",
-  //     "Historique complet achats par client",
-  //   ],
-  //   cta: "Essayer maintenant",
-  //   ctaVariant: "outline",
-  // },
+  {
+    id: "pro",
+    name: "Pro",
+    price: 14500,
+    description: "Pour les boutiques en croissance",
+    badge: "🚀 Recommandé",
+    badgeClass: "bg-blue-100 text-blue-700",
+    features: [
+      "5 utilisateurs", // ✅
+      "Tout le Starter inclus", // ✅
+      "Produits illimités", // ✅
+      "Ventes illimités", // ✅
+      "Gestion fournisseurs complète", // ✅
+      "Suivi dettes fournisseurs", //❌
+      "Relance clients débiteurs (WhatsApp)", //❌
+      // "Paiements par tranches",
+      "Rapports & statistiques", //❌
+      "Historique complet achats par client", //❌
+      "Multi-boutiques (jusqu'à 2)"
+    ],
+    cta: "Essayer maintenant",
+    ctaVariant: "outline",
+  },
   // {
   //   id: "premium",
   //   name: "Premium",

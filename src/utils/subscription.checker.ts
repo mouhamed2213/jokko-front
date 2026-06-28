@@ -14,23 +14,27 @@ export const hasFeatures = (subscription: SubscriptionInfo) => {
     exportPdf: "EXPORT_PDF",
     lowStockAlert: "LOW_STOCK_ALERT",
     topProducts: "TOP_PRODUCTS",
+    outOfStockAlert: "OUT_OF_STOCK_ALERT",
     stockValues: "STOCK_VALUE",
-    test: "TEST",
-    // Other featur
+    supplierManagement: "SUPPLIER_MANAGEMENT",
+    exportExcel: "EXPORT_EXCEL",
+    advancedReports: "ADVANCED_REPORTS",
+    accounting: "ACCOUNTING",
+    multiStore: "MULTI_STORE",
+    apiAccess: "API_ACCESS",
   };
 
   if (!features) {
-    return;
+    return {}; 
   }
-  const isInclude = Object.keys(planFeatures);
 
-const entries = features.map((f, i) => {
-  const val = f === planFeatures[isInclude[i]];
-  const k = isInclude[i];
-  return [k, val]; 
-});
+  // 1. On transforme les paires [clé, code] de planFeatures
+  const entries = Object.entries(planFeatures).map(([key, featureCode]) => {
+    // 2. On vérifie si le tableau 'features' contient le 'featureCode'
+    const isIncluded = features.includes(featureCode);
+    return [key, isIncluded];
+  });
 
-const result = Object.fromEntries(entries);
-  console.log(result);
-  return result
+  // 3. On reconstruit l'objet { exportPdf: true, lowStockAlert: false, ... }
+  return Object.fromEntries(entries);
 };

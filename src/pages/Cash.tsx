@@ -131,7 +131,6 @@ export default function Cash() {
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const shopPlan = user?.plan;
 
-  // console.log(subscription)
 
   hasFeatures(subscription as SubscriptionInfo);
   const fetchData = async () => {

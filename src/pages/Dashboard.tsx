@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { getDashboardStats, getSubscription } from "../services/index";
 import { getStoredUser } from "../types/auth";
 import type { DashboardStats, SubscriptionInfo } from "../types/index";
-import { hasFeature } from "../utils/subscription.checker";
+import { hasFeature, hasFeatures } from "../utils/subscription.checker";
 
 function StatCard({
   subscription,
@@ -45,11 +45,17 @@ function StatCard({
   };
 
   const basicStats = new Set([
+    "EXPORT_PDF",
+    "EXPORT_EXCEL",
     "LOW_STOCK_ALERT",
     "OUT_OF_STOCK_ALERT",
-    "TOTAL_SUPPLIER_DEPT",
-    "STOCK_VALUES",
-    "TOTAL_SUPPLIERS",
+    "TOP_PRODUCTS",
+    "STOCK_VALUE",
+    "SUPPLIER_MANAGEMENT",
+    "ADVANCED_REPORTS",
+    "ACCOUNTING",
+    "MULTI_STORE",
+    "API_ACCESS",
   ]);
 
   let isLocked;
@@ -133,14 +139,14 @@ export default function Dashboard() {
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(
     null,
   );
-  
+
   useEffect(() => {
     getSubscription().then(setSubscription);
     getDashboardStats()
-    .then(setStats)
-    .catch(console.error)
-    
-    .finally(() => setLoading(false));
+      .then(setStats)
+      .catch(console.error)
+
+      .finally(() => setLoading(false));
   }, []);
   if (!subscription) {
     return;
@@ -149,12 +155,9 @@ export default function Dashboard() {
 
   const currentMonthCA = stats?.currentMonthSalesAmount ?? 0;
   const shopPlan = subscription?.plan.code;
-  const canUseSuppliers = hasFeature(
-    subscription as SubscriptionInfo,
-    "SUPPLIER_MANAGEMENT",
-  );
-  const isLockedSupplier = !canUseSuppliers;
+  const featureIsInclude = hasFeatures(subscription);
 
+  console.log(featureIsInclude)
   if (loading) {
     return (
       <div className="rounded-2xl bg-white p-8 shadow-sm text-center text-gray-400">
