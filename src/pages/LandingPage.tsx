@@ -64,16 +64,16 @@ const plans: Plan[] = [
     features: [
       "2 utilisateurs (proriétaire + 1 employé)", // important ✅  
       "Jusqu'à 500 produits", // important ✅  
-      "Ventes illimité", // important ✅
-      "Alertes stock faibles & ruptures", // important
-      "Clients illimités", // important
-      "Suivi dettes client", // important
-      "Caisse journalière & Historique complete", // important
-      "Top produits vendus",
-      "Factures PDF A4",
-      "Export Excel / PDF",
+      "Ventes illimitées", // important ✅
+      "Alertes stock faibles & ruptures", // important ✅
+      "Clients illimités", // important ✅
+      "Suivi dettes client", // important ✅
+      "Caisse journalière & Historique complete", // important✅
+      "Top produits vendus", //✅
+      "Factures PDF A4", //✅
+      "Export Excel / PDF",//✅
     ],
-    excluded: ["Fournisseurs", "Rapports & statistiques"],
+    excluded: ["Gestions fournisseurs", "Rapports & statistiques"],
     cta: "Essayer maintenant",
     highlighted: true,
     ctaVariant: "filled",
