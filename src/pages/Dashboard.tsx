@@ -45,15 +45,10 @@ function StatCard({
   };
 
   const plan = subscription?.plan.code;
-
   const isHiddenStats = plan === "FREE" && statType ? true : false;
-  console.log(isHiddenStats)
-
 
   const isHiddenSupplierStats =
-   plan === "FREE" ||
-    plan === "BASIC" &&
-    statType === "SUPPLIER_MANAGEMENT";
+    plan === "FREE" || (plan === "BASIC" && statType === "SUPPLIER_MANAGEMENT");
 
   console.log(isHiddenSupplierStats);
 
@@ -104,15 +99,13 @@ function StatCard({
         </div>
       )}
 
-      {isHiddenSupplierStats && statType=== "SUPPLIER_MANAGEMENT" && (
+      {isHiddenSupplierStats && statType === "SUPPLIER_MANAGEMENT" && (
         <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
           <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md">
             <Crown size={10} /> PRO
           </span>
         </div>
       )}
-
-      
     </div>
   );
 }
@@ -143,7 +136,9 @@ export default function Dashboard() {
 
   const currentMonthCA = stats?.currentMonthSalesAmount ?? 0;
   const shopPlan = subscription?.plan.code;
-  const featureIsInclude = hasFeatures(subscription);
+  const hasFeature = hasFeatures(subscription);
+
+  console.log(hasFeature);
 
   // console.log(featureIsInclude)
 
@@ -307,7 +302,7 @@ export default function Dashboard() {
             <div className="rounded-xl bg-slate-900 p-4 text-white">
               <p className="text-xs text-white/60">Valeur du stock</p>
               <p className="mt-1 text-xl font-bold">
-                {shopPlan === "FREE" ? "———" : fmt(stats?.stockValue ?? 0)}
+                {!hasFeature.topProducts ? "———" : fmt(stats?.stockValue ?? 0)}
               </p>
             </div>
             <div className="rounded-xl bg-emerald-50 p-4">
@@ -340,7 +335,7 @@ export default function Dashboard() {
         {/* Top produits */}
         <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm">
           {/* Overlay Premium transparent avec texte explicatif pour le Top Produits */}
-          {shopPlan === "FREE" && (
+          {!hasFeature.topProducts  && (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-end bg-slate-50/85 backdrop-blur-[1px] p-6 text-center select-none">
               <div className="mb-auto flex w-full items-center justify-between border-b border-gray-100 pb-2">
                 <span className="text-sm font-bold text-slate-900">
@@ -367,7 +362,7 @@ export default function Dashboard() {
           {/* Contenu du bloc (flouté si l'utilisateur est sur le plan FREE) */}
           <div
             className={
-              shopPlan === "FREE" ? "opacity-10 blur-[2px] select-none" : ""
+              !hasFeature.topProducts ? "opacity-10 blur-[2px] select-none" : ""
             }
           >
             <h3 className="mb-4 text-lg font-bold text-slate-900">
