@@ -17,6 +17,7 @@ export type FeatureCode =
   | "MULTI_STORE"
   | "API_ACCESS"
   | "OUT_OF_STOCK_ALERT"
+  | "TEST";
 
 export type SubscriptionInfo = {
   id: number;

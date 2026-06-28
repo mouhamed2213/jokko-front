@@ -19,11 +19,17 @@ import {
   getCashById,
   getCashHistory,
   getCurrentCash,
+  getSubscription,
   openCash,
 } from "../services/index";
 import { getStoredUser } from "../types/auth";
-import type { CashRegister, CashTransaction } from "../types/index";
+import type {
+  CashRegister,
+  CashTransaction,
+  SubscriptionInfo,
+} from "../types/index";
 import { exportCashReportPDF } from "../utils/exportPDF";
+import { hasFeatures } from "../utils/subscription.checker";
 
 const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
@@ -102,6 +108,7 @@ export default function Cash() {
     cashRegister: CashRegister | null;
   }>({ open: false, cashRegister: null });
   const [history, setHistory] = useState<CashRegister[]>([]);
+  const [subscription, setSubscription] = useState<SubscriptionInfo>();
   const [historyTotal, setHistoryTotal] = useState(0);
   const [historyPage, setHistoryPage] = useState(1);
   const [historyTotalPages, setHistoryTotalPages] = useState(1);
@@ -124,12 +131,17 @@ export default function Cash() {
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const shopPlan = user?.plan;
 
+  // console.log(subscription)
+
+  hasFeatures(subscription as SubscriptionInfo);
   const fetchData = async () => {
     try {
-      const [current, hist] = await Promise.all([
+      const [subscription, current, hist] = await Promise.all([
+        getSubscription(),
         getCurrentCash(),
         getCashHistory({ page: historyPage, limit: 10 }),
       ]);
+      setSubscription(subscription);
       setCashState(current);
       setHistory(hist.data || []);
       setHistoryTotal(hist.pagination?.total || 0);
@@ -547,8 +559,8 @@ export default function Cash() {
             </button>
             {cr && (
               <button
-                onClick={() => exportCashReportPDF(cr, user)}
-                className="flex items-center gap-2 rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                // onClick={() => exportCashReportPDF(cr, user)}
+                className=" hidden items-center gap-2 rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
               >
                 <Download size={15} /> Rapport PDF
               </button>
@@ -714,7 +726,10 @@ export default function Cash() {
                 <div
                   className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 cursor-pointer hover:bg-gray-50 transition"
                   onClick={() => {
-                    if (shopPlan === "FREE" && session.status === "CLOSED") {
+                    if (
+                      (shopPlan === "FREE" && session.status === "CLOSED") ||
+                      session.status === "OPEN"
+                    ) {
                       setIsUpgradeModalOpen(true);
                       return;
                     }
@@ -803,12 +818,12 @@ export default function Cash() {
                         }
                       }}
                       className={`flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs transition ${
-                        shopPlan === "FREE" && session.status === "CLOSED"
+                        shopPlan === "FREE"
                           ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
                           : "border-gray-200 text-gray-600 hover:bg-gray-50"
                       }`}
                     >
-                      {shopPlan === "FREE" && session.status === "CLOSED" ? (
+                      {shopPlan === "FREE" ? (
                         <Lock size={12} className="text-amber-600" />
                       ) : (
                         <Download size={12} />
