@@ -132,15 +132,10 @@ export default function Dashboard() {
   if (!subscription) {
     return;
   }
-  // console.log(subscription);
 
   const currentMonthCA = stats?.currentMonthSalesAmount ?? 0;
-  const shopPlan = subscription?.plan.code;
+  // const shopPlan = subscription?.plan.code;
   const hasFeature = hasFeatures(subscription);
-
-  console.log(hasFeature);
-
-  // console.log(featureIsInclude)
 
   if (loading) {
     return (

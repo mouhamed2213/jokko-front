@@ -1113,7 +1113,7 @@ export default function Products() {
                 Limite de Catalogue Atteinte
               </h3>
               <p className="mt-2 text-sm text-gray-500">
-                Le plan gratuit est limité à un maximum de 50 produits. Passez
+                Le plan gratuit est limité à un maximum de {maxProducts} produits. Passez
                 au plan supérieur pour continuer à agrandir votre catalogue.
               </p>
             </div>

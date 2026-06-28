@@ -20,7 +20,6 @@ import { NavLink } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import { getSubscription } from "../services";
 import type { SubscriptionInfo } from "../types";
-import { hasFeature } from "../utils/subscription.checker";
 
 const allLinks = [
   {
@@ -38,12 +37,31 @@ const allLinks = [
     icon: Truck,
     adminOnly: false,
     premium: true,
-  }, // Marqué comme premium
+  }, 
+  
+  
+  // Marqué comme premium
   { name: "Stock", path: "/stock", icon: Boxes, adminOnly: false },
   { name: "Ventes", path: "/sales", icon: ShoppingCart, adminOnly: false },
   { name: "Factures", path: "/invoices", icon: FileText, adminOnly: false },
   { name: "Utilisateurs", path: "/users", icon: UserCog, adminOnly: true },
   { name: "Paramètres", path: "/settings", icon: Settings, adminOnly: true },
+
+
+  {
+    name: "Boutiques",
+    path: "/",
+    icon: Truck,
+    adminOnly: true,
+    premium: true,
+  },
+  {
+    name: "Rapppord",
+    path: "/",
+    icon: Truck,
+    adminOnly: true,
+    premium: true,
+  },
 ];
 
 function SidebarContent({
