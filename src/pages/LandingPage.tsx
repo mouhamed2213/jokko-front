@@ -93,7 +93,6 @@ const plans: Plan[] = [
       "Gestion fournisseurs complète", // ✅
       "Suivi dettes fournisseurs", //❌
       "Relance clients débiteurs (WhatsApp)", //❌
-      // "Paiements par tranches",
       "Rapports & statistiques", //❌
       "Historique complet achats par client", //❌
       "Multi-boutiques (jusqu'à 2)"
@@ -101,25 +100,24 @@ const plans: Plan[] = [
     cta: "Essayer maintenant",
     ctaVariant: "outline",
   },
-  // {
-  //   id: "premium",
-  //   name: "Premium",
-  //   price: 25000,
-  //   description: "Pour les structures sérieuses",
-  //   badge: "💎 Premium",
-  //   badgeClass: "bg-purple-100 text-purple-700",
-  //   features: [
-  //     "Utilisateurs illimités",
-  //     "Tout le Pro inclus",
-  //     "Multi-boutiques (jusqu'à 5)",
-  //     "Clients partagés entre boutiques",
-  //     "Rôles & permissions avancés",
-  //     "Suivi activité employés",
-  //     "Support prioritaire",
-  //   ],
-  //   cta: "Contacter l'équipe",
-  //   ctaVariant: "outline",
-  // },
+  {
+    id: "premium",
+    name: "Premium",
+    price: 22000,
+    description: "Pour les structures sérieuses",
+    badge: "💎 Premium",
+    badgeClass: "bg-purple-100 text-purple-700",
+    features: [
+      "Utilisateurs illimités",
+      "Tout le Pro inclus",
+      "Multi-boutiques (jusqu'à 5)", //❌
+       "Rôles & permissions avancés", //❌
+      "Suivi activité employés", //❌
+      "Support prioritaire", //❌
+    ],
+    cta: "Contacter l'équipe",
+    ctaVariant: "outline",
+  },
 ];
 
 const features = [

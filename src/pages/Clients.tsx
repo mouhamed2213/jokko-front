@@ -43,7 +43,8 @@ export default function Clients() {
   const maxCustomers = subscription?.limits.maxCutomers ?? 50;
 
   // Calcul des seuils critiques
-  const isLimitCustomerReached = true;
+  const isLimitCustomerReached = subscription?.limits.maxCutomers;
+
   shopPlan == "FREE" && limitCostumer !== null && limitCostumer >= maxCustomers;
   const isApproachingLimit =
     shopPlan === "FREE" &&
@@ -210,7 +211,7 @@ export default function Clients() {
           }`}
         >
           {isLimitCustomerReached ? <Lock size={16} /> : <Plus size={16} />}
-          Nouveau client (Rappler pour refaire les modals)
+          Nouveau client 
         </button>
         <button
           onClick={() => {

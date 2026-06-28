@@ -135,7 +135,7 @@ switch (subscription?.plan.code) {
       )}
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">{users.length} utilisateur(s)</p>
+        <p className="text-sm text-gray-500">{users.length} utilisateur(s)  </p>
 
         {/*  */}
         <button
