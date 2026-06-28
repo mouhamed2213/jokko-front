@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Download, Lock } from "lucide-react";
+import { ChevronDown, ChevronUp, Crown, Download, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
@@ -246,16 +246,28 @@ export default function Stock() {
                 }
                 setShowSupplierSection((v) => !v);
               }}
-              className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700"
+              className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 group transition-colors"
             >
-              {showSupplierSection ? (
-                <ChevronUp size={16} />
-              ) : (
-                <ChevronDown size={16} />
-              )}
-              {showSupplierSection
-                ? "Masquer les infos fournisseur"
-                : "Lier à un fournisseur (optionnel)"}
+              <div className="flex items-center gap-1.5">
+                {showSupplierSection ? (
+                  <ChevronUp size={16} />
+                ) : (
+                  <ChevronDown size={16} />
+                )}
+
+                <span>
+                  {showSupplierSection
+                    ? "Masquer les infos fournisseur"
+                    : "Lier à un fournisseur (optionnel)"}
+                </span>
+
+                {/* Petit badge PRO si la fonctionnalité est verrouillée */}
+                {!hasFeature.supplierManagement && (
+                  <span className="ml-1 flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md group-hover:bg-amber-200 transition-colors">
+                    <Crown size={9} className="fill-amber-800" /> PRO
+                  </span>
+                )}
+              </div>
             </button>
 
             {/* Section fournisseur */}
