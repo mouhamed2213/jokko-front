@@ -55,7 +55,6 @@ function SidebarContent({
 }) {
   const role = JSON.parse(localStorage.getItem("user") || "{}").role;
   const [subscription, setSubscription] = useState<SubscriptionInfo>();
-  const [isExlude, setIsExclude] = useState(false);
 
   const links = allLinks.filter((l) => !l.adminOnly || role === "ADMIN");
 
@@ -65,15 +64,14 @@ function SidebarContent({
   const shopName =
     JSON.parse(localStorage.getItem("user") || "{}").shopName ||
     "Jokko Business";
-
-  //
+  const plan = subscription?.plan.code
+  const planCode = plan !=="PRO"   && plan !=="PREMIUM"
+  
 
   useEffect(() => {
     getSubscription().then(setSubscription);
     const handler = () => setShopLogo(localStorage.getItem("shopLogo") || "");
-    setIsExclude(
-      hasFeature(subscription as SubscriptionInfo, "SUPPLIER_MANAGEMENT"),
-    );
+
     window.addEventListener("shopLogoUpdated", handler);
     return () => window.removeEventListener("shopLogoUpdated", handler);
   }, []);
@@ -110,7 +108,7 @@ function SidebarContent({
       <nav className="flex-1 space-y-0.5 px-3 py-4 overflow-y-auto">
         {links.map((link) => {
           const Icon = link.icon;
-          const isLocked = link.premium && !isExlude;
+          const isLocked = link.premium && planCode;
 
           // Si la route est bloquée pour le plan FREE, on utilise un bouton au lieu d'un NavLink
           if (isLocked) {
