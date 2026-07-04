@@ -25,15 +25,17 @@ export default function SuperAdmin() {
   const [form, setForm] = useState({
     shopName: "Free Shop",
     ownerName: "Free",
-    email: "free@test.test",
+    email: "@test.test",
     phone: "77779978",
     address: "Dakar",
     adminPassword: "Free1234",
     subscriptionEndDate: "",
+    currentShop: "PRIMARY",
     planType: "FREE",
   });
-  const [submitting, setSubmitting] = useState(false);
 
+
+  const [submitting, setSubmitting] = useState(false);
   // Reset password
   const [resetId, setResetId] = useState<number | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -106,6 +108,7 @@ export default function SuperAdmin() {
         address: "",
         adminPassword: "",
         subscriptionEndDate: "",
+        currentShop: "",
         planType: "",
       });
       if (token) fetchShops(token);

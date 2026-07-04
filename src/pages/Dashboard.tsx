@@ -49,9 +49,6 @@ function StatCard({
 
   const isHiddenSupplierStats =
     plan === "FREE" || (plan === "BASIC" && statType === "SUPPLIER_MANAGEMENT");
-
-  console.log(isHiddenSupplierStats);
-
   return (
     <div className="relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-start justify-between gap-4">

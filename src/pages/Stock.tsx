@@ -58,7 +58,6 @@ export default function Stock() {
   const [showSupplierSection, setShowSupplierSection] = useState(false);
   // , locales, {})
   const hasFeature = hasFeatures(subscription as SubscriptionInfo);
-  console.log(hasFeature.supplierManagement);
 
   const fetchData = async () => {
     setLoading(true);

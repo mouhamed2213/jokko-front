@@ -56,7 +56,9 @@ function getSubscriptionAlert(endDate: Date | null): SubscriptionAlert | null {
   if (!endDate) return null;
 
   // Utilisation de la date actuelle réelle au lieu d'une chaine statique
+  // const now = new Date("2026-08-02T18:44:35.348Z");
   const now = new Date();
+  // const diff = new Date(endDate).getTime() - now.getTime();
   const diff = new Date(endDate).getTime() - now.getTime();
   const daysRemaining = Math.ceil(diff / (1000 * 60 * 60 * 24));
 
@@ -97,7 +99,7 @@ export default function Header() {
   };
 
   // Simulation de la date de fin (Donnees de test — a lier avec ton backend plus tard)
-  console.log(subscription)
+  // console.log(subscription)
   const endDate = new Date(subscription?.endDate as Date);
   const alertConfig = getSubscriptionAlert(endDate);
 
