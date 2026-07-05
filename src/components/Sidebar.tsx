@@ -4,7 +4,6 @@ import {
   Crown,
   FileText,
   LayoutDashboard,
-
   Menu,
   Package,
   Settings,
@@ -37,16 +36,14 @@ const allLinks = [
     icon: Truck,
     adminOnly: false,
     premium: true,
-  }, 
-  
-  
+  },
+
   // Marqué comme premium
   { name: "Stock", path: "/stock", icon: Boxes, adminOnly: false },
   { name: "Ventes", path: "/sales", icon: ShoppingCart, adminOnly: false },
   { name: "Factures", path: "/invoices", icon: FileText, adminOnly: false },
   { name: "Utilisateurs", path: "/users", icon: UserCog, adminOnly: true },
   { name: "Paramètres", path: "/settings", icon: Settings, adminOnly: true },
-
 
   {
     name: "Boutiques",
@@ -82,9 +79,8 @@ function SidebarContent({
   const shopName =
     JSON.parse(localStorage.getItem("user") || "{}").shopName ||
     "Jokko Business";
-  const plan = subscription?.plan.code
-  const planCode = plan !=="PRO"   && plan !=="PREMIUM"
-  
+  const plan = subscription?.plan.code;
+  const planCode = plan !== "PRO" && plan !== "PREMIUM";
 
   useEffect(() => {
     getSubscription().then(setSubscription);
@@ -209,7 +205,10 @@ export default function Sidebar() {
 
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobileOpen(false)}
+          />
           <div className="absolute left-0 top-0 h-full w-64 shadow-xl">
             <SidebarContent
               onClose={() => setMobileOpen(false)}
@@ -223,7 +222,6 @@ export default function Sidebar() {
       {isUpgradeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-            
             {/* Header */}
             <div className="flex flex-col items-center text-center">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600">
@@ -233,7 +231,8 @@ export default function Sidebar() {
                 Gestion des Fournisseurs Premium
               </h3>
               <p className="mt-2 text-sm text-gray-500">
-                Le répertoire et le suivi complet de vos relations et dettes fournisseurs sont réservés aux abonnés du Plan Basic.
+                Le répertoire et le suivi complet de vos relations et dettes
+                fournisseurs sont réservés aux abonnés du Plan Basic.
               </p>
             </div>
 
@@ -247,10 +246,12 @@ export default function Sidebar() {
                   🤝 Gestion et fiches détaillées de tous vos **Fournisseurs**
                 </li>
                 <li className="flex items-center gap-2">
-                  📉 Suivi en temps réel de vos **Dettes Fournisseurs** et échéances
+                  📉 Suivi en temps réel de vos **Dettes Fournisseurs** et
+                  échéances
                 </li>
                 <li className="flex items-center gap-2">
-                  📦 Alertes de ruptures et gestion complète de votre chaîne de stock
+                  📦 Alertes de ruptures et gestion complète de votre chaîne de
+                  stock
                 </li>
               </ul>
             </div>
@@ -273,7 +274,6 @@ export default function Sidebar() {
                 Découvrir les plans
               </button>
             </div>
-
           </div>
         </div>
       )}

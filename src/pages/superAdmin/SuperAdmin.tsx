@@ -29,7 +29,7 @@ export default function SuperAdmin() {
     phone: "77779978",
     address: "Dakar",
     adminPassword: "Free1234",
-    subscriptionEndDate: "",
+    // subscriptionEndDate: "",
     currentShop: "PRIMARY",
     planType: "FREE",
   });
@@ -107,8 +107,8 @@ export default function SuperAdmin() {
         phone: "",
         address: "",
         adminPassword: "",
-        subscriptionEndDate: "",
-        currentShop: "",
+        // subscriptionEndDate: "",
+        currentShop: "PRIMARY",
         planType: "",
       });
       if (token) fetchShops(token);
@@ -366,7 +366,7 @@ export default function SuperAdmin() {
                   />
                 </div>
               ))}
-              <div>
+              {/* <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
                   Fin d'abonnement
                 </label>
@@ -381,7 +381,7 @@ export default function SuperAdmin() {
                   }
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                 />
-              </div>
+              </div> */}
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
