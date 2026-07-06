@@ -26,6 +26,7 @@ api.interceptors.response.use(
 // ── Auth ──────────────────────────────────────────────────────
 export const login = async (data: { email: string; password: string }) => {
   const res = await api.post("/auth/login", data);
+  // console.log(res.data)
   return res.data;
 };
 export const loginSuperAdmin = async (data: {
@@ -41,6 +42,7 @@ import type {
   Category,
   Client,
   DashboardStats,
+  NewShopForm,
   Product,
   Sale,
   Shop,
@@ -340,7 +342,6 @@ export const deleteUser = async (id: number): Promise<void> => {
 // export const getSubscription = async (): Promise<SubscriptionInfo> => {
 //   const res = (await api.get("subscription")).data.subscription;
 //   console.log(res)
-  
 
 //   return res;
 // };
@@ -358,7 +359,7 @@ export const getSubscription = async (): Promise<SubscriptionInfo> => {
   }
 
   subscriptionPromise = api
-  .get("subscription")
+    .get("subscription")
     .then((res) => {
       const subscription = res.data.subscription;
 
@@ -368,10 +369,31 @@ export const getSubscription = async (): Promise<SubscriptionInfo> => {
     })
     .finally(() => {
       subscriptionPromise = null;
-      subscriptionCache = null
+      subscriptionCache = null;
     });
 
   return subscriptionPromise;
+};
+
+// create secondary shop
+
+
+export const createNewShop = async (shopData : NewShopForm) => {
+  const res = await api.post("/shop/create-second-shop", shopData);
+  return res;
+};
+
+export const getShopList = async () => {
+  const shops = await api.get("/shop/");
+  return shops.data.shops;
+};
+
+export const switchShop = async (data: {
+  targetShopId: number;
+  password: string;
+}) => {
+  const res = await api.post("/shop/switch", data);
+  return res.data; // { token, user, shopLogo? }
 };
 
 

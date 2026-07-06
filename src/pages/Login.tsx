@@ -20,7 +20,6 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await login({ email, password });
-      console.log(res)
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
       localStorage.setItem("shopName", res.user.shopName || "Jokko Business");
@@ -39,7 +38,7 @@ export default function Login() {
       toast.success("Connexion réussie");
       navigate("/dashboard", { replace: true });
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Email ou mot de passe incorrect");
+      toast.error(error?.response?.data?.message || "Une erreur est survenu");
     } finally {
       setLoading(false);
     }

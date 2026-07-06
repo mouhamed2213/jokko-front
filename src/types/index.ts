@@ -290,3 +290,15 @@ export type User = {
   isActive: boolean;
   createdAt: string;
 };
+
+
+
+
+export type NewShopForm = {
+  shopName: string;
+  ownerName: string;
+  address: string;
+  phone: string;
+  email: string;
+  password: string;
+};

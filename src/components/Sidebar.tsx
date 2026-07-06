@@ -1,24 +1,59 @@
 import {
   Boxes,
+  Check,
+  ChevronDown,
   ChevronRight,
   Crown,
+  Eye,
+  EyeOff,
   FileText,
   LayoutDashboard,
   Menu,
   Package,
+  Plus,
   Settings,
   ShoppingCart,
+  Store,
   Truck,
   UserCog,
   Users,
   Wallet,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 import { NavLink } from "react-router-dom";
 import logo from "../assets/logo.svg";
-import { getSubscription } from "../services";
-import type { SubscriptionInfo } from "../types";
+import {
+  createNewShop,
+  getShopList,
+  getSubscription,
+  switchShop,
+} from "../services";
+import type { NewShopForm, SubscriptionInfo } from "../types";
+
+// ── Types ────────────────────────────────────────────────────
+
+type ShopItem = {
+  id: number;
+  name: string;
+  actorName: string;
+  address: string | null;
+  logoUrl: string | null;
+  currentShop: "PRIMARY" | "SECONDARY";
+};
+
+
+const emptyShopForm: NewShopForm = {
+  shopName: "",
+  ownerName: "",
+  address: "",
+  phone: "",
+  email: "",
+  password: "",
+};
+
+// ── Nav links ────────────────────────────────────────────────
 
 const allLinks = [
   {
@@ -37,29 +72,405 @@ const allLinks = [
     adminOnly: false,
     premium: true,
   },
-
-  // Marqué comme premium
   { name: "Stock", path: "/stock", icon: Boxes, adminOnly: false },
   { name: "Ventes", path: "/sales", icon: ShoppingCart, adminOnly: false },
   { name: "Factures", path: "/invoices", icon: FileText, adminOnly: false },
   { name: "Utilisateurs", path: "/users", icon: UserCog, adminOnly: true },
   { name: "Paramètres", path: "/settings", icon: Settings, adminOnly: true },
-
-  {
-    name: "Boutiques",
-    path: "/",
-    icon: Truck,
-    adminOnly: true,
-    premium: true,
-  },
-  {
-    name: "Rapppord",
-    path: "/",
-    icon: Truck,
-    adminOnly: true,
-    premium: true,
-  },
 ];
+
+// ── Add Shop Modal ───────────────────────────────────────────
+
+function AddShopModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [form, setForm] = useState<NewShopForm>(emptyShopForm);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleChange = (key: keyof NewShopForm, value: string) => {
+    setForm((p) => ({ ...p, [key]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.shopName || !form.ownerName || !form.phone || !form.password) {
+      toast.error("Veuillez remplir les champs obligatoires");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await createNewShop(form);
+      toast.success("Boutique créée avec succès");
+      onCreated();
+      onClose();
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Erreur lors de la création",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const fields: {
+    label: string;
+    key: keyof NewShopForm;
+    type: string;
+    placeholder: string;
+    span2?: boolean;
+  }[] = [
+    {
+      label: "Nom de la boutique *",
+      key: "shopName",
+      type: "text",
+      placeholder: "Ex: Boutique Sandaga",
+    },
+    {
+      label: "Nom du propriétaire *",
+      key: "ownerName",
+      type: "text",
+      placeholder: "Prénom Nom",
+    },
+    {
+      label: "Téléphone *",
+      key: "phone",
+      type: "tel",
+      placeholder: "77 000 00 00",
+    },
+    {
+      label: "Email",
+      key: "email",
+      type: "email",
+      placeholder: "email@boutique.com",
+    },
+    {
+      label: "Adresse",
+      key: "address",
+      type: "text",
+      placeholder: "Quartier, Ville",
+      span2: true,
+    },
+    {
+      label: "Mot de passe *",
+      key: "password",
+      type: "password",
+      placeholder: "Mot de passe d'accès à la boutique",
+      span2: true,
+    },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-slate-900">
+            Nouvelle boutique
+          </h3>
+          <button type="button" onClick={onClose}>
+            <X size={20} className="text-gray-400 hover:text-gray-600" />
+          </button>
+        </div>
+
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+        >
+          {fields.map(({ label, key, type, placeholder, span2 }) => (
+            <div key={key} className={span2 ? "sm:col-span-2" : ""}>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                {label}
+              </label>
+              <input
+                type={type}
+                value={form[key]}
+                onChange={(e) => handleChange(key, e.target.value)}
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 text-bl"
+                placeholder={placeholder}
+              />
+            </div>
+          ))}
+
+          <div className="flex gap-3 sm:col-span-2 pt-2">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 transition"
+            >
+              {submitting ? "Création..." : "Créer la boutique"}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-gray-300 px-6 py-3 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Shop Switcher ────────────────────────────────────────────
+
+function ShopSwitcher({
+  shops,
+  currentShopId,
+  onSwitch,
+  onShopCreated,
+  canAddShop,
+}: {
+  shops: ShopItem[];
+  currentShopId: number;
+  onSwitch: (shopId: number, password: string) => Promise<void>;
+  onShopCreated: () => void;
+  canAddShop: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<ShopItem | null>(null);
+  const [password, setPassword] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [addShopOpen, setAddShopOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const otherShops = shops.filter((s) => s.id !== currentShopId);
+
+  // Fermer si click dehors
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setSelected(null);
+        setPassword("");
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleSelectShop = (shop: ShopItem) => {
+    setSelected(shop);
+    setPassword("");
+  };
+
+  const handleConfirm = async () => {
+    if (!selected || !password) return;
+    setLoading(true);
+    try {
+      await onSwitch(selected.id, password);
+      setOpen(false);
+      setSelected(null);
+      setPassword("");
+    } catch {
+      // erreur gérée dans onSwitch
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div ref={ref} className="relative px-3 pb-2">
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={() => {
+          setOpen((v) => !v);
+          setSelected(null);
+          setPassword("");
+        }}
+        className="w-full flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition"
+      >
+        <div className="flex items-center gap-3">
+          <Store size={17} />
+          <span>Mes boutiques</span>
+          <span className="rounded-full bg-white/15 px-1.5 py-0.5 text-[10px] font-bold text-white/80">
+            {shops.length}
+          </span>
+        </div>
+        <ChevronDown
+          size={14}
+          className={`opacity-40 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute bottom-full left-3 right-3 mb-2 rounded-xl bg-slate-800 border border-white/10 overflow-hidden shadow-xl z-50">
+          {/* Liste des boutiques */}
+          {!selected ? (
+            <div>
+              <p className="px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-white/30">
+                Changer de boutique
+              </p>
+              <div className="max-h-52 overflow-y-auto">
+                {shops.map((shop) => {
+                  const isCurrent = shop.id === currentShopId;
+                  return (
+                    <button
+                      key={shop.id}
+                      type="button"
+                      disabled={isCurrent}
+                      onClick={() => !isCurrent && handleSelectShop(shop)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition
+                        ${
+                          isCurrent
+                            ? "opacity-50 cursor-default"
+                            : "hover:bg-white/10 cursor-pointer"
+                        }`}
+                    >
+                      {/* Avatar */}
+                      <div className="w-8 h-8 rounded-lg bg-emerald-600/30 flex items-center justify-center shrink-0 overflow-hidden">
+                        {shop.logoUrl ? (
+                          <img
+                            src={shop.logoUrl}
+                            alt={shop.name}
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <span className="text-xs font-bold text-emerald-400">
+                            {shop.name.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">
+                          {shop.name}
+                        </p>
+                        <p className="text-xs text-white/40 truncate">
+                          {shop.currentShop === "PRIMARY"
+                            ? "Boutique principale"
+                            : "Boutique secondaire"}
+                        </p>
+                      </div>
+
+                      {isCurrent ? (
+                        <Check
+                          size={14}
+                          className="text-emerald-400 shrink-0"
+                        />
+                      ) : (
+                        <ChevronRight
+                          size={14}
+                          className="text-white/30 shrink-0"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+
+                {otherShops.length === 0 && (
+                  <p className="px-4 py-3 text-xs text-white/30">
+                    Vous n'avez qu'une seule boutique pour le moment.
+                  </p>
+                )}
+              </div>
+
+              {/* Ajouter une boutique */}
+              {canAddShop && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    setAddShopOpen(true);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-emerald-400 hover:bg-white/10 border-t border-white/10 transition"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-emerald-600/20 flex items-center justify-center shrink-0">
+                    <Plus size={16} />
+                  </div>
+                  <span>Ajouter une boutique</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            /* Confirmation mot de passe */
+            <div className="p-4">
+              <button
+                type="button"
+                onClick={() => setSelected(null)}
+                className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 mb-3 transition"
+              >
+                <ChevronRight size={12} className="rotate-180" />
+                Retour
+              </button>
+
+              {/* Shop cible */}
+              <div className="flex items-center gap-3 mb-4 pb-3 border-b border-white/10">
+                <div className="w-9 h-9 rounded-lg bg-emerald-600/30 flex items-center justify-center shrink-0">
+                  {selected.logoUrl ? (
+                    <img
+                      src={selected.logoUrl}
+                      alt={selected.name}
+                      className="w-full h-full object-contain rounded-lg"
+                    />
+                  ) : (
+                    <span className="text-sm font-bold text-emerald-400">
+                      {selected.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">
+                    {selected.name}
+                  </p>
+                  <p className="text-xs text-white/40">
+                    Confirmez votre identité pour accéder
+                  </p>
+                </div>
+              </div>
+
+              {/* Input mot de passe */}
+              <div className="relative mb-3">
+                <input
+                  type={showPwd ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
+                  placeholder="Mot de passe de la boutique"
+                  autoFocus
+                  className="w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPwd((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
+                >
+                  {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleConfirm}
+                disabled={!password || loading}
+                className="w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                {loading ? "Accès en cours..." : `Accéder à ${selected.name}`}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Modal ajout boutique */}
+      {addShopOpen && (
+        <AddShopModal
+          onClose={() => setAddShopOpen(false)}
+          onCreated={onShopCreated}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Sidebar Content ──────────────────────────────────────────
 
 function SidebarContent({
   onClose,
@@ -68,30 +479,85 @@ function SidebarContent({
   onClose?: () => void;
   onUpgradeClick: () => void;
 }) {
-  const role = JSON.parse(localStorage.getItem("user") || "{}").role;
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const role = storedUser.role;
+  const currentShopId = storedUser.shopId as number;
+
   const [subscription, setSubscription] = useState<SubscriptionInfo>();
-
-  const links = allLinks.filter((l) => !l.adminOnly || role === "ADMIN");
-
+  const [shopList, setShopList] = useState<ShopItem[]>([]);
   const [shopLogo, setShopLogo] = useState<string>(
     localStorage.getItem("shopLogo") || "",
   );
-  const shopName =
-    JSON.parse(localStorage.getItem("user") || "{}").shopName ||
-    "Jokko Business";
+
+  const shopName = storedUser.shopName || "Jokko Business";
   const plan = subscription?.plan.code;
-  const planCode = plan !== "PRO" && plan !== "PREMIUM";
+  const isPlanLocked = plan !== "PRO" && plan !== "PREMIUM";
+
+  const links = allLinks.filter((l) => !l.adminOnly || role === "ADMIN");
+
+  const refreshShopList = () => {
+    getShopList().then((shops) => setShopList(shops));
+  };
 
   useEffect(() => {
     getSubscription().then(setSubscription);
-    const handler = () => setShopLogo(localStorage.getItem("shopLogo") || "");
+    refreshShopList();
 
+    const handler = () => setShopLogo(localStorage.getItem("shopLogo") || "");
     window.addEventListener("shopLogoUpdated", handler);
     return () => window.removeEventListener("shopLogoUpdated", handler);
   }, []);
 
+  const handleSwitch = async (targetShopId: number, password: string) => {
+    try {
+      const res = await switchShop({ targetShopId, password });
+
+      const tokenPayload = JSON.parse(atob(res.token.split(".")[1]));
+
+      localStorage.setItem("token", res.token);
+      const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          ...currentUser,
+          shopId: tokenPayload.shopId,
+          role: tokenPayload.role,
+        }),
+      );
+
+      try {
+        const { api } = await import("../services/api");
+        const shopRes = await api.get("/shop/settings");
+        if (shopRes.data.logoUrl) {
+          localStorage.setItem("shopLogo", shopRes.data.logoUrl);
+        } else {
+          localStorage.removeItem("shopLogo");
+        }
+        localStorage.setItem("shopName", shopRes.data.name || "Jokko Business");
+
+        const updatedUser = JSON.parse(localStorage.getItem("user") || "{}");
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            ...updatedUser,
+            shopName: shopRes.data.name,
+          }),
+        );
+      } catch {
+      }
+
+      toast.success(`Connecté à la boutique`);
+
+      window.location.href = "/dashboard";
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Mot de passe incorrect");
+      throw error;
+    }
+  };
+
   return (
     <div className="flex h-full flex-col bg-slate-900 text-white">
+      {/* Header boutique */}
       <div className="border-b border-white/10 px-5 py-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -101,7 +567,7 @@ function SidebarContent({
               className="h-10 w-10 rounded-xl bg-white object-contain p-1"
             />
             <div>
-              <h1 className="text-lg font-bold truncate max-w-32.5">
+              <h1 className="text-base font-bold truncate max-w-32.5">
                 {shopName}
               </h1>
               <p className="text-xs text-white/50">Gestion commerciale</p>
@@ -119,20 +585,20 @@ function SidebarContent({
         </div>
       </div>
 
+      {/* Navigation */}
       <nav className="flex-1 space-y-0.5 px-3 py-4 overflow-y-auto">
         {links.map((link) => {
           const Icon = link.icon;
-          const isLocked = link.premium && planCode;
+          const isLocked = link.premium && isPlanLocked;
 
-          // Si la route est bloquée pour le plan FREE, on utilise un bouton au lieu d'un NavLink
           if (isLocked) {
             return (
               <button
-                key={link.path}
+                key={link.path + link.name}
                 type="button"
                 onClick={() => {
                   if (onClose) onClose();
-                  onUpgradeClick(); // Ouvre directement le modal
+                  onUpgradeClick();
                 }}
                 className="group flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition text-amber-400/80 hover:bg-amber-500/10 hover:text-amber-400"
               >
@@ -150,7 +616,7 @@ function SidebarContent({
 
           return (
             <NavLink
-              key={link.path}
+              key={link.path + link.name}
               to={link.path}
               onClick={onClose}
               end={link.path === "/dashboard"}
@@ -175,6 +641,20 @@ function SidebarContent({
         })}
       </nav>
 
+      {/* Shop switcher — au-dessus du footer */}
+      {shopList.length > 0 && (
+        <div className="border-t border-white/10 pt-2">
+          <ShopSwitcher
+            shops={shopList}
+            currentShopId={currentShopId}
+            onSwitch={handleSwitch}
+            onShopCreated={refreshShopList}
+            canAddShop={role === "ADMIN"}
+          />
+        </div>
+      )}
+
+      {/* Footer version */}
       <div className="border-t border-white/10 p-4">
         <div className="rounded-xl bg-white/5 px-4 py-3">
           <p className="text-xs font-semibold text-white/80">v1.0</p>
@@ -185,12 +665,15 @@ function SidebarContent({
   );
 }
 
+// ── Export principal ─────────────────────────────────────────
+
 export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   return (
     <>
+      {/* Burger mobile */}
       <button
         type="button"
         onClick={() => setMobileOpen(true)}
@@ -199,10 +682,12 @@ export default function Sidebar() {
         <Menu size={20} />
       </button>
 
+      {/* Sidebar desktop */}
       <aside className="hidden min-h-screen w-64 shrink-0 md:flex">
         <SidebarContent onUpgradeClick={() => setIsUpgradeModalOpen(true)} />
       </aside>
 
+      {/* Sidebar mobile */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
@@ -218,45 +703,38 @@ export default function Sidebar() {
         </div>
       )}
 
-      {/* MODAL DE CONVERSION FOURNISSEURS */}
+      {/* Modal upgrade */}
       {isUpgradeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-            {/* Header */}
             <div className="flex flex-col items-center text-center">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600">
                 <Crown size={24} />
               </div>
               <h3 className="text-lg font-bold text-slate-900">
-                Gestion des Fournisseurs Premium
+                Fonctionnalité Pro
               </h3>
               <p className="mt-2 text-sm text-gray-500">
-                Le répertoire et le suivi complet de vos relations et dettes
-                fournisseurs sont réservés aux abonnés du Plan Basic.
+                Cette fonctionnalité est réservée aux abonnés des plans
+                supérieurs.
               </p>
             </div>
-
-            {/* Avantages */}
             <div className="my-5 rounded-xl bg-slate-50 p-4 text-left">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                Débloquez le Plan Basic pour centraliser vos achats :
+                Débloquez le Plan Pro :
               </p>
               <ul className="space-y-2 text-sm text-slate-700">
                 <li className="flex items-center gap-2">
-                  🤝 Gestion et fiches détaillées de tous vos **Fournisseurs**
+                  🤝 Gestion fournisseurs complète
                 </li>
                 <li className="flex items-center gap-2">
-                  📉 Suivi en temps réel de vos **Dettes Fournisseurs** et
-                  échéances
+                  📊 Rapports & statistiques avancés
                 </li>
                 <li className="flex items-center gap-2">
-                  📦 Alertes de ruptures et gestion complète de votre chaîne de
-                  stock
+                  🏪 Multi-boutiques (jusqu'à 5)
                 </li>
               </ul>
             </div>
-
-            {/* Actions */}
             <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
               <button
                 onClick={() => setIsUpgradeModalOpen(false)}
@@ -267,11 +745,11 @@ export default function Sidebar() {
               <button
                 onClick={() => {
                   setIsUpgradeModalOpen(false);
-                  // Mets ici ta redirection ou ta logique de toast
+                  window.location.href = "/settings";
                 }}
                 className="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 shadow-sm transition sm:w-auto"
               >
-                Découvrir les plans
+                Voir les plans
               </button>
             </div>
           </div>
