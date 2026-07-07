@@ -21,7 +21,7 @@ export type FeatureCode =
 
 export type SubscriptionInfo = {
   id: number;
-  status: "ACTIVE" | "EXPIRED" | "SUSPENDED";
+  status: "ACTIVE" | "EXPIRED" | "SUSPENDED" | "TRIAL";
   endDate: Date;
   plan: {
     code: PlanCode;

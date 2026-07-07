@@ -31,6 +31,7 @@ import {
   switchShop,
 } from "../services";
 import type { NewShopForm, SubscriptionInfo } from "../types";
+import { hasFeature, hasFeatures } from "../utils/subscription.checker";
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -43,7 +44,6 @@ type ShopItem = {
   currentShop: "PRIMARY" | "SECONDARY";
 };
 
-
 const emptyShopForm: NewShopForm = {
   shopName: "",
   ownerName: "",
@@ -54,6 +54,9 @@ const emptyShopForm: NewShopForm = {
 };
 
 // ── Nav links ────────────────────────────────────────────────
+// `featureKey` drives the lock check for links that require a specific
+// subscription entitlement (checked via hasFeature(subscription, featureKey))
+// instead of a hardcoded plan-name comparison.
 
 const allLinks = [
   {
@@ -71,6 +74,7 @@ const allLinks = [
     icon: Truck,
     adminOnly: false,
     premium: true,
+    featureKey: "SUPPLIER_MANAGEMENT" as const,
   },
   { name: "Stock", path: "/stock", icon: Boxes, adminOnly: false },
   { name: "Ventes", path: "/sales", icon: ShoppingCart, adminOnly: false },
@@ -188,7 +192,7 @@ function AddShopModal({
                 type={type}
                 value={form[key]}
                 onChange={(e) => handleChange(key, e.target.value)}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 text-bl"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500"
                 placeholder={placeholder}
               />
             </div>
@@ -238,11 +242,13 @@ function ShopSwitcher({
   const [loading, setLoading] = useState(false);
   const [addShopOpen, setAddShopOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>();
 
-  const otherShops = shops.filter((s) => s.id !== currentShopId);
 
   // Fermer si click dehors
   useEffect(() => {
+    getSubscription().then(setSubscription);
+
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
@@ -251,8 +257,40 @@ function ShopSwitcher({
       }
     };
     document.addEventListener("mousedown", handler);
+
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  if (!subscription) {
+    return;
+  }
+  const featureFlags = hasFeatures(subscription);
+
+
+  if (!subscription) {
+    return;
+  }
+  const otherShops = shops.filter((s) => s.id !== currentShopId);
+
+  // not allowed
+  let isAlowed: boolean = false;
+  let message: string = "";
+
+  // if() {} else
+
+    //  add supsen
+  if (!featureFlags.multiStore) {
+    isAlowed = false;
+    message = "Ce plan n'inclue pas l'option multi boutique";
+  } else if (featureFlags.multiStore && subscription.status === "TRIAL") {
+    isAlowed = false;
+    message =
+      "Le mode essaie gratuit ne permet pas d'ajouter une seconde boutique";
+  } else if (featureFlags.multiStore && otherShops.length === 0) {
+    isAlowed = false;
+    message =
+      "Vous n'avez qu'une seul boutique actuellment. Vous pouvez en creez d'autre";
+  }
 
   const handleSelectShop = (shop: ShopItem) => {
     setSelected(shop);
@@ -284,7 +322,7 @@ function ShopSwitcher({
           setSelected(null);
           setPassword("");
         }}
-        className="w-full flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition"
+        className="w-full flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition"
       >
         <div className="flex items-center gap-3">
           <Store size={17} />
@@ -377,6 +415,23 @@ function ShopSwitcher({
                 <button
                   type="button"
                   onClick={() => {
+                    // Verification
+                    if (!featureFlags.multiStore) {
+                      toast.error(
+                        "Votre plan actuelle ne permet l'option multi boutiques",
+                      );
+
+                      return;
+                    } else if (
+                      featureFlags.multiStore &&
+                      subscription.status === "TRIAL"
+                    ) {
+                      toast.error(
+                        "Vous ne pouvez pas creer des boutique durant votre periode d'essai",
+                      );
+                      return;
+                    }
+
                     setOpen(false);
                     setAddShopOpen(true);
                   }}
@@ -490,8 +545,6 @@ function SidebarContent({
   );
 
   const shopName = storedUser.shopName || "Jokko Business";
-  const plan = subscription?.plan.code;
-  const isPlanLocked = plan !== "PRO" && plan !== "PREMIUM";
 
   const links = allLinks.filter((l) => !l.adminOnly || role === "ADMIN");
 
@@ -543,8 +596,7 @@ function SidebarContent({
             shopName: shopRes.data.name,
           }),
         );
-      } catch {
-      }
+      } catch {}
 
       toast.success(`Connecté à la boutique`);
 
@@ -556,9 +608,9 @@ function SidebarContent({
   };
 
   return (
-    <div className="flex h-full flex-col bg-slate-900 text-white">
+    <div className="flex h-full flex-col overflow-hidden bg-slate-900 text-white">
       {/* Header boutique */}
-      <div className="border-b border-white/10 px-5 py-5">
+      <div className="shrink-0 border-b border-white/10 px-5 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
@@ -585,11 +637,14 @@ function SidebarContent({
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-0.5 px-3 py-4 overflow-y-auto">
+      {/* Navigation — seule zone qui scrolle si besoin */}
+      <nav className="flex-1 min-h-0 space-y-0.5 overflow-y-auto px-3 py-3">
         {links.map((link) => {
           const Icon = link.icon;
-          const isLocked = link.premium && isPlanLocked;
+          const featureUnlocked = link.featureKey
+            ? !!subscription && hasFeature(subscription, link.featureKey)
+            : true;
+          const isLocked = !!link.premium && !featureUnlocked;
 
           if (isLocked) {
             return (
@@ -600,7 +655,7 @@ function SidebarContent({
                   if (onClose) onClose();
                   onUpgradeClick();
                 }}
-                className="group flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition text-amber-400/80 hover:bg-amber-500/10 hover:text-amber-400"
+                className="group flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition text-amber-400/80 hover:bg-amber-500/10 hover:text-amber-400"
               >
                 <div className="flex items-center gap-3">
                   <Icon size={17} />
@@ -621,7 +676,7 @@ function SidebarContent({
               onClick={onClose}
               end={link.path === "/dashboard"}
               className={({ isActive }) =>
-                `group flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                `group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition ${
                   isActive
                     ? "bg-white text-slate-900"
                     : "text-white/70 hover:bg-white/10 hover:text-white"
@@ -643,7 +698,7 @@ function SidebarContent({
 
       {/* Shop switcher — au-dessus du footer */}
       {shopList.length > 0 && (
-        <div className="border-t border-white/10 pt-2">
+        <div className="shrink-0 border-t border-white/10 pt-2">
           <ShopSwitcher
             shops={shopList}
             currentShopId={currentShopId}
@@ -655,8 +710,8 @@ function SidebarContent({
       )}
 
       {/* Footer version */}
-      <div className="border-t border-white/10 p-4">
-        <div className="rounded-xl bg-white/5 px-4 py-3">
+      <div className="shrink-0 border-t border-white/10 p-3">
+        <div className="rounded-xl bg-white/5 px-4 py-2.5">
           <p className="text-xs font-semibold text-white/80">v1.0</p>
           <p className="text-xs text-white/40">Jokko Business SaaS</p>
         </div>
@@ -683,7 +738,7 @@ export default function Sidebar() {
       </button>
 
       {/* Sidebar desktop */}
-      <aside className="hidden min-h-screen w-64 shrink-0 md:flex">
+      <aside className="sticky top-0 hidden h-screen w-[272px] shrink-0 overflow-hidden md:flex">
         <SidebarContent onUpgradeClick={() => setIsUpgradeModalOpen(true)} />
       </aside>
 
@@ -694,7 +749,7 @@ export default function Sidebar() {
             className="absolute inset-0 bg-black/40"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="absolute left-0 top-0 h-full w-64 shadow-xl">
+          <div className="absolute left-0 top-0 h-screen w-[272px] overflow-hidden shadow-xl">
             <SidebarContent
               onClose={() => setMobileOpen(false)}
               onUpgradeClick={() => setIsUpgradeModalOpen(true)}
