@@ -243,8 +243,7 @@ function ShopSwitcher({
   const [addShopOpen, setAddShopOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>();
-
-
+  const now = new Date(Date.now());
   // Fermer si click dehors
   useEffect(() => {
     getSubscription().then(setSubscription);
@@ -266,30 +265,42 @@ function ShopSwitcher({
   }
   const featureFlags = hasFeatures(subscription);
 
-
   if (!subscription) {
     return;
   }
   const otherShops = shops.filter((s) => s.id !== currentShopId);
+  // const otherShops = [1 , 2, 3, 4, 5, 3, 2, ,4 ];
 
   // not allowed
-  let isAlowed: boolean = false;
+  let showAlert: boolean = true;
   let message: string = "";
+  const maxStore = subscription.limits.stores ?? 0;
+  const maxStoreIsReached = otherShops.length >= maxStore;
+  console.log(maxStoreIsReached)
 
-  // if() {} else
-
+  if (
+    !featureFlags.multiStore &&
+    subscription.plan.code !== "PRO" &&
+    subscription.plan.code !== "PREMIUM"
+  ) {
     //  add supsen
-  if (!featureFlags.multiStore) {
-    isAlowed = false;
     message = "Ce plan n'inclue pas l'option multi boutique";
   } else if (featureFlags.multiStore && subscription.status === "TRIAL") {
-    isAlowed = false;
     message =
-      "Le mode essaie gratuit ne permet pas d'ajouter une seconde boutique";
+      "Le mode essaie gratuit ne permet pas l'ajouter une seconde boutique";
   } else if (featureFlags.multiStore && otherShops.length === 0) {
-    isAlowed = false;
-    message =
-      "Vous n'avez qu'une seul boutique actuellment. Vous pouvez en creez d'autre";
+  } else if (
+    featureFlags.multiStore &&
+    subscription.endDate > now &&
+    !maxStoreIsReached
+  ) {
+    message = "Veuillez vous réabonner pour ajouter de nouvelle boutique";
+  } else if (featureFlags.multiStore && otherShops.length === 0) {
+    message = "Vous n'avez qu'une seule boutique pour le moment.";
+  } else if (maxStoreIsReached ) {
+    message = "Vous avez atteind le nombre maximum de boutique";
+  }  else {
+    showAlert = false;
   }
 
   const handleSelectShop = (shop: ShopItem) => {
@@ -403,15 +414,13 @@ function ShopSwitcher({
                   );
                 })}
 
-                {otherShops.length === 0 && (
-                  <p className="px-4 py-3 text-xs text-white/30">
-                    Vous n'avez qu'une seule boutique pour le moment.
-                  </p>
+                {showAlert && (
+                  <p className="px-4 py-3 text-xs text-white/30">{message}</p>
                 )}
               </div>
 
               {/* Ajouter une boutique */}
-              {canAddShop && (
+              {canAddShop && featureFlags.multiStore && !maxStoreIsReached && (
                 <button
                   type="button"
                   onClick={() => {

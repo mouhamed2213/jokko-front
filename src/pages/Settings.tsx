@@ -244,6 +244,8 @@ export default function Settings() {
   const isExpired = subscription?.status === "EXPIRED";
   const isActive = subscription?.status === "ACTIVE";
 
+// console.log(subscription)
+
   return (
     <section className="space-y-6 max-w-3xl">
 
