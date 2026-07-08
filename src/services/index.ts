@@ -32,7 +32,9 @@ export const login = async (data: { email: string; password: string }) => {
 
 // Register
 export const registerShop = async (payload  : any)   => {
-  console.log(payload)
+
+  const res = await api.post('/shop', payload)
+  return res.data
 } 
 
 

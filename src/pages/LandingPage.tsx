@@ -480,7 +480,7 @@ export default function LandingPage() {
                   )}
 
                   <button
-                    onClick={() => navigate(`/register?plan=${plan.name}`)}
+                    onClick={() => navigate(`/register?plan=${plan.id}`)}
                     className={`mt-4 w-full py-2.5 rounded-lg text-sm font-semibold transition ${
                       plan.ctaVariant === "filled"
                         ? "bg-emerald-600 text-white hover:bg-emerald-700"
