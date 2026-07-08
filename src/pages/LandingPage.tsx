@@ -62,8 +62,8 @@ const plans: Plan[] = [
     badge: "⭐",
     badgeClass: "bg-emerald-100 text-emerald-700",
     features: [
-      "2 utilisateurs (proriétaire + 1 employé)", // important ✅  
-      "Jusqu'à 500 produits", // important ✅  
+      "2 utilisateurs (proriétaire + 1 employé)", // important ✅
+      "Jusqu'à 500 produits", // important ✅
       "Ventes illimitées", // important ✅
       "Alertes stock faibles & ruptures", // important ✅
       "Clients illimités", // important ✅
@@ -71,7 +71,7 @@ const plans: Plan[] = [
       "Caisse journalière & Historique complete", // important✅
       "Top produits vendus", //✅
       "Factures PDF A4", //✅
-      "Export Excel / PDF",//✅
+      "Export Excel / PDF", //✅
     ],
     excluded: ["Gestions fournisseurs", "Rapports & statistiques"],
     cta: "Essayer maintenant",
@@ -95,7 +95,7 @@ const plans: Plan[] = [
       "Relance clients débiteurs (WhatsApp)", //❌
       "Rapports & statistiques", //❌
       "Historique complet achats par client", //❌
-      "Multi-boutiques (jusqu'à 2)"
+      "Multi-boutiques (jusqu'à 2)",
     ],
     cta: "Essayer maintenant",
     ctaVariant: "outline",
@@ -111,11 +111,11 @@ const plans: Plan[] = [
       "Utilisateurs illimités",
       "Tout le Pro inclus",
       "Multi-boutiques (jusqu'à 5)", //❌
-       "Rôles & permissions avancés", //❌
+      "Rôles & permissions avancés", //❌
       "Suivi activité employés", //❌
       "Support prioritaire", //❌
     ],
-    cta: "Contacter l'équipe",
+    cta: "Essayer maintenant",
     ctaVariant: "outline",
   },
 ];
@@ -266,12 +266,21 @@ export default function LandingPage() {
               FAQ
             </a>
           </div>
-          <button
-            onClick={() => navigate("/login")}
-            className="inline-flex items-center gap-2 bg-emerald-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-emerald-700 transition"
-          >
-            Se connecter <ArrowRight size={15} />
-          </button>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate("/login")}
+              className="inline-flex items-center gap-2 bg-emerald-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-emerald-700 transition cursor-pointer"
+            >
+              Se connecter <ArrowRight size={15} />
+            </button>
+            <button
+              onClick={() => navigate("/register")}
+              className="inline-flex items-center gap-2 bg-white text-black text-sm font-medium px-4 py-2 rounded-lg hover:bg-emerald-700 transition hover:text-white cursor-pointer border"
+            >
+              Inscription gratuit <ArrowRight size={15} />
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -459,12 +468,19 @@ export default function LandingPage() {
                       <span className="text-2xl font-bold text-slate-900">
                         {plan.price!.toLocaleString("fr-FR")}
                       </span>
-                      <span className="text-sm text-slate-500">FCFA/mois</span>
+                      <div className=" flex flex-col">
+                        <span className="text-sm text-slate-500">
+                          FCFA/mois
+                        </span>
+                        <span className="text-md  text-black ">
+                          14 jours éssaie gratuit
+                        </span>
+                      </div>
                     </div>
                   )}
 
                   <button
-                    onClick={() => navigate("/login")}
+                    onClick={() => navigate(`/register?plan=${plan.name}`)}
                     className={`mt-4 w-full py-2.5 rounded-lg text-sm font-semibold transition ${
                       plan.ctaVariant === "filled"
                         ? "bg-emerald-600 text-white hover:bg-emerald-700"

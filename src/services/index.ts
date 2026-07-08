@@ -29,6 +29,13 @@ export const login = async (data: { email: string; password: string }) => {
   // console.log(res.data)
   return res.data;
 };
+
+// Register
+export const registerShop = async (payload  : any)   => {
+  console.log(payload)
+} 
+
+
 export const loginSuperAdmin = async (data: {
   email: string;
   password: string;

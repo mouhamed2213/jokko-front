@@ -269,14 +269,6 @@ function ShopSwitcher({
 
   const otherShops = shops.filter((s) => s.id !== currentShopId);
 
-  // Eligibility to add a new shop, in priority order:
-  // 1) plan doesn't include multi-store at all -> Pro upsell (same treatment
-  //    as the locked Fournisseurs nav item)
-  // 2) plan includes it but temporarily blocked (trial / expired / at limit)
-  //    -> informational only, no "Pro" framing since upgrading tier isn't
-  //    necessarily what fixes these
-  // 3) fully eligible
-
   const maxStore = subscription.limits.stores ?? 0;
   const maxStoreIsReached = otherShops.length >= maxStore;
   // const maxStoreIsReached = [1, 32, 45, 5, 5,6 ,  7, ];

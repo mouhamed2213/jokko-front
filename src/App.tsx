@@ -17,6 +17,7 @@ import Stock from "./pages/Stock";
 import SuperAdmin from "./pages/superAdmin/SuperAdmin";
 import Suppliers from "./pages/Suppliers";
 import Users from "./pages/Users";
+import Register from "./pages/Register";
 
 export default function App() {
   const isAuthenticated = !!localStorage.getItem("token");
@@ -34,6 +35,7 @@ export default function App() {
         {/* Public routes */}
         <Route path="/home" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/super-admin" element={<SuperAdmin />} />
 
         {/* Root route - landing if not authenticated, dashboard if authenticated */}
