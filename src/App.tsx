@@ -18,6 +18,8 @@ import SuperAdmin from "./pages/superAdmin/SuperAdmin";
 import Suppliers from "./pages/Suppliers";
 import Users from "./pages/Users";
 import Register from "./pages/Register";
+import PublicLayout from "./layouts/publicLayout";
+import HelpPage from "./pages/HelpPage";
 
 export default function App() {
   const isAuthenticated = !!localStorage.getItem("token");
@@ -33,12 +35,9 @@ export default function App() {
       />
       <Routes>
         {/* Public routes */}
-        <Route path="/home" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+
         <Route path="/super-admin" element={<SuperAdmin />} />
 
-        {/* Root route - landing if not authenticated, dashboard if authenticated */}
         <Route
           path="/"
           element={
@@ -49,6 +48,14 @@ export default function App() {
             )
           }
         />
+
+        <Route element={<PublicLayout />}>
+          <Route index element={<LandingPage />} />
+        <Route path="/home" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="help" element={<HelpPage />} />
+        </Route>
 
         {/* Protected dashboard routes */}
         <Route

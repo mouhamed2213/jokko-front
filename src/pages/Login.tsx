@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logooo.svg";
 import { login } from "../services/index";
 
@@ -91,7 +91,13 @@ export default function Login() {
         </form>
 
         <p className="mt-6 text-center text-xs text-gray-400">
-
+          Vous n'avez pas de compte ?{" "}
+          <Link
+            to="/register"
+            className="font-semibold text-emerald-600 hover:underline"
+          >
+            S'inscrir gratuitement
+          </Link>
         </p>
       </div>
     </div>
