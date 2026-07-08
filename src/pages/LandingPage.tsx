@@ -14,6 +14,7 @@ import {
   Users,
   Wallet,
   X,
+  HelpCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -42,12 +43,12 @@ const plans: Plan[] = [
     badge: "Gratuit",
     badgeClass: "bg-slate-100 text-slate-600",
     features: [
-      "1 utilisateur ( proriétaire )",
+      "1 utilisateur (propriétaire)",
       "Jusqu'à 50 produits max",
       "100 ventes par mois",
       "20 clients max",
       "Tickets thermiques uniquement",
-      "Caisses ( limitée )",
+      "Caisses (limitée)",
     ],
     excluded: ["Alertes stock", "Export PDF / Excel", "Fournisseurs"],
     cta: "Commencer gratuitement",
@@ -58,19 +59,19 @@ const plans: Plan[] = [
     name: "Starter",
     price: 7500,
     description: "Pour les petites boutiques",
-    badge: "⭐",
+    badge: "⭐ Starter",
     badgeClass: "bg-emerald-100 text-emerald-700",
     features: [
-      "2 utilisateurs (proriétaire + 1 employé)", // important ✅
-      "Jusqu'à 500 produits", // important ✅
-      "Ventes illimitées", // important ✅
-      "Alertes stock faibles & ruptures", // important ✅
-      "Clients illimités", // important ✅
-      "Suivi dettes client", // important ✅
-      "Caisse journalière & Historique complete", // important✅
-      "Top produits vendus", //✅
-      "Factures PDF A4", //✅
-      "Export Excel / PDF", //✅
+      "2 utilisateurs (propriétaire + 1 employé)",
+      "Jusqu'à 500 produits",
+      "Ventes illimitées",
+      "Alertes stock faibles & ruptures",
+      "Clients illimités",
+      "Suivi dettes client",
+      "Caisse journalière & Historique complet",
+      "Top produits vendus",
+      "Factures PDF A4",
+      "Export Excel / PDF",
     ],
     excluded: ["Gestions fournisseurs", "Rapports & statistiques"],
     cta: "Essayer maintenant",
@@ -85,15 +86,15 @@ const plans: Plan[] = [
     badge: "🚀 Recommandé",
     badgeClass: "bg-blue-100 text-blue-700",
     features: [
-      "5 utilisateurs", // ✅
-      "Tout le Starter inclus", // ✅
-      "Produits illimités", // ✅
-      "Ventes illimités", // ✅
-      "Gestion fournisseurs complète", // ✅
-      "Suivi dettes fournisseurs", //❌
-      "Relance clients débiteurs (WhatsApp)", //❌
-      "Rapports & statistiques", //❌
-      "Historique complet achats par client", //❌
+      "5 utilisateurs",
+      "Tout le Starter inclus",
+      "Produits illimités",
+      "Ventes illimitées",
+      "Gestion fournisseurs complète",
+      "Suivi dettes fournisseurs",
+      "Relance clients débiteurs (WhatsApp)",
+      "Rapports & statistiques",
+      "Historique complet achats par client",
       "Multi-boutiques (jusqu'à 2)",
     ],
     cta: "Essayer maintenant",
@@ -109,10 +110,10 @@ const plans: Plan[] = [
     features: [
       "Utilisateurs illimités",
       "Tout le Pro inclus",
-      "Multi-boutiques (jusqu'à 5)", //❌
-      "Rôles & permissions avancés", //❌
-      "Suivi activité employés", //❌
-      "Support prioritaire", //❌
+      "Multi-boutiques (jusqu'à 5)",
+      "Rôles & permissions avancés",
+      "Suivi activité employés",
+      "Support prioritaire",
     ],
     cta: "Essayer maintenant",
     ctaVariant: "outline",
@@ -124,48 +125,48 @@ const features = [
     icon: Package,
     title: "Gestion des stocks",
     description:
-      "Suivi en temps réel, inventaires, alertes de rupture et mouvements automatisés",
+      "Suivi en temps réel, inventaires, alertes de rupture et mouvements automatisés.",
   },
   {
     icon: ShoppingCart,
     title: "Ventes & facturation",
     description:
-      "Tickets de caisse, factures A4 professionnelles, devis et bons de livraison",
+      "Tickets de caisse, factures A4 professionnelles, devis et bons de livraison.",
   },
   {
     icon: Wallet,
     title: "Gestion de caisse",
     description:
-      "Encaissements, décaissements et suivi quotidien de la trésorerie",
+      "Encaissements, décaissements et suivi quotidien strict de la trésorerie.",
   },
   {
     icon: Users,
     title: "Gestion clients",
     description:
-      "Fiches clients, historique d'achats, suivi des dettes et fidélisation",
+      "Fiches clients, historique d'achats, suivi des dettes et fidélisation.",
   },
   {
     icon: Truck,
     title: "Fournisseurs & achats",
     description:
-      "Commandes, approvisionnements et suivi des dettes fournisseurs",
+      "Commandes, approvisionnements et suivi des dettes envers vos fournisseurs.",
   },
   {
     icon: BarChart3,
     title: "Rapports & statistiques",
     description:
-      "Chiffre d'affaires, produits les plus vendus, analyses de rentabilité",
+      "Chiffre d'affaires, produits les plus vendus, analyses de rentabilité claire.",
   },
   {
     icon: Bell,
     title: "Alertes & notifications",
-    description: "Stocks faibles, factures impayées et échéances importantes",
+    description: "Stocks faibles, factures impayées et échéances importantes à suivre.",
   },
   {
     icon: Building2,
     title: "Multi-boutiques",
     description:
-      "Gérez plusieurs points de vente depuis un seul compte avec rôles & permissions",
+      "Gérez plusieurs points de vente depuis un seul compte avec rôles et permissions.",
   },
 ];
 
@@ -174,43 +175,43 @@ const steps = [
     num: "1",
     title: "Créez votre compte",
     description:
-      "Inscription gratuite en quelques secondes, aucune carte bancaire requise",
+      "Inscription gratuite en quelques secondes, aucune carte bancaire requise.",
   },
   {
     num: "2",
     title: "Ajoutez vos produits",
     description:
-      "Importez ou saisissez votre catalogue avec catégories et prix",
+      "Importez ou saisissez votre catalogue avec catégories et prix de gros.",
   },
   {
     num: "3",
     title: "Commencez à vendre",
     description:
-      "Enregistrez vos ventes, générez des factures et suivez votre caisse",
+      "Enregistrez vos ventes, générez des factures et suivez votre caisse.",
   },
   {
     num: "4",
     title: "Analysez & grandissez",
-    description: "Consultez vos statistiques et prenez les bonnes décisions",
+    description: "Consultez vos statistiques et prenez les meilleures décisions.",
   },
 ];
 
 const faqs = [
   {
     q: "Faut-il installer quelque chose ?",
-    a: "Non. Jokko Business fonctionne entièrement en ligne depuis un navigateur web, sur ordinateur ou smartphone.",
+    a: "Non. Jokko Business fonctionne entièrement en ligne depuis un navigateur web, sur ordinateur, tablette ou smartphone.",
   },
   {
     q: "Mes données sont-elles sécurisées ?",
-    a: "Oui. Vos données sont chiffrées, sauvegardées automatiquement et accessibles uniquement depuis votre compte.",
+    a: "Oui. Vos données sont chiffrées, sauvegardées automatiquement et accessibles uniquement depuis votre compte utilisateur.",
   },
   {
     q: "Puis-je changer de plan plus tard ?",
-    a: "Absolument. Vous pouvez évoluer ou réduire votre plan à tout moment sans perdre vos données.",
+    a: "Absolument. Vous pouvez évoluer ou réduire votre plan à tout moment sans risquer de perdre vos données enregistrées.",
   },
   {
     q: "Le plan gratuit est-il vraiment gratuit ?",
-    a: "Oui, sans limite de durée. Idéal pour tester la plateforme avant de choisir un plan payant.",
+    a: "Oui, sans limite de durée. C'est idéal pour tester la plateforme avant de choisir un plan payant adapté.",
   },
 ];
 
@@ -232,13 +233,12 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans">
-
+    <div className="min-h-screen bg-white font-sans antialiased text-slate-800">
 
       {/* ── HERO ── */}
-      <section className="bg-emerald-50 border-b border-emerald-100 px-6 py-20 sm:py-28 text-center">
+      <section className="bg-emerald-50/60 border-b border-emerald-100 px-6 py-20 sm:py-28 text-center">
         <div className="mx-auto max-w-3xl">
-          <div className="inline-flex items-center gap-2 bg-white border border-emerald-200 text-emerald-700 text-xs font-medium px-4 py-1.5 rounded-full mb-6">
+          <div className="inline-flex items-center gap-2 bg-white border border-emerald-200 text-emerald-700 text-xs font-medium px-4 py-1.5 rounded-full mb-6 shadow-sm">
             <MapPin size={13} /> Conçu pour les commerçants sénégalais
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-tight mb-5">
@@ -246,22 +246,22 @@ export default function LandingPage() {
             <br />
             <span className="text-emerald-600">en toute simplicité</span>
           </h1>
-          <p className="text-lg text-slate-600 max-w-xl mx-auto mb-8 leading-relaxed">
+          <p className="text-base sm:text-lg text-slate-600 max-w-xl mx-auto mb-8 leading-relaxed">
             Stocks, ventes, clients, caisse — tout dans une seule application.
-            Accessible 24h/24 depuis votre téléphone ou ordinateur.
+            Accessible 24h/24 depuis votre téléphone ou votre ordinateur.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <button
               onClick={() => navigate("/login")}
-              className="inline-flex items-center justify-center gap-2 bg-emerald-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-emerald-700 transition"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-emerald-700 transition shadow-sm"
             >
               Commencer gratuitement <ArrowRight size={17} />
             </button>
             <button
-              onClick={scrollToPricing}
-              className="inline-flex items-center justify-center gap-2 border border-slate-300 text-slate-800 font-semibold px-6 py-3 rounded-lg hover:bg-slate-50 transition"
+              onClick={() => navigate("/help")}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white border border-slate-300 text-slate-700 font-semibold px-6 py-3 rounded-lg hover:bg-slate-50 transition shadow-sm"
             >
-              Voir les plans
+              <HelpCircle size={17} className="text-emerald-600" /> Guide d'utilisation
             </button>
           </div>
 
@@ -273,9 +273,9 @@ export default function LandingPage() {
               { num: "4", label: "Plans tarifaires" },
               { num: "100%", label: "En ligne & mobile" },
             ].map(({ num, label }) => (
-              <div key={label}>
+              <div key={label} className="text-center">
                 <p className="text-3xl font-bold text-emerald-600">{num}</p>
-                <p className="text-sm text-slate-500 mt-1">{label}</p>
+                <p className="text-xs font-medium text-slate-500 mt-1">{label}</p>
               </div>
             ))}
           </div>
@@ -283,14 +283,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── SOCIAL PROOF ── */}
-      <div className="border-b border-slate-200 px-6 py-4 flex flex-wrap items-center justify-center gap-3">
-        <span className="text-xs text-slate-500 whitespace-nowrap">
+      <div className="border-b border-slate-200 px-6 py-4 flex flex-wrap items-center justify-center gap-3 bg-slate-50/50">
+        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
           Adapté pour :
         </span>
         {proofTags.map((tag) => (
           <span
             key={tag}
-            className="text-xs font-medium text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1 rounded-md"
+            className="text-xs font-medium text-slate-600 bg-white border border-slate-200 px-3 py-1 rounded-md shadow-sm"
           >
             {tag}
           </span>
@@ -300,31 +300,30 @@ export default function LandingPage() {
       {/* ── FEATURES ── */}
       <section id="features" className="px-6 py-20 sm:py-24">
         <div className="mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-2">
+          <div className="text-center mb-16">
+            <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">
               Fonctionnalités
             </p>
-            <h2 className="text-3xl font-bold text-slate-900 mb-3">
+            <h2 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">
               Tout ce dont vous avez besoin, rien de superflu
             </h2>
-            <p className="text-slate-600 max-w-lg mx-auto">
-              Une plateforme complète pensée pour le terrain — prise en main en
-              quelques minutes.
+            <p className="text-sm text-slate-500 max-w-lg mx-auto leading-relaxed">
+              Une plateforme complète pensée pour le terrain — prise en main immédiate et intuitive.
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {features.map(({ icon: Icon, title, description }) => (
               <div
                 key={title}
-                className="border border-slate-200 rounded-xl p-5 hover:border-emerald-300 hover:shadow-sm transition"
+                className="flex flex-col bg-white border border-slate-200 rounded-xl p-5 hover:border-emerald-300 hover:shadow-md transition duration-200"
               >
-                <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mb-3">
+                <div className="w-10 h-10 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center justify-center mb-4 shrink-0">
                   <Icon size={20} className="text-emerald-600" />
                 </div>
-                <h3 className="text-sm font-semibold text-slate-900 mb-1.5">
+                <h3 className="text-sm font-bold text-slate-900 mb-2">
                   {title}
                 </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-500 leading-relaxed text-left mt-auto">
                   {description}
                 </p>
               </div>
@@ -336,24 +335,24 @@ export default function LandingPage() {
       {/* ── HOW IT WORKS ── */}
       <section className="bg-slate-50 border-y border-slate-200 px-6 py-20 sm:py-24">
         <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-12">
-            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-2">
+          <div className="text-center mb-16">
+            <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">
               Comment ça marche
             </p>
-            <h2 className="text-3xl font-bold text-slate-900 mb-3">
+            <h2 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">
               Opérationnel en 3 minutes
             </h2>
-            <p className="text-slate-600">
-              Pas d'installation, pas de serveur. Juste un navigateur.
+            <p className="text-sm text-slate-500">
+              Pas d'installation, pas de configuration complexe. Juste votre navigateur.
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 border border-slate-200 rounded-xl overflow-hidden bg-white">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
             {steps.map(({ num, title, description }) => (
-              <div key={num} className="p-6">
-                <div className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm font-semibold mb-4">
+              <div key={num} className="p-6 flex flex-col items-start text-left">
+                <div className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xs font-bold mb-4 shadow-sm">
                   {num}
                 </div>
-                <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                <h3 className="text-sm font-bold text-slate-900 mb-2">
                   {title}
                 </h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
@@ -368,164 +367,168 @@ export default function LandingPage() {
       {/* ── PRICING ── */}
       <section id="pricing" className="px-6 py-20 sm:py-24">
         <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-12">
-            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-2">
+          <div className="text-center mb-16">
+            <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">
               Tarification
             </p>
-            <h2 className="text-3xl font-bold text-slate-900 mb-3">
+            <h2 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">
               Simple et transparent
             </h2>
-            <p className="text-slate-600">
-              Commencez gratuitement, évoluez selon vos besoins. Pas de frais
-              cachés.
+            <p className="text-sm text-slate-500">
+              Commencez gratuitement, évoluez selon vos besoins. Sans aucun frais caché.
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-start">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
             {plans.map((plan) => (
               <div
                 key={plan.id}
-                className={`flex flex-col rounded-2xl overflow-hidden transition ${
+                className={`flex flex-col rounded-2xl overflow-hidden bg-white transition duration-200 ${
                   plan.highlighted
-                    ? "border-2 border-emerald-500 shadow-lg"
+                    ? "border-2 border-emerald-500 shadow-xl scale-102"
                     : "border border-slate-200 shadow-sm hover:shadow-md"
                 }`}
               >
                 {/* Header */}
-                <div className="p-5 border-b border-slate-100">
-                  <span
-                    className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full mb-3 ${plan.badgeClass}`}
-                  >
-                    {plan.badge}
-                  </span>
-                  <h3 className="text-xl font-bold text-slate-900 mb-1">
+                <div className="p-5 border-b border-slate-100 flex flex-col min-h-55">
+                  <div>
+                    <span
+                      className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full mb-3 ${plan.badgeClass}`}
+                    >
+                      {plan.badge}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-1">
                     {plan.name}
                   </h3>
-                  <p className="text-xs text-slate-500 mb-4">
+                  <p className="text-xs text-slate-500 mb-4 line-clamp-2">
                     {plan.description}
                   </p>
 
-                  {plan.price === 0 ? (
-                    <div>
-                      <span className="text-2xl font-bold text-emerald-600">
-                        Gratuit
-                      </span>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        /mois pour toujours
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-bold text-slate-900">
-                        {plan.price!.toLocaleString("fr-FR")}
-                      </span>
-                      <div className=" flex flex-col">
-                        <span className="text-sm text-slate-500">
-                          FCFA/mois
+                  <div className="mt-auto">
+                    {plan.price === 0 ? (
+                      <div>
+                        <span className="text-2xl font-extrabold text-emerald-600">
+                          Gratuit
                         </span>
-                        <span className="text-md  text-black ">
-                          14 jours éssaie gratuit
+                        <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
+                          /mois pour toujours
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                          {plan.price!.toLocaleString("fr-FR")}
+                        </span>
+                        <div className="flex flex-col text-left justify-center">
+                          <span className="text-xs font-bold text-slate-500 leading-none">
+                            FCFA / mois
+                          </span>
+                          <span className="text-[11px] text-emerald-600 font-semibold mt-1 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                            14 jours d'essai gratuit
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Features & Action */}
+                <div className="p-5 flex flex-col flex-1 bg-white justify-between">
+                  <div className="space-y-3 mb-6">
+                    {plan.features.map((feat) => (
+                      <div key={feat} className="flex items-start gap-2.5 text-left">
+                        <Check
+                          size={14}
+                          className="text-emerald-600 mt-0.5 shrink-0"
+                        />
+                        <span className="text-xs text-slate-600 leading-relaxed">
+                          {feat}
                         </span>
                       </div>
-                    </div>
-                  )}
+                    ))}
+
+                    {plan.excluded && plan.excluded.length > 0 && (
+                      <div className="pt-3 mt-3 border-t border-slate-100">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                          Non inclus
+                        </p>
+                        <div className="space-y-2">
+                          {plan.excluded.map((feat) => (
+                            <div
+                              key={feat}
+                              className="flex items-start gap-2.5 opacity-45 text-left"
+                            >
+                              <X
+                                size={14}
+                                className="text-slate-400 mt-0.5 shrink-0"
+                              />
+                              <span className="text-xs text-slate-500 leading-relaxed">
+                                {feat}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   <button
                     onClick={() => navigate(`/register?plan=${plan.id}`)}
-                    className={`mt-4 w-full py-2.5 rounded-lg text-sm font-semibold transition ${
+                    className={`w-full py-2.5 rounded-xl text-xs font-bold transition mt-auto tracking-wide ${
                       plan.ctaVariant === "filled"
-                        ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                        : "border border-emerald-600 text-emerald-600 hover:bg-emerald-50"
+                        ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm"
+                        : "border border-emerald-600 text-emerald-600 hover:bg-emerald-50/50"
                     }`}
                   >
                     {plan.cta}
                   </button>
                 </div>
-
-                {/* Features */}
-                <div className="p-5 flex-1 bg-white space-y-3">
-                  {plan.features.map((feat) => (
-                    <div key={feat} className="flex items-start gap-2.5">
-                      <Check
-                        size={15}
-                        className="text-emerald-600 mt-0.5 shrink-0"
-                      />
-                      <span className="text-xs text-slate-700 leading-relaxed">
-                        {feat}
-                      </span>
-                    </div>
-                  ))}
-
-                  {plan.excluded && plan.excluded.length > 0 && (
-                    <>
-                      <p className="text-xs font-semibold text-slate-400 pt-2 mt-2 border-t border-slate-100">
-                        Non inclus
-                      </p>
-                      {plan.excluded.map((feat) => (
-                        <div
-                          key={feat}
-                          className="flex items-start gap-2.5 opacity-40"
-                        >
-                          <X
-                            size={15}
-                            className="text-slate-400 mt-0.5 shrink-0"
-                          />
-                          <span className="text-xs text-slate-500 leading-relaxed">
-                            {feat}
-                          </span>
-                        </div>
-                      ))}
-                    </>
-                  )}
-                </div>
               </div>
             ))}
           </div>
 
-          {/* Custom */}
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-4 bg-slate-50 border border-slate-200 rounded-xl px-6 py-5">
+          {/* Custom Contact Row */}
+          <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-left">
             <div>
-              <p className="font-semibold text-slate-900 mb-1">
+              <p className="font-bold text-slate-900 text-sm md:text-base mb-1">
                 Besoin d'une solution sur mesure ?
               </p>
-              <p className="text-sm text-slate-500">
-                Plus de 5 boutiques, intégration spécifique — discutons-en.
+              <p className="text-xs text-slate-500">
+                Plus de 5 boutiques, intégration ou accompagnement spécifique — discutons-en directement.
               </p>
             </div>
             <a
               href="tel:+221783333838"
-              className="inline-flex items-center gap-2 bg-emerald-600 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-emerald-700 transition text-sm"
+              className="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition text-xs shadow-sm"
             >
-              <Phone size={15} /> +221 78 333 38 38
+              <Phone size={14} /> +221 78 333 38 38
             </a>
           </div>
         </div>
       </section>
 
       {/* ── FAQ ── */}
-      <section
-        id="faq"
-        className="bg-slate-50 border-y border-slate-200 px-6 py-20 sm:py-24"
-      >
+      <section id="faq" className="bg-slate-50 border-y border-slate-200 px-6 py-20 sm:py-24">
         <div className="mx-auto max-w-3xl">
-          <div className="text-center mb-12">
-            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-2">
+          <div className="text-center mb-16">
+            <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">
               FAQ
             </p>
-            <h2 className="text-3xl font-bold text-slate-900">
+            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">
               Questions fréquentes
             </h2>
           </div>
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-2 gap-4 text-left">
             {faqs.map(({ q, a }) => (
               <div
                 key={q}
-                className="bg-white border border-slate-200 rounded-xl p-5"
+                className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm"
               >
-                <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                <h3 className="text-sm font-bold text-slate-900 mb-2">
                   {q}
                 </h3>
-                <p className="text-sm text-slate-500 leading-relaxed">{a}</p>
+                <p className="text-xs text-slate-500 leading-relaxed">{a}</p>
               </div>
             ))}
           </div>
@@ -534,50 +537,48 @@ export default function LandingPage() {
 
       {/* ── CTA BANNER ── */}
       <section className="px-6 py-12">
-        <div className="mx-auto max-w-5xl bg-emerald-600 rounded-2xl px-8 py-14 text-center text-white">
-          <h2 className="text-3xl font-bold mb-3">
+        <div className="mx-auto max-w-5xl bg-emerald-600 rounded-2xl px-8 py-14 text-center text-white shadow-xl">
+          <h2 className="text-3xl font-bold mb-3 tracking-tight">
             Prêt à simplifier votre gestion ?
           </h2>
-          <p className="text-emerald-100 mb-8 text-base">
-            Rejoignez des commerçants sénégalais qui font confiance à Jokko
-            Business au quotidien
+          <p className="text-emerald-100 mb-8 text-sm md:text-base max-w-lg mx-auto opacity-90">
+            Rejoignez dès aujourd’hui les commerçants sénégalais qui font confiance à Jokko Business au quotidien.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <button
               onClick={() => navigate("/login")}
-              className="inline-flex items-center justify-center gap-2 bg-white text-emerald-600 font-semibold px-6 py-3 rounded-lg hover:bg-emerald-50 transition"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-emerald-600 font-bold px-6 py-3 rounded-xl hover:bg-emerald-50 transition shadow-md text-sm"
             >
               Démarrer gratuitement <ArrowRight size={17} />
             </button>
             <a
               href="tel:+221783333838"
-              className="inline-flex items-center justify-center gap-2 border border-white/40 text-white font-semibold px-6 py-3 rounded-lg hover:bg-white/10 transition"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/30 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/10 transition text-sm"
             >
-              <Phone size={16} /> Nous appeler
+              <Phone size={15} /> Nous appeler
             </a>
           </div>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="bg-slate-900 text-slate-400 px-6 py-12">
+      <footer className="bg-slate-900 text-slate-400 px-6 py-12 text-left">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 mb-10">
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-9 h-9 bg-emerald-600 rounded-lg flex items-center justify-center">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center shadow-md">
                   <Store size={18} className="text-white" />
                 </div>
-                <span className="text-white font-semibold">Jokko Business</span>
+                <span className="text-white font-bold text-lg tracking-tight">Jokko Business</span>
               </div>
-              <p className="text-sm leading-relaxed">
-                La solution de gestion commerciale pensée pour les commerçants
-                sénégalais
+              <p className="text-xs leading-relaxed max-w-xs text-slate-400">
+                La solution cloud de gestion commerciale moderne entièrement pensée sur le terrain pour les commerçants du Sénégal.
               </p>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-white mb-4">Produit</h4>
-              <ul className="space-y-2.5 text-sm">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">Produit</h4>
+              <ul className="space-y-2.5 text-xs">
                 <li>
                   <a href="#features" className="hover:text-white transition">
                     Fonctionnalités
@@ -589,22 +590,17 @@ export default function LandingPage() {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition">
-                    Sécurité
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Mises à jour
-                  </a>
+                  <button onClick={() => navigate("/help")} className="hover:text-white transition text-left">
+                    Centre d'aide & Guides
+                  </button>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-white mb-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
                 Entreprise
               </h4>
-              <ul className="space-y-2.5 text-sm">
+              <ul className="space-y-2.5 text-xs">
                 <li>
                   <a href="#" className="hover:text-white transition">
                     À propos
@@ -612,21 +608,16 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <a href="#" className="hover:text-white transition">
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Contact
+                    Contactez-nous
                   </a>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-white mb-4">Contact</h4>
-              <ul className="space-y-3 text-sm">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">Contact</h4>
+              <ul className="space-y-3 text-xs">
                 <li className="flex items-center gap-2">
-                  <Phone size={14} className="text-emerald-400 shrink-0" />
+                  <Phone size={13} className="text-emerald-400 shrink-0" />
                   <a
                     href="tel:+221783333838"
                     className="hover:text-white transition"
@@ -635,7 +626,7 @@ export default function LandingPage() {
                   </a>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Mail size={14} className="text-emerald-400 shrink-0" />
+                  <Mail size={13} className="text-emerald-400 shrink-0" />
                   <a
                     href="mailto:contact@jokko.sn"
                     className="hover:text-white transition"
@@ -644,14 +635,14 @@ export default function LandingPage() {
                   </a>
                 </li>
                 <li className="flex items-center gap-2">
-                  <MapPin size={14} className="text-emerald-400 shrink-0" />
+                  <MapPin size={13} className="text-emerald-400 shrink-0" />
                   <span>Dakar, Sénégal</span>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-slate-800 pt-6 flex flex-wrap justify-between gap-3 text-xs">
-            <span>© 2025 Jokko Business. Tous droits réservés.</span>
+          <div className="border-t border-slate-800 pt-6 flex flex-wrap justify-between gap-3 text-[11px] text-slate-500 font-medium">
+            <span>© 2026 Jokko Business. Tous droits réservés.</span>
             <span>Fait avec soin au Sénégal</span>
           </div>
         </div>
