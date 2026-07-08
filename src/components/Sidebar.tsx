@@ -228,12 +228,14 @@ function ShopSwitcher({
   onSwitch,
   onShopCreated,
   canAddShop,
+  onUpgradeClick,
 }: {
   shops: ShopItem[];
   currentShopId: number;
   onSwitch: (shopId: number, password: string) => Promise<void>;
   onShopCreated: () => void;
   canAddShop: boolean;
+  onUpgradeClick: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<ShopItem | null>(null);
@@ -265,42 +267,52 @@ function ShopSwitcher({
   }
   const featureFlags = hasFeatures(subscription);
 
-  if (!subscription) {
-    return;
-  }
   const otherShops = shops.filter((s) => s.id !== currentShopId);
-  // const otherShops = [1 , 2, 3, 4, 5, 3, 2, ,4 ];
 
-  // not allowed
-  let showAlert: boolean = true;
-  let message: string = "";
+  // Eligibility to add a new shop, in priority order:
+  // 1) plan doesn't include multi-store at all -> Pro upsell (same treatment
+  //    as the locked Fournisseurs nav item)
+  // 2) plan includes it but temporarily blocked (trial / expired / at limit)
+  //    -> informational only, no "Pro" framing since upgrading tier isn't
+  //    necessarily what fixes these
+  // 3) fully eligible
+
   const maxStore = subscription.limits.stores ?? 0;
   const maxStoreIsReached = otherShops.length >= maxStore;
-  console.log(maxStoreIsReached)
+  // const maxStoreIsReached = [1, 32, 45, 5, 5,6 ,  7, ];
+  const isExpired = new Date(subscription.endDate) < now;
 
-  if (
-    !featureFlags.multiStore &&
-    subscription.plan.code !== "PRO" &&
-    subscription.plan.code !== "PREMIUM"
-  ) {
-    //  add supsen
-    message = "Ce plan n'inclue pas l'option multi boutique";
-  } else if (featureFlags.multiStore && subscription.status === "TRIAL") {
-    message =
-      "Le mode essaie gratuit ne permet pas l'ajouter une seconde boutique";
-  } else if (featureFlags.multiStore && otherShops.length === 0) {
-  } else if (
-    featureFlags.multiStore &&
-    subscription.endDate > now &&
-    !maxStoreIsReached
-  ) {
-    message = "Veuillez vous réabonner pour ajouter de nouvelle boutique";
-  } else if (featureFlags.multiStore && otherShops.length === 0) {
-    message = "Vous n'avez qu'une seule boutique pour le moment.";
-  } else if (maxStoreIsReached ) {
-    message = "Vous avez atteind le nombre maximum de boutique";
-  }  else {
-    showAlert = false;
+  type AddShopStatus =
+    | { kind: "allowed" }
+    | { kind: "planLocked"; message: string }
+    | { kind: "blocked"; message: string };
+
+  let addShopStatus: AddShopStatus;
+  if (!featureFlags.multiStore) {
+    addShopStatus = {
+      kind: "planLocked",
+      message: "Le multi-boutique n'est pas inclus dans votre plan actuel.",
+    };
+  } else if (subscription.status === "TRIAL") {
+    addShopStatus = {
+      kind: "blocked",
+      message:
+        "Vous ne pouvez pas ajouter de boutique pendant votre période d'essai.",
+    };
+  } else if (isExpired) {
+    addShopStatus = {
+      kind: "blocked",
+      message:
+        "Votre abonnement a expiré. Réabonnez-vous pour ajouter une boutique.",
+    };
+  } else if (maxStoreIsReached) {
+    addShopStatus = {
+      kind: "blocked",
+      message:
+        "Vous avez atteint le nombre maximum de boutiques autorisées par votre plan.",
+    };
+  } else {
+    addShopStatus = { kind: "allowed" };
   }
 
   const handleSelectShop = (shop: ShopItem) => {
@@ -414,33 +426,20 @@ function ShopSwitcher({
                   );
                 })}
 
-                {showAlert && (
-                  <p className="px-4 py-3 text-xs text-white/30">{message}</p>
-                )}
               </div>
 
-              {/* Ajouter une boutique */}
-              {canAddShop && featureFlags.multiStore && !maxStoreIsReached && (
+              {/* Ajouter une boutique — trois états distincts :
+                  - allowed: bouton normal
+                  - planLocked: le plan n'inclut pas le multi-boutique du tout
+                    -> même traitement que Fournisseurs (ambre + Crown + Pro),
+                    ouvre la même modale de mise à niveau
+                  - blocked: le plan l'inclut mais c'est temporairement
+                    indisponible (essai / expiré / limite atteinte)
+                    -> simple message informatif, pas de bouton, pas de "Pro" */}
+              {canAddShop && addShopStatus.kind === "allowed" && (
                 <button
                   type="button"
                   onClick={() => {
-                    // Verification
-                    if (!featureFlags.multiStore) {
-                      toast.error(
-                        "Votre plan actuelle ne permet l'option multi boutiques",
-                      );
-
-                      return;
-                    } else if (
-                      featureFlags.multiStore &&
-                      subscription.status === "TRIAL"
-                    ) {
-                      toast.error(
-                        "Vous ne pouvez pas creer des boutique durant votre periode d'essai",
-                      );
-                      return;
-                    }
-
                     setOpen(false);
                     setAddShopOpen(true);
                   }}
@@ -451,6 +450,38 @@ function ShopSwitcher({
                   </div>
                   <span>Ajouter une boutique</span>
                 </button>
+              )}
+
+              {canAddShop && addShopStatus.kind === "planLocked" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    onUpgradeClick();
+                  }}
+                  className="w-full flex items-center justify-between gap-3 border-t border-white/10 px-4 py-3 text-left text-sm font-medium text-amber-400/80 transition hover:bg-amber-500/10 hover:text-amber-400"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/20">
+                      <Crown size={14} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate">Ajouter une boutique</p>
+                      <p className="truncate text-[11px] text-amber-400/70">
+                        {addShopStatus.message}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="shrink-0 rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400">
+                    Pro
+                  </span>
+                </button>
+              )}
+
+              {canAddShop && addShopStatus.kind === "blocked" && (
+                <p className="border-t border-white/10 px-4 py-3 text-xs text-white/40">
+                  {addShopStatus.message}
+                </p>
               )}
             </div>
           ) : (
@@ -714,6 +745,7 @@ function SidebarContent({
             onSwitch={handleSwitch}
             onShopCreated={refreshShopList}
             canAddShop={role === "ADMIN"}
+            onUpgradeClick={onUpgradeClick}
           />
         </div>
       )}
