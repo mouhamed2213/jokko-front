@@ -771,7 +771,7 @@ export default function Sidebar() {
       </button>
 
       {/* Sidebar desktop */}
-      <aside className="sticky top-0 hidden h-screen w-[272px] shrink-0 overflow-hidden md:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 overflow-hidden md:flex">
         <SidebarContent onUpgradeClick={() => setIsUpgradeModalOpen(true)} />
       </aside>
 
@@ -782,7 +782,7 @@ export default function Sidebar() {
             className="absolute inset-0 bg-black/40"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="absolute left-0 top-0 h-screen w-[272px] overflow-hidden shadow-xl">
+          <div className="absolute left-0 top-0 h-screen w-60 overflow-hidden shadow-xl">
             <SidebarContent
               onClose={() => setMobileOpen(false)}
               onUpgradeClick={() => setIsUpgradeModalOpen(true)}

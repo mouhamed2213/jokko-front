@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import orangeMoneyLogo from "../assets/om.png";
 import waveLogo from "../assets/wave.png";
 import PaymentMethodSelect from "../components/Paymentmethodselect";
+import { showModal } from "../components/upgradeModal";
 import {
   addCashTransaction,
   closeCash,
@@ -965,74 +966,10 @@ export default function Cash() {
             </button>
           </div>
         )}
-
-      {isUpgradeModalOpen && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-    {/* Conteneur du Modal */}
-    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200 relative mx-4">
-      
-      {/* Bouton Fermer (X) en haut à droite */}
-      <button 
-        onClick={() => setIsUpgradeModalOpen(false)}
-        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
-      >
-        <X size={18} />
-      </button>
-
-      {/* Header / Icône */}
-      <div className="flex flex-col items-center text-center mt-2">
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 border border-amber-100 text-amber-600 shadow-sm">
-          <Lock size={22} />
-        </div>
-        <h3 className="text-lg font-bold text-slate-900">
-          Historique & Rapports PDF verrouillés
-        </h3>
-        <p className="mt-2 text-sm text-gray-500 px-2">
-          La consultation détaillée et l'export au format PDF des sessions de caisse archivées sont réservés aux utilisateurs des plans supérieurs.
-        </p>
-      </div>
-
-      {/* Avantages du Plan Supérieur */}
-      <div className="my-5 rounded-xl bg-slate-50 border border-gray-100 p-4 text-left">
-        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5">
-          Débloquez la gestion de caisse pro :
-        </p>
-        <ul className="space-y-2 text-sm text-slate-700">
-          <li className="flex items-center gap-2">
-            ✨ Historique complet et exports PDF <b>illimités</b>
-          </li>
-          <li className="flex items-center gap-2">
-            📊 Historique des caisses cloturer
-          </li>
-          {/* <li className="flex items-center gap-2">
-            👥 Gestion multi-boutiques et comptes employés
-          </li> */}
-        </ul>
-      </div>
-
-      {/* Actions */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3">
-        <button
-          type="button"
-          onClick={() => setIsUpgradeModalOpen(false)}
-          className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition sm:w-auto"
-        >
-          Plus tard
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setIsUpgradeModalOpen(false);
-            toast.success("Redirection vers les plans d'abonnement...");
-          }}
-          className="w-full rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 shadow-sm transition sm:w-auto"
-        >
-          Passer au plan supérieur
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+        {!hasFeature.exportPdf && (
+          showModal( isUpgradeModalOpen, () => setIsUpgradeModalOpen(false),  "cashExportAndhistoique")
+        )}
+    
       </div>
     </section>
   );

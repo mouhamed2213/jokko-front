@@ -36,6 +36,5 @@ export const hasFeatures = (subscription: SubscriptionInfo) => {
     return [key, isIncluded];
   });
 
-  // 3. On reconstruit l'objet { exportPdf: true, lowStockAlert: false, ... }
   return Object.fromEntries(entries);
 };

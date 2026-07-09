@@ -18,6 +18,7 @@ import type {
 } from "../types/index";
 import { exportStockToExcel } from "../utils/exportExcel";
 import { hasFeatures } from "../utils/subscription.checker";
+import { showModal } from "../components/upgradeModal";
 
 const fmt = (v: number) => v.toLocaleString("fr-FR");
 const fmtCFA = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
@@ -34,6 +35,9 @@ export default function Stock() {
   const [submittingEntry, setSubmittingEntry] = useState(false);
   const [submittingOut, setSubmittingOut] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isUpgradeModalSupplierOpen, setIsUpgradeModalSupplierOpen] =
+    useState(false);
+
   const [subscription, setSubscription] = useState<SubscriptionInfo>();
 
   // Formulaire entrée
@@ -240,7 +244,7 @@ export default function Stock() {
               type="button"
               onClick={() => {
                 if (!hasFeature.supplierManagement) {
-                  setIsUpgradeModalOpen(true);
+                  setIsUpgradeModalSupplierOpen(true);
                   return;
                 }
                 setShowSupplierSection((v) => !v);
@@ -257,7 +261,7 @@ export default function Stock() {
                 <span>
                   {showSupplierSection
                     ? "Masquer les infos fournisseur"
-                    : "Lier à un fournisseur (optionnel)"}
+                    : "Lier à un fournisseur "}
                 </span>
 
                 {/* Petit badge PRO si la fonctionnalité est verrouillée */}
@@ -667,64 +671,19 @@ export default function Stock() {
           </>
         )}
 
-        {isUpgradeModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
-            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-              {/* Header */}
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600">
-                  <Lock size={24} />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  Suivi des Stocks Premium
-                </h3>
-                <p className="mt-2 text-sm text-gray-500">
-                  L'exportation Excel de vos mouvements de stocks et de vos
-                  inventaires est réservée aux abonnés des plans supérieurs.
-                </p>
-              </div>
+        {isUpgradeModalOpen &&
+          showModal(
+            isUpgradeModalOpen,
+            () => setIsUpgradeModalOpen(false),
+            "exportPdfOrExcel",
+          )}
 
-              {/* Avantages ciblés Logistique / Inventaire */}
-              <div className="my-5 rounded-xl bg-slate-50 p-4 text-left">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                  Débloquez le Plan Basic pour sécuriser vos stocks :
-                </p>
-                <ul className="space-y-2 text-sm text-slate-700">
-                  <li className="flex items-center gap-2">
-                    📊 Export Excel <b>illimité</b> (Stocks, Ventes,
-                    Fournisseurs)
-                  </li>
-                  <li className="flex items-center gap-2">
-                    ⚠️ <b>Alertes de stock bas</b> automatiques pour éviter les
-                    ruptures
-                  </li>
-                  <li className="flex items-center gap-2">
-                    📦 Catalogue étendu jusqu'à 500 références de produits
-                  </li>
-                </ul>
-              </div>
-
-              {/* Actions */}
-              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                <button
-                  onClick={() => setIsUpgradeModalOpen(false)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:w-auto"
-                >
-                  Plus tard
-                </button>
-                <button
-                  onClick={() => {
-                    setIsUpgradeModalOpen(false);
-                    toast.success("Redirection vers les plans d'abonnement...");
-                  }}
-                  className="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 shadow-sm transition sm:w-auto"
-                >
-                  Découvrir les plans
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {isUpgradeModalSupplierOpen &&
+          showModal(
+            isUpgradeModalSupplierOpen,
+            () => setIsUpgradeModalSupplierOpen(false),
+            "supplierFeatures",
+          )}
       </div>
     </section>
   );

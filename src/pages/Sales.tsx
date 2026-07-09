@@ -18,6 +18,7 @@ import type { Client, Product, Sale, SubscriptionInfo } from "../types/index";
 import { exportSalesToExcel } from "../utils/exportExcel";
 import { exportSalesPDF } from "../utils/exportPDF";
 import { printInvoice as doPrint } from "../utils/printInvoice";
+import { showModal } from "../components/upgradeModal";
 
 const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
@@ -1017,64 +1018,12 @@ export default function Sales() {
         </button>
       </div>
 
-      {isUpgradeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="flex flex-col items-center text-center">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600">
-                <Lock size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">
-                Analyse des Ventes Premium
-              </h3>
-              <p className="mt-2 text-sm text-gray-500">
-                L'exportation Excel de l'historique complet de vos ventes et de
-                votre chiffre d'affaires est réservée aux abonnés des plans
-                supérieurs.
-              </p>
-            </div>
-
-            {/* Avantages ciblés Ventes / Comptabilité */}
-            <div className="my-5 rounded-xl bg-slate-50 p-4 text-left">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                Débloquez le Plan Basic pour simplifier votre gestion :
-              </p>
-              <ul className="space-y-2 text-sm text-slate-700">
-                <li className="flex items-center gap-2">
-                  📊 Export Excel <b>illimité</b> de vos rapports de ventes et
-                  bilans
-                </li>
-                <li className="flex items-center gap-2">
-                  📈 Accès complet à l'historique de vos caisses clôturées
-                </li>
-                <li className="flex items-center gap-2">
-                  🚀 Suppression du quota de 30 ventes mensuelles
-                </li>
-              </ul>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-              <button
-                onClick={() => setIsUpgradeModalOpen(false)}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:w-auto"
-              >
-                Plus tard
-              </button>
-              <button
-                onClick={() => {
-                  setIsUpgradeModalOpen(false);
-                  toast.success("Redirection vers les plans d'abonnement...");
-                }}
-                className="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 shadow-sm transition sm:w-auto"
-              >
-                Découvrir les plans
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {isUpgradeModalOpen &&
+        showModal(
+          isUpgradeModalOpen,
+          () => setIsUpgradeModalOpen(false),
+          "exportPdfOrExcel",
+        )}
     </section>
   );
 }

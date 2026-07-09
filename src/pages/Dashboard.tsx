@@ -89,7 +89,7 @@ function StatCard({
               </>
             ) : (
               <>
-                <Lock size={10} /> Plan Basic
+                <Lock size={10} /> Starter
               </>
             )}
           </span>
@@ -334,7 +334,7 @@ export default function Dashboard() {
                   Top 5 produits vendus
                 </span>
                 <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md">
-                  <Lock size={10} /> Plan Basic
+                  <Lock size={10} /> Starter
                 </span>
               </div>
 

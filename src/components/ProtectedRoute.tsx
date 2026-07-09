@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+
 import { Navigate } from "react-router-dom";
 import { getStoredUser } from "../types/auth";
 type Props = {

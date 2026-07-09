@@ -30,7 +30,7 @@ type Plan = {
 
 type Subscription = {
   id: number;
-  status: "TRIAL" | "ACTIVE" | "EXPIRED";
+  status: "TRIAL" | "ACTIVE" | "EXPIRED" | "TRIAL_EXPIRED";
   startDate: string;
   endDate: string | null;
   plan: Plan;
@@ -178,7 +178,7 @@ export default function Settings() {
       if (currentUser) {
         localStorage.setItem(
           "user",
-          JSON.stringify({ ...currentUser, shopName: res.data.shop.name })
+          JSON.stringify({ ...currentUser, shopName: res.data.shop.name }),
         );
       }
       toast.success("Paramètres sauvegardés");
@@ -234,21 +234,25 @@ export default function Settings() {
         Chargement...
       </div>
     );
+  // const cSubs = shop?.subscriptions?.[0];
+  // // const testSubsStatut = { ...cSubs, status: "TRIAL_EXPIRED" };
+  // // const subscription = testSubsStatut;
 
   const subscription = shop?.subscriptions?.[0] ?? null;
+
   const currentPlan = subscription?.plan ?? null;
   const currentPlanCode = currentPlan?.code ?? "FREE";
   const currentPlanIndex = getPlanIndex(currentPlanCode);
   const daysRemaining = getDaysRemaining(subscription?.endDate ?? null);
+  const isActive = subscription?.status === "ACTIVE"; // current active subscription
+  const isExpired = subscription?.status === "EXPIRED"; // cureent subscription EXPIRED
   const isTrialing = subscription?.status === "TRIAL";
-  const isExpired = subscription?.status === "EXPIRED";
-  const isActive = subscription?.status === "ACTIVE";
+  const isTrialExpired = subscription?.status === "TRIAL_EXPIRED";
 
-// console.log(subscription)
+  // console.log(subscription)
 
   return (
     <section className="space-y-6 max-w-3xl">
-
       {/* ── Stats rapides ── */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
@@ -275,9 +279,9 @@ export default function Settings() {
             className={`px-6 py-4 flex items-center justify-between ${
               isTrialing
                 ? "bg-blue-50 border-b border-blue-100"
-                : isExpired
-                ? "bg-red-50 border-b border-red-100"
-                : "bg-emerald-50 border-b border-emerald-100"
+                : isExpired || isTrialExpired 
+                  ? "bg-red-50 border-b border-red-100"
+                  : "bg-emerald-50 border-b border-emerald-100"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -285,17 +289,14 @@ export default function Settings() {
                 className={`w-9 h-9 rounded-xl flex items-center justify-center ${
                   isTrialing
                     ? "bg-blue-100"
-                    : isExpired
-                    ? "bg-red-100"
-                    : "bg-emerald-100"
+                    : (isExpired || isTrialExpired) 
+                      ? "bg-red-100"
+                      : "bg-emerald-100"
                 }`}
               >
                 {isTrialing ? (
-                  <Clock
-                    size={18}
-                    className="text-blue-600"
-                  />
-                ) : isExpired ? (
+                  <Clock size={18} className="text-blue-600" />
+                ) : isExpired || isTrialExpired ? (
                   <AlertTriangle size={18} className="text-red-600" />
                 ) : (
                   <Zap size={18} className="text-emerald-600" />
@@ -306,23 +307,24 @@ export default function Settings() {
                   className={`font-semibold text-sm ${
                     isTrialing
                       ? "text-blue-800"
-                      : isExpired
-                      ? "text-red-800"
-                      : "text-emerald-800"
+                      : (isExpired || isTrialExpired)
+                        ? "text-red-800"
+                        : "text-emerald-800"
                   }`}
                 >
                   Plan {currentPlan?.name ?? "Gratuit"}
                   {isTrialing && " — Période d'essai"}
                   {isActive && " — Actif"}
                   {isExpired && " — Expiré"}
+                  {isTrialExpired && " — Fin période d'essai"}
                 </p>
                 <p
                   className={`text-xs mt-0.5 ${
                     isTrialing
                       ? "text-blue-600"
-                      : isExpired
-                      ? "text-red-600"
-                      : "text-emerald-600"
+                      : (isExpired || isTrialExpired)
+                        ? "text-red-600"
+                        : "text-emerald-600"
                   }`}
                 >
                   {isTrialing && daysRemaining !== null && (
@@ -337,12 +339,18 @@ export default function Settings() {
                       Renouvellement le{" "}
                       {new Date(subscription.endDate).toLocaleDateString(
                         "fr-FR",
-                        { day: "numeric", month: "long", year: "numeric" }
+                        { day: "numeric", month: "long", year: "numeric" },
                       )}
                     </>
                   )}
-                  {isActive && !subscription.endDate && <>Sans date d'expiration</>}
-                  {isExpired && "Votre abonnement a expiré — passez à un plan payant"}
+                  {isActive && !subscription.endDate && (
+                    <>Sans date d'expiration</>
+                  )}
+                  {isExpired &&
+                    "Votre abonnement a expiré — passez à un plan payant"}
+                  {isTrialExpired &&
+                    "Votre période d'essai a expiré — passez à un plan payant"}
+
                 </p>
               </div>
             </div>
@@ -353,10 +361,10 @@ export default function Settings() {
                 currentPlanCode === "FREE"
                   ? "bg-slate-100 text-slate-600"
                   : currentPlanCode === "STARTER"
-                  ? "bg-emerald-100 text-emerald-700"
-                  : currentPlanCode === "PRO"
-                  ? "bg-blue-100 text-blue-700"
-                  : "bg-purple-100 text-purple-700"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : currentPlanCode === "PRO"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-purple-100 text-purple-700"
               }`}
             >
               {currentPlan?.name ?? "Gratuit"}
@@ -410,11 +418,13 @@ export default function Settings() {
           {currentPlanCode !== "PREMIUM" && (
             <div className="px-6 py-4">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-                {isExpired ? "Réactivez votre abonnement" : "Passer à un plan supérieur"}
+                {isExpired
+                  ? "Réactivez votre abonnement"
+                  : "Passer à un plan supérieur"}
               </p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {PLANS_INFO.filter(
-                  (p) => getPlanIndex(p.code) > currentPlanIndex
+                  (p) => getPlanIndex(p.code) > currentPlanIndex,
                 ).map((plan) => (
                   <div
                     key={plan.code}
@@ -422,13 +432,16 @@ export default function Settings() {
                       plan.code === "STARTER"
                         ? "border-emerald-200 bg-emerald-50"
                         : plan.code === "PRO"
-                        ? "border-blue-200 bg-blue-50"
-                        : "border-purple-200 bg-purple-50"
+                          ? "border-blue-200 bg-blue-50"
+                          : "border-purple-200 bg-purple-50"
                     }`}
                     onClick={() =>
-                      toast("Contactez-nous au +221 78 333 38 38 pour activer ce plan", {
-                        icon: "📞",
-                      })
+                      toast(
+                        "Contactez-nous au +221 78 333 38 38 pour activer ce plan",
+                        {
+                          icon: "📞",
+                        },
+                      )
                     }
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -437,8 +450,8 @@ export default function Settings() {
                           plan.code === "STARTER"
                             ? "text-emerald-700"
                             : plan.code === "PRO"
-                            ? "text-blue-700"
-                            : "text-purple-700"
+                              ? "text-blue-700"
+                              : "text-purple-700"
                         }`}
                       >
                         {plan.name}
@@ -449,8 +462,8 @@ export default function Settings() {
                           plan.code === "STARTER"
                             ? "text-emerald-500"
                             : plan.code === "PRO"
-                            ? "text-blue-500"
-                            : "text-purple-500"
+                              ? "text-blue-500"
+                              : "text-purple-500"
                         }
                       />
                     </div>
@@ -466,7 +479,10 @@ export default function Settings() {
                           key={f}
                           className="flex items-center gap-1.5 text-xs text-slate-600"
                         >
-                          <Check size={11} className="text-emerald-500 shrink-0" />
+                          <Check
+                            size={11}
+                            className="text-emerald-500 shrink-0"
+                          />
                           {f}
                         </li>
                       ))}
@@ -481,8 +497,8 @@ export default function Settings() {
                         plan.code === "STARTER"
                           ? "bg-emerald-600 text-white hover:bg-emerald-700"
                           : plan.code === "PRO"
-                          ? "bg-blue-600 text-white hover:bg-blue-700"
-                          : "bg-purple-600 text-white hover:bg-purple-700"
+                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                            : "bg-purple-600 text-white hover:bg-purple-700"
                       }`}
                     >
                       Passer au {plan.name}
@@ -565,8 +581,8 @@ export default function Settings() {
                 {uploading
                   ? "Upload en cours..."
                   : logoPreview
-                  ? "Changer le logo"
-                  : "Uploader un logo"}
+                    ? "Changer le logo"
+                    : "Uploader un logo"}
               </button>
 
               {logoPreview && (

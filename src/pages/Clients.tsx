@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { showModal } from "../components/upgradeModal";
 import {
   createClient,
   deleteClient,
@@ -20,6 +21,7 @@ import {
 import { getStoredUser, isAdmin } from "../types/auth";
 import type { Client, SubscriptionInfo } from "../types/index";
 import { exportClientsToExcel } from "../utils/exportExcel";
+import { hasFeature } from "../utils/subscription.checker";
 
 const emptyForm = { name: "", phone: "", email: "", address: "" };
 const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
@@ -44,13 +46,8 @@ export default function Clients() {
 
   // Calcul des seuils critiques
   const isLimitCustomerReached = subscription?.limits.maxCutomers;
-
+  // const isLimitCustomerReached = 2;
   shopPlan == "FREE" && limitCostumer !== null && limitCostumer >= maxCustomers;
-  const isApproachingLimit =
-    shopPlan === "FREE" &&
-    limitCostumer !== null &&
-    limitCostumer >= maxCustomers - 10 &&
-    limitCostumer < maxCustomers;
 
   const fetchClients = async () => {
     try {
@@ -65,6 +62,11 @@ export default function Clients() {
       setLoading(false);
     }
   };
+
+  const hasfeatures = hasFeature(
+    subscription as SubscriptionInfo,
+    "EXPORT_EXCEL",
+  );
 
   useEffect(() => {
     fetchClients();
@@ -145,7 +147,7 @@ export default function Clients() {
             <AlertTriangle size={18} className="text-red-600 shrink-0" />
             <span>
               <b>Limite atteinte !</b> Vous avez enregistré {limitCostumer}/
-              {maxCustomers} clients. Passez au Plan Basic pour obtenir un
+              {maxCustomers} clients. Passez au Plan Starter pour obtenir un
               carnet d'adresses illimité.
             </span>
           </div>
@@ -159,26 +161,6 @@ export default function Clients() {
         </div>
       )}
 
-      {/* 2. Message préventif (approche de la limite) */}
-      {isApproachingLimit && (
-        <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 animate-in fade-in duration-200">
-          <div className="flex items-center gap-2">
-            <AlertTriangle size={18} className="text-amber-600 shrink-0" />
-            <span>
-              <b>Attention :</b> Il ne vous reste plus que{" "}
-              <b>{maxCustomers - limitCostumer}</b> places disponibles dans
-              votre carnet clients gratuit ({limitCostumer}/{maxCustomers}).
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsUpgradeModalOpen(true)}
-            className="shrink-0 rounded-xl bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600 transition"
-          >
-            Passer au Plan Basic
-          </button>
-        </div>
-      )}
       {/* Barre actions */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-50">
@@ -196,10 +178,6 @@ export default function Clients() {
         </div>
         <button
           onClick={() => {
-            if (shopPlan === "FREE" && isLimitCustomerReached) {
-              setIsUpgradeModalOpen(true); // Ouvre le modal de conversion
-              return;
-            }
             setShowForm(true);
             setEditingId(null);
             setForm(emptyForm);
@@ -211,23 +189,23 @@ export default function Clients() {
           }`}
         >
           {isLimitCustomerReached ? <Lock size={16} /> : <Plus size={16} />}
-          Nouveau client 
+          Nouveau client
         </button>
         <button
           onClick={() => {
-            if (shopPlan === "FREE") {
+            if (!hasfeatures) {
               setIsUpgradeModalOpen(true); // Ouvre le modal de conversion
               return;
             }
             exportClientsToExcel(clients, user);
           }}
           className={`flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm transition ${
-            shopPlan === "FREE"
+            !hasfeatures
               ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100" // Mode premium/verrouillé
               : "border-gray-300 text-gray-700 hover:bg-gray-50" // Mode normal
           }`}
         >
-          {shopPlan === "FREE" ? (
+          {!hasfeatures ? (
             <Lock size={15} className="text-amber-600" />
           ) : (
             <Download size={15} />
@@ -436,64 +414,12 @@ export default function Clients() {
         </div>
       )}
 
-      {isUpgradeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="flex flex-col items-center text-center">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600">
-                <Lock size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">
-                Change the modal to containn all information subs about the page
-              </h3>
-              <p className="mt-2 text-sm text-gray-500">
-                L'exportation de votre base de données clients au format Excel
-                est réservée aux abonnés des plans supérieurs.
-              </p>
-            </div>
-
-            {/* Avantages ciblés CRM / Ventes */}
-            <div className="my-5 rounded-xl bg-slate-50 p-4 text-left">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                Débloquez le Plan Basic pour booster vos ventes :
-              </p>
-              <ul className="space-y-2 text-sm text-slate-700">
-                <li className="flex items-center gap-2">
-                  📊 Export Excel <b>illimité</b> (Clients, Fournisseurs,
-                  Stocks)
-                </li>
-                <li className="flex items-center gap-2">
-                  🤝 Gestion complète de la relation client et historique
-                  d'achats
-                </li>
-                <li className="flex items-center gap-2">
-                  🚀 Ventes illimitées pour accompagner votre croissance
-                </li>
-              </ul>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-              <button
-                onClick={() => setIsUpgradeModalOpen(false)}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:w-auto"
-              >
-                Plus tard
-              </button>
-              <button
-                onClick={() => {
-                  setIsUpgradeModalOpen(false);
-                  toast.success("Redirection vers les plans d'abonnement...");
-                }}
-                className="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 shadow-sm transition sm:w-auto"
-              >
-                Découvrir les plans
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {isUpgradeModalOpen &&
+        showModal(
+          isUpgradeModalOpen,
+          () => setIsUpgradeModalOpen(false),
+          "exportPdfOrExcel",
+        )}
     </section>
   );
 }
