@@ -61,7 +61,7 @@ function getSubscriptionAlert(endDate: Date | null): SubscriptionAlert | null {
 
   if (daysRemaining <= 0) {
     return {
-      text: "Votre abonnement a expire. Votre boutique est actuellement repassée en Plan Gratuit (FREE). Reabonnez-vous pour debloquer toutes vos fonctionnalites.",
+      text: " Votre boutique est actuellement au Plan Gratuit (FREE). Reabonnez-vous pour debloquer toutes les fonctionnalites.",
       type: "danger",
     };
   } 

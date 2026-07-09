@@ -509,7 +509,7 @@ export default function Sales() {
               Sélectionner les produits
             </p>
             <div className="flex flex-wrap gap-2">
-              <div className="relative flex-1 min-w-[160px]">
+              <div className="relative flex-1 min-w-40">
                 <Search
                   size={14}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
