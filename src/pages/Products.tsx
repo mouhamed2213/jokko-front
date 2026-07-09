@@ -383,11 +383,10 @@ export default function Products() {
             <button
               onClick={() => {
                 if (limiteReached) {
-                  setIsUpgradeModalOpen(true); // Ouvre le modal de conversion directement
-                  return;
+                  setIsUpgradeModalOpen(true); 
                 }
-                setShowForm(true);
                 resetForm();
+                setShowForm(true);
               }}
               className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition ${
                 limiteReached

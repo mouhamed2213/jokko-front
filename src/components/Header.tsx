@@ -97,7 +97,6 @@ export default function Header() {
 
   const endDate = new Date(subscription?.endDate as Date);
 
-  console.log(subscription)
   const alertConfig = getSubscriptionAlert(endDate);
 
   const currentDate = new Date().toLocaleDateString("fr-FR", {
