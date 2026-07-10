@@ -1,9 +1,7 @@
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-
 import ProtectedRoute, { SubscriptionGuard } from "./components/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
-
 import Cash from "./pages/Cash";
 import Clients from "./pages/Clients";
 import Dashboard from "./pages/Dashboard";
@@ -18,8 +16,10 @@ import SuperAdmin from "./pages/superAdmin/SuperAdmin";
 import Suppliers from "./pages/Suppliers";
 import Users from "./pages/Users";
 import Register from "./pages/Register";
-import PublicLayout from "./layouts/publicLayout";
 import HelpPage from "./pages/HelpPage";
+import PublicLayout from "./layouts/PublicLayout";
+import SuperAdminLayout from "./layouts/SuperAdminLayout";
+import { AdminDashboard } from "./pages/superAdmin/AdminDashboard";
 
 export default function App() {
   const isAuthenticated = !!localStorage.getItem("token");
@@ -36,7 +36,7 @@ export default function App() {
       <Routes>
         {/* Public routes */}
 
-        <Route path="/super-admin" element={<SuperAdmin />} />
+
 
         <Route
           path="/"
@@ -51,13 +51,32 @@ export default function App() {
 
         <Route element={<PublicLayout />}>
           <Route index element={<LandingPage />} />
-        <Route path="/home" element={<LandingPage />} />
+          <Route path="/home" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="help" element={<HelpPage />} />
         </Route>
 
-        {/* Protected dashboard routes */}
+        {/* Protected ADMIN routes */}
+        {/* Protected ADMIN routes */}
+        {/* Protected ADMIN routes */}
+        {/* Protected ADMIN routes */}
+        {/* Protected ADMIN routes */}
+        {/* Protected ADMIN routes */}
+        {/* Protected ADMIN routes */}
+        {/* Protected ADMIN routes */}
+        {/* Protected ADMIN routes */}
+        {/* Protected ADMIN routes */}
+        {/* Protected ADMIN routes */}
+        <Route element={<SuperAdminLayout />}>
+          <Route path="/super-admin" element={<SuperAdmin />} />
+          <Route path="/dashboard" element={<AdminDashboard />} />
+        </Route>
+
+
+
+
+        {/* Protected dashboard user routes */}
         <Route
           element={
             <ProtectedRoute>
