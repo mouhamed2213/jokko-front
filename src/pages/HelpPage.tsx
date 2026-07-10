@@ -37,9 +37,9 @@ export default function HelpPage() {
       icon: <Wallet className="w-6 h-6 text-emerald-600" />,
       color: 'border-emerald-500 bg-emerald-50/50',
       benefits: [
-        'Blocage strict de l’application si la caisse n’est pas officiellement ouverte[cite: 13, 15].',
+        'Blocage strict de l’application si la caisse n’est pas officiellement ouverte.',
         'Suivi transparent du fond de caisse du matin et du solde de fermeture le soir.',
-        'Historique complet de qui a ouvert ou fermé la caisse pour éviter les contestations.'
+        'Historique complet des transactions journalière et cloturer.'
       ],
       useCases: [
         {
@@ -48,7 +48,7 @@ export default function HelpPage() {
         },
         {
           situation: 'Un employé tente de faire une vente ou de payer un fournisseur sans ouvrir la caisse.',
-          solution: 'Jokko Business bloque l’action instantanément pour forcer la traçabilité de l’argent[cite: 13, 15].'
+          solution: 'Jokko Business bloque l’action instantanément pour forcer la traçabilité de l’argent.'
         },
         {
           situation: 'En fin de journée au moment de fermer.',

@@ -4,6 +4,7 @@ import {
   Bell,
   Building2,
   Check,
+  HelpCircle,
   Mail,
   MapPin,
   Package,
@@ -14,7 +15,6 @@ import {
   Users,
   Wallet,
   X,
-  HelpCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -39,41 +39,51 @@ const plans: Plan[] = [
     name: "Gratuit",
     price: 0,
     priceLabel: "/mois pour toujours",
-    description: "Pour tester la plateforme",
+    description:
+      "Votre point de départ — et le plan sur lequel vous restez opérationnel même si votre abonnement arrive à expiration.",
     badge: "Gratuit",
     badgeClass: "bg-slate-100 text-slate-600",
     features: [
-      "1 utilisateur (propriétaire)",
-      "Jusqu'à 50 produits max",
+      "1 utilisateur (le propriétaire)",
+      "Jusqu'à 50 produits",
       "100 ventes par mois",
-      "20 clients max",
-      "Tickets thermiques uniquement",
-      "Caisses (limitée)",
+      "Clients & suivi des dettes illimités",
+      "Caisse journalière complète",
+      "Tickets thermiques",
     ],
-    excluded: ["Alertes stock", "Export PDF / Excel", "Fournisseurs"],
+    excluded: [
+      "Alertes de stock (faible / rupture)",
+      "Statistiques avancées (top produits, valeur du stock)",
+      "Export PDF / Excel",
+      "Gestion fournisseurs",
+    ],
     cta: "Commencer gratuitement",
     ctaVariant: "outline",
   },
   {
     id: "starter",
     name: "Starter",
-    price: 7500,
-    description: "Pour les petites boutiques",
+    price: 6500,
+    description:
+      "Pour une boutique unique qui veut professionnaliser son suivi quotidien.",
     badge: "⭐ Starter",
     badgeClass: "bg-emerald-100 text-emerald-700",
     features: [
-      "2 utilisateurs (propriétaire + 1 employé)",
-      "Jusqu'à 500 produits",
+      "3 utilisateurs (rôles Administrateur / Employé)",
+      "Jusqu'à 600 produits",
       "Ventes illimitées",
-      "Alertes stock faibles & ruptures",
-      "Clients illimités",
-      "Suivi dettes client",
-      "Caisse journalière & Historique complet",
+      "Clients & suivi des dettes illimités",
+      "Alertes stock faible & rupture",
       "Top produits vendus",
-      "Factures PDF A4",
-      "Export Excel / PDF",
+      "Valeur du stock en temps réel",
+      "Factures A4 export de donées en Excel et PDF",
     ],
-    excluded: ["Gestions fournisseurs", "Rapports & statistiques"],
+    excluded: [
+      "Export Excel",
+      "Gestion fournisseurs",
+      "Rapports avancés",
+      "Multi-boutiques",
+    ],
     cta: "Essayer maintenant",
     highlighted: true,
     ctaVariant: "filled",
@@ -81,22 +91,21 @@ const plans: Plan[] = [
   {
     id: "pro",
     name: "Pro",
-    price: 14500,
-    description: "Pour les boutiques en croissance",
+    price: 14000,
+    description:
+      "Pour les boutiques en croissance avec plusieurs points de vente.",
     badge: "🚀 Recommandé",
     badgeClass: "bg-blue-100 text-blue-700",
     features: [
-      "5 utilisateurs",
-      "Tout le Starter inclus",
+      "5 utilisateurs (rôles Administrateur / Employé)",
       "Produits illimités",
       "Ventes illimitées",
+      "Tout le Starter inclus",
       "Gestion fournisseurs complète",
-      "Suivi dettes fournisseurs",
-      "Relance clients débiteurs (WhatsApp)",
-      "Rapports & statistiques",
-      "Historique complet achats par client",
-      "Multi-boutiques (jusqu'à 2)",
+      "Rapports avancés",
+      "Jusqu'à 2 boutiques ( Boutique principal & une supplementaire )",
     ],
+    excluded: ["Utilisateurs illimités", "Multi-boutiques (jusqu'à 5)"],
     cta: "Essayer maintenant",
     ctaVariant: "outline",
   },
@@ -104,15 +113,14 @@ const plans: Plan[] = [
     id: "premium",
     name: "Premium",
     price: 22000,
-    description: "Pour les structures sérieuses",
+    description:
+      "Pour les structures avec plusieurs boutiques et des équipes plus larges.",
     badge: "💎 Premium",
     badgeClass: "bg-purple-100 text-purple-700",
     features: [
-      "Utilisateurs illimités",
+      "Utilisateurs illimités (rôles Administrateur / Employé)",
       "Tout le Pro inclus",
-      "Multi-boutiques (jusqu'à 5)",
-      "Rôles & permissions avancés",
-      "Suivi activité employés",
+      "Jusqu'à 5 boutiques",
       "Support prioritaire",
     ],
     cta: "Essayer maintenant",
@@ -134,6 +142,13 @@ const features = [
       "Tickets de caisse, factures A4 professionnelles, devis et bons de livraison.",
   },
   {
+    icon: Building2,
+    title: "Multi-boutiques",
+    description:
+      "Gérez plusieurs points de vente depuis un seul compte avec rôles et permissions.",
+  },
+
+  {
     icon: Wallet,
     title: "Gestion de caisse",
     description:
@@ -142,8 +157,7 @@ const features = [
   {
     icon: Users,
     title: "Gestion clients",
-    description:
-      "Fiches clients, historique d'achats, suivi des dettes et fidélisation.",
+    description: "Fiches clients, historique d'achats et  suivi des dettes .",
   },
   {
     icon: Truck,
@@ -154,19 +168,13 @@ const features = [
   {
     icon: BarChart3,
     title: "Rapports & statistiques",
-    description:
-      "Chiffre d'affaires, produits les plus vendus, analyses de rentabilité claire.",
+    description: "Chiffre d'affaires, produits les plus vendus.",
   },
   {
     icon: Bell,
     title: "Alertes & notifications",
-    description: "Stocks faibles, factures impayées et échéances importantes à suivre.",
-  },
-  {
-    icon: Building2,
-    title: "Multi-boutiques",
     description:
-      "Gérez plusieurs points de vente depuis un seul compte avec rôles et permissions.",
+      "Stocks faibles, factures impayées et échéances importantes à suivre.",
   },
 ];
 
@@ -180,8 +188,7 @@ const steps = [
   {
     num: "2",
     title: "Ajoutez vos produits",
-    description:
-      "Importez ou saisissez votre catalogue avec catégories et prix de gros.",
+    description: "Ajouter  votre catalogue avec catégories et prix de gros.",
   },
   {
     num: "3",
@@ -192,7 +199,8 @@ const steps = [
   {
     num: "4",
     title: "Analysez & grandissez",
-    description: "Consultez vos statistiques et prenez les meilleures décisions.",
+    description:
+      "Consultez vos statistiques et prenez les meilleures décisions.",
   },
 ];
 
@@ -207,7 +215,7 @@ const faqs = [
   },
   {
     q: "Puis-je changer de plan plus tard ?",
-    a: "Absolument. Vous pouvez évoluer ou réduire votre plan à tout moment sans risquer de perdre vos données enregistrées.",
+    a: "Absolument. Vous pouvez évoluer ou réduire votre plan à tout moment. Et si votre abonnement arrive à expiration, vous n'êtes jamais bloqué : votre compte repasse simplement au plan Gratuit, sans perte de données ni interruption de votre activité.",
   },
   {
     q: "Le plan gratuit est-il vraiment gratuit ?",
@@ -234,7 +242,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white font-sans antialiased text-slate-800">
-
       {/* ── HERO ── */}
       <section className="bg-emerald-50/60 border-b border-emerald-100 px-6 py-20 sm:py-28 text-center">
         <div className="mx-auto max-w-3xl">
@@ -247,8 +254,9 @@ export default function LandingPage() {
             <span className="text-emerald-600">en toute simplicité</span>
           </h1>
           <p className="text-base sm:text-lg text-slate-600 max-w-xl mx-auto mb-8 leading-relaxed">
-            Stocks, ventes, clients, caisse — tout dans une seule application.
-            Accessible 24h/24 depuis votre téléphone ou votre ordinateur.
+            Stocks, ventes, clients, caisse , fournisseurs — tout dans une seule
+            application. Accessible 24h/24 depuis votre téléphone ou votre
+            ordinateur.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <button
@@ -261,7 +269,8 @@ export default function LandingPage() {
               onClick={() => navigate("/help")}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white border border-slate-300 text-slate-700 font-semibold px-6 py-3 rounded-lg hover:bg-slate-50 transition shadow-sm"
             >
-              <HelpCircle size={17} className="text-emerald-600" /> Guide d'utilisation
+              <HelpCircle size={17} className="text-emerald-600" /> Guide
+              d'utilisation
             </button>
           </div>
 
@@ -275,7 +284,9 @@ export default function LandingPage() {
             ].map(({ num, label }) => (
               <div key={label} className="text-center">
                 <p className="text-3xl font-bold text-emerald-600">{num}</p>
-                <p className="text-xs font-medium text-slate-500 mt-1">{label}</p>
+                <p className="text-xs font-medium text-slate-500 mt-1">
+                  {label}
+                </p>
               </div>
             ))}
           </div>
@@ -308,7 +319,8 @@ export default function LandingPage() {
               Tout ce dont vous avez besoin, rien de superflu
             </h2>
             <p className="text-sm text-slate-500 max-w-lg mx-auto leading-relaxed">
-              Une plateforme complète pensée pour le terrain — prise en main immédiate et intuitive.
+              Une plateforme complète pensée pour le terrain — prise en main
+              immédiate et intuitive.
             </p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -340,15 +352,19 @@ export default function LandingPage() {
               Comment ça marche
             </p>
             <h2 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">
-              Opérationnel en 3 minutes
+              Opérationnel en moin de 3 minutes
             </h2>
             <p className="text-sm text-slate-500">
-              Pas d'installation, pas de configuration complexe. Juste votre navigateur.
+              Pas d'installation, pas de configuration complexe. Juste votre
+              navigateur.
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
             {steps.map(({ num, title, description }) => (
-              <div key={num} className="p-6 flex flex-col items-start text-left">
+              <div
+                key={num}
+                className="p-6 flex flex-col items-start text-left"
+              >
                 <div className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xs font-bold mb-4 shadow-sm">
                   {num}
                 </div>
@@ -375,7 +391,8 @@ export default function LandingPage() {
               Simple et transparent
             </h2>
             <p className="text-sm text-slate-500">
-              Commencez gratuitement, évoluez selon vos besoins. Sans aucun frais caché.
+              Commencez gratuitement, évoluez selon vos besoins. Sans aucun
+              frais caché.
             </p>
           </div>
 
@@ -437,7 +454,10 @@ export default function LandingPage() {
                 <div className="p-5 flex flex-col flex-1 bg-white justify-between">
                   <div className="space-y-3 mb-6">
                     {plan.features.map((feat) => (
-                      <div key={feat} className="flex items-start gap-2.5 text-left">
+                      <div
+                        key={feat}
+                        className="flex items-start gap-2.5 text-left"
+                      >
                         <Check
                           size={14}
                           className="text-emerald-600 mt-0.5 shrink-0"
@@ -495,7 +515,8 @@ export default function LandingPage() {
                 Besoin d'une solution sur mesure ?
               </p>
               <p className="text-xs text-slate-500">
-                Plus de 5 boutiques, intégration ou accompagnement spécifique — discutons-en directement.
+                Plus de 5 boutiques, intégration ou accompagnement spécifique —
+                discutons-en directement.
               </p>
             </div>
             <a
@@ -509,7 +530,10 @@ export default function LandingPage() {
       </section>
 
       {/* ── FAQ ── */}
-      <section id="faq" className="bg-slate-50 border-y border-slate-200 px-6 py-20 sm:py-24">
+      <section
+        id="faq"
+        className="bg-slate-50 border-y border-slate-200 px-6 py-20 sm:py-24"
+      >
         <div className="mx-auto max-w-3xl">
           <div className="text-center mb-16">
             <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">
@@ -525,9 +549,7 @@ export default function LandingPage() {
                 key={q}
                 className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm"
               >
-                <h3 className="text-sm font-bold text-slate-900 mb-2">
-                  {q}
-                </h3>
+                <h3 className="text-sm font-bold text-slate-900 mb-2">{q}</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">{a}</p>
               </div>
             ))}
@@ -542,7 +564,8 @@ export default function LandingPage() {
             Prêt à simplifier votre gestion ?
           </h2>
           <p className="text-emerald-100 mb-8 text-sm md:text-base max-w-lg mx-auto opacity-90">
-            Rejoignez dès aujourd’hui les commerçants sénégalais qui font confiance à Jokko Business au quotidien.
+            Rejoignez dès aujourd’hui les commerçants sénégalais qui font
+            confiance à Jokko Business au quotidien.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <button
@@ -570,14 +593,19 @@ export default function LandingPage() {
                 <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center shadow-md">
                   <Store size={18} className="text-white" />
                 </div>
-                <span className="text-white font-bold text-lg tracking-tight">Jokko Business</span>
+                <span className="text-white font-bold text-lg tracking-tight">
+                  Jokko Business
+                </span>
               </div>
               <p className="text-xs leading-relaxed max-w-xs text-slate-400">
-                La solution cloud de gestion commerciale moderne entièrement pensée sur le terrain pour les commerçants du Sénégal.
+                La solution cloud de gestion commerciale moderne entièrement
+                pensée sur le terrain pour les commerçants du Sénégal.
               </p>
             </div>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">Produit</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
+                Produit
+              </h4>
               <ul className="space-y-2.5 text-xs">
                 <li>
                   <a href="#features" className="hover:text-white transition">
@@ -590,7 +618,10 @@ export default function LandingPage() {
                   </a>
                 </li>
                 <li>
-                  <button onClick={() => navigate("/help")} className="hover:text-white transition text-left">
+                  <button
+                    onClick={() => navigate("/help")}
+                    className="hover:text-white transition text-left"
+                  >
                     Centre d'aide & Guides
                   </button>
                 </li>
@@ -614,7 +645,9 @@ export default function LandingPage() {
               </ul>
             </div>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">Contact</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
+                Contact
+              </h4>
               <ul className="space-y-3 text-xs">
                 <li className="flex items-center gap-2">
                   <Phone size={13} className="text-emerald-400 shrink-0" />
