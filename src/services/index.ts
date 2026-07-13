@@ -321,6 +321,17 @@ export const getDashboardStats = async (): Promise<DashboardStats> =>
 // ── Super Admin ───────────────────────────────────────────────
 export const getShops = async (): Promise<Shop[]> =>
   (await api.get("/super-admin/shops")).data;
+export const getPlatformStats = async () =>
+  (await api.get("/super-admin/stats")).data;
+export const getShopsWithPagination = async (params?: {
+  page?: number;
+  limit?: number;
+  q?: string;
+  status?: string;
+  plan?: string;
+}) => (await api.get("/super-admin/shops", { params })).data;
+export const getShopDetail = async (id: number) =>
+  (await api.get(`/super-admin/shops/${id}`)).data;
 export const createShop = async (data: any) =>
   (await api.post("/super-admin/shops", data)).data;
 export const updateShopStatus = async (id: number, status: string) =>
@@ -331,6 +342,27 @@ export const resetShopPassword = async (id: number, newPassword: string) =>
 export const deleteShop = async (id: number): Promise<void> => {
   await api.delete(`/super-admin/shops/${id}`);
 };
+// Subscription management endpoints
+export const updateSubscriptionPlan = async (
+  shopId: number,
+  planCode: string,
+  paymentReference?: string,
+) =>
+  (await api.patch(`/super-admin/shops/${shopId}/subscription/plan`, {
+    planCode,
+    paymentReference,
+  })).data;
+export const updateSubscriptionStatus = async (
+  shopId: number,
+  status: string,
+) =>
+  (await api.patch(`/super-admin/shops/${shopId}/subscription/status`, {
+    status,
+  })).data;
+export const extendTrialPeriod = async (shopId: number, daysToAdd: number) =>
+  (await api.patch(`/super-admin/shops/${shopId}/subscription/extend`, {
+    daysToAdd,
+  })).data;
 
 // ── Users ─────────────────────────────────────────────────────
 export const getUsers = async (): Promise<User[]> =>

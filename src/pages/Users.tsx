@@ -10,7 +10,6 @@ import {
   updateUser,
 } from "../services/index";
 import type { SubscriptionInfo, User } from "../types/index";
-import type { UpgradeFeature } from "../utils/upgradeFeaturesData";
 
 const emptyForm = { name: "", email: "", password: "", role: "EMPLOYEE" };
 

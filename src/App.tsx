@@ -1,29 +1,29 @@
 import { Toaster } from "react-hot-toast";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import ProtectedRoute, { SubscriptionGuard } from "./components/ProtectedRoute";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+
+import ProtectedRoute, { SuperAdminGuard, SubscriptionGuard } from "./components/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
+import SuperAdminLayout from "./layouts/SuperAdminLayout";
+
+import PublicLayout from "./layouts/PublicLayout";
 import Cash from "./pages/Cash";
 import Clients from "./pages/Clients";
 import Dashboard from "./pages/Dashboard";
+import HelpPage from "./pages/HelpPage";
 import Invoices from "./pages/Invoices";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Products from "./pages/Products";
+import Register from "./pages/Register";
 import Sales from "./pages/Sales";
 import Settings from "./pages/Settings";
 import Stock from "./pages/Stock";
-import SuperAdmin from "./pages/superAdmin/SuperAdmin";
+import SuperAdminLogin from "./pages/superAdmin/SuperAdminLogin";
 import Suppliers from "./pages/Suppliers";
 import Users from "./pages/Users";
-import Register from "./pages/Register";
-import HelpPage from "./pages/HelpPage";
-import PublicLayout from "./layouts/PublicLayout";
-import SuperAdminLayout from "./layouts/SuperAdminLayout";
-import { AdminDashboard } from "./pages/superAdmin/AdminDashboard";
+import SuperAdminDashboard from "./pages/superAdmin/SuperAdminDashboard";
 
 export default function App() {
-  const isAuthenticated = !!localStorage.getItem("token");
-
   return (
     <BrowserRouter>
       <Toaster
@@ -35,19 +35,7 @@ export default function App() {
       />
       <Routes>
         {/* Public routes */}
-
-
-
-        <Route
-          path="/"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <LandingPage />
-            )
-          }
-        />
+        <Route path="/super-admin/login" element={<SuperAdminLogin />} />
 
         <Route element={<PublicLayout />}>
           <Route index element={<LandingPage />} />
@@ -57,26 +45,19 @@ export default function App() {
           <Route path="help" element={<HelpPage />} />
         </Route>
 
-        {/* Protected ADMIN routes */}
-        {/* Protected ADMIN routes */}
-        {/* Protected ADMIN routes */}
-        {/* Protected ADMIN routes */}
-        {/* Protected ADMIN routes */}
-        {/* Protected ADMIN routes */}
-        {/* Protected ADMIN routes */}
-        {/* Protected ADMIN routes */}
-        {/* Protected ADMIN routes */}
-        {/* Protected ADMIN routes */}
-        {/* Protected ADMIN routes */}
-        <Route element={<SuperAdminLayout />}>
-          <Route path="/super-admin" element={<SuperAdmin />} />
-          <Route path="/dashboard" element={<AdminDashboard />} />
+        {/* Super Admin routes */}
+        <Route
+          element={
+            <SuperAdminGuard>
+              <SuperAdminLayout />
+            </SuperAdminGuard>
+          }
+        >
+
+          <Route path="/admin/dash" element={<SuperAdminDashboard/>} />
         </Route>
 
-
-
-
-        {/* Protected dashboard user routes */}
+        {/* Protected dashboard routes */}
         <Route
           element={
             <ProtectedRoute>
@@ -106,3 +87,4 @@ export default function App() {
     </BrowserRouter>
   );
 }
+

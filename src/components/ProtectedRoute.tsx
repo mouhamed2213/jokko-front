@@ -20,6 +20,17 @@ export default function ProtectedRoute({
   return children;
 }
 
+
+export function SuperAdminGuard({ children }: Props) {
+  const token = localStorage.getItem("sa_token");
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 export function SubscriptionGuard({ children }: Props) {
   const user = getStoredUser();
 

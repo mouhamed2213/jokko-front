@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logooo.svg";
+import { api } from "../services/api";
 import { login } from "../services/index";
 
 export default function Login() {
@@ -26,7 +27,6 @@ export default function Login() {
 
       // Charger le logo de la boutique après connexion
       try {
-        const { api } = await import("../services/api");
         const shopRes = await api.get("/shop/settings");
         if (shopRes.data.logoUrl) {
           localStorage.setItem("shopLogo", shopRes.data.logoUrl);

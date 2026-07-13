@@ -24,6 +24,7 @@ import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { NavLink } from "react-router-dom";
 import logo from "../assets/logo.svg";
+import { api } from "../services/api";
 import {
   createNewShop,
   getShopList,
@@ -54,10 +55,6 @@ const emptyShopForm: NewShopForm = {
 };
 
 // ── Nav links ────────────────────────────────────────────────
-// `featureKey` drives the lock check for links that require a specific
-// subscription entitlement (checked via hasFeature(subscription, featureKey))
-// instead of a hardcoded plan-name comparison.
-
 const allLinks = [
   {
     name: "Tableau de bord",
@@ -168,7 +165,7 @@ function AddShopModal({
   ];
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-slate-900">
@@ -229,6 +226,7 @@ function ShopSwitcher({
   onShopCreated,
   canAddShop,
   onUpgradeClick,
+  onAddShopClick,
 }: {
   shops: ShopItem[];
   currentShopId: number;
@@ -236,17 +234,17 @@ function ShopSwitcher({
   onShopCreated: () => void;
   canAddShop: boolean;
   onUpgradeClick: () => void;
+  onAddShopClick: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<ShopItem | null>(null);
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [addShopOpen, setAddShopOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>();
   const now = new Date(Date.now());
-  // Fermer si click dehors
+
   useEffect(() => {
     getSubscription().then(setSubscription);
 
@@ -263,7 +261,7 @@ function ShopSwitcher({
   }, []);
 
   if (!subscription) {
-    return;
+    return null;
   }
   const featureFlags = hasFeatures(subscription);
 
@@ -271,7 +269,6 @@ function ShopSwitcher({
 
   const maxStore = subscription.limits.stores ?? 0;
   const maxStoreIsReached = otherShops.length >= maxStore;
-  // const maxStoreIsReached = [1, 32, 45, 5, 5,6 ,  7, ];
   const isExpired = new Date(subscription.endDate) < now;
 
   type AddShopStatus =
@@ -329,7 +326,6 @@ function ShopSwitcher({
 
   return (
     <div ref={ref} className="relative px-3 pb-2">
-      {/* Trigger */}
       <button
         type="button"
         onClick={() => {
@@ -352,10 +348,8 @@ function ShopSwitcher({
         />
       </button>
 
-      {/* Dropdown */}
       {open && (
         <div className="absolute bottom-full left-3 right-3 mb-2 rounded-xl bg-slate-800 border border-white/10 overflow-hidden shadow-xl z-50">
-          {/* Liste des boutiques */}
           {!selected ? (
             <div>
               <p className="px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-white/30">
@@ -377,7 +371,6 @@ function ShopSwitcher({
                             : "hover:bg-white/10 cursor-pointer"
                         }`}
                     >
-                      {/* Avatar */}
                       <div className="w-8 h-8 rounded-lg bg-emerald-600/30 flex items-center justify-center shrink-0 overflow-hidden">
                         {shop.logoUrl ? (
                           <img
@@ -391,7 +384,6 @@ function ShopSwitcher({
                           </span>
                         )}
                       </div>
-
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-white truncate">
                           {shop.name}
@@ -402,7 +394,6 @@ function ShopSwitcher({
                             : "Boutique secondaire"}
                         </p>
                       </div>
-
                       {isCurrent ? (
                         <Check
                           size={14}
@@ -417,23 +408,14 @@ function ShopSwitcher({
                     </button>
                   );
                 })}
-
               </div>
 
-              {/* Ajouter une boutique — trois états distincts :
-                  - allowed: bouton normal
-                  - planLocked: le plan n'inclut pas le multi-boutique du tout
-                    -> même traitement que Fournisseurs (ambre + Crown + Pro),
-                    ouvre la même modale de mise à niveau
-                  - blocked: le plan l'inclut mais c'est temporairement
-                    indisponible (essai / expiré / limite atteinte)
-                    -> simple message informatif, pas de bouton, pas de "Pro" */}
               {canAddShop && addShopStatus.kind === "allowed" && (
                 <button
                   type="button"
                   onClick={() => {
                     setOpen(false);
-                    setAddShopOpen(true);
+                    onAddShopClick();
                   }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-emerald-400 hover:bg-white/10 border-t border-white/10 transition"
                 >
@@ -443,7 +425,6 @@ function ShopSwitcher({
                   <span>Ajouter une boutique</span>
                 </button>
               )}
-
               {canAddShop && addShopStatus.kind === "planLocked" && (
                 <button
                   type="button"
@@ -469,7 +450,6 @@ function ShopSwitcher({
                   </span>
                 </button>
               )}
-
               {canAddShop && addShopStatus.kind === "blocked" && (
                 <p className="border-t border-white/10 px-4 py-3 text-xs text-white/40">
                   {addShopStatus.message}
@@ -477,7 +457,6 @@ function ShopSwitcher({
               )}
             </div>
           ) : (
-            /* Confirmation mot de passe */
             <div className="p-4">
               <button
                 type="button"
@@ -487,8 +466,6 @@ function ShopSwitcher({
                 <ChevronRight size={12} className="rotate-180" />
                 Retour
               </button>
-
-              {/* Shop cible */}
               <div className="flex items-center gap-3 mb-4 pb-3 border-b border-white/10">
                 <div className="w-9 h-9 rounded-lg bg-emerald-600/30 flex items-center justify-center shrink-0">
                   {selected.logoUrl ? (
@@ -512,8 +489,6 @@ function ShopSwitcher({
                   </p>
                 </div>
               </div>
-
-              {/* Input mot de passe */}
               <div className="relative mb-3">
                 <input
                   type={showPwd ? "text" : "password"}
@@ -532,7 +507,6 @@ function ShopSwitcher({
                   {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
-
               <button
                 type="button"
                 onClick={handleConfirm}
@@ -545,14 +519,6 @@ function ShopSwitcher({
           )}
         </div>
       )}
-
-      {/* Modal ajout boutique */}
-      {addShopOpen && (
-        <AddShopModal
-          onClose={() => setAddShopOpen(false)}
-          onCreated={onShopCreated}
-        />
-      )}
     </div>
   );
 }
@@ -562,16 +528,21 @@ function ShopSwitcher({
 function SidebarContent({
   onClose,
   onUpgradeClick,
+  shopList,
+  refreshShopList,
+  onAddShopClick,
 }: {
   onClose?: () => void;
   onUpgradeClick: () => void;
+  shopList: ShopItem[];
+  refreshShopList: () => void;
+  onAddShopClick: () => void;
 }) {
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const role = storedUser.role;
   const currentShopId = storedUser.shopId as number;
 
   const [subscription, setSubscription] = useState<SubscriptionInfo>();
-  const [shopList, setShopList] = useState<ShopItem[]>([]);
   const [shopLogo, setShopLogo] = useState<string>(
     localStorage.getItem("shopLogo") || "",
   );
@@ -580,13 +551,8 @@ function SidebarContent({
 
   const links = allLinks.filter((l) => !l.adminOnly || role === "ADMIN");
 
-  const refreshShopList = () => {
-    getShopList().then((shops) => setShopList(shops));
-  };
-
   useEffect(() => {
     getSubscription().then(setSubscription);
-    refreshShopList();
 
     const handler = () => setShopLogo(localStorage.getItem("shopLogo") || "");
     window.addEventListener("shopLogoUpdated", handler);
@@ -596,7 +562,6 @@ function SidebarContent({
   const handleSwitch = async (targetShopId: number, password: string) => {
     try {
       const res = await switchShop({ targetShopId, password });
-
       const tokenPayload = JSON.parse(atob(res.token.split(".")[1]));
 
       localStorage.setItem("token", res.token);
@@ -611,7 +576,6 @@ function SidebarContent({
       );
 
       try {
-        const { api } = await import("../services/api");
         const shopRes = await api.get("/shop/settings");
         if (shopRes.data.logoUrl) {
           localStorage.setItem("shopLogo", shopRes.data.logoUrl);
@@ -631,7 +595,6 @@ function SidebarContent({
       } catch {}
 
       toast.success(`Connecté à la boutique`);
-
       window.location.href = "/dashboard";
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Mot de passe incorrect");
@@ -641,7 +604,6 @@ function SidebarContent({
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-slate-900 text-white">
-      {/* Header boutique */}
       <div className="shrink-0 border-b border-white/10 px-5 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -669,7 +631,6 @@ function SidebarContent({
         </div>
       </div>
 
-      {/* Navigation — seule zone qui scrolle si besoin */}
       <nav className="flex-1 min-h-0 space-y-0.5 overflow-y-auto px-3 py-3">
         {links.map((link) => {
           const Icon = link.icon;
@@ -728,7 +689,6 @@ function SidebarContent({
         })}
       </nav>
 
-      {/* Shop switcher — au-dessus du footer */}
       {shopList.length > 0 && (
         <div className="shrink-0 border-t border-white/10 pt-2">
           <ShopSwitcher
@@ -738,11 +698,11 @@ function SidebarContent({
             onShopCreated={refreshShopList}
             canAddShop={role === "ADMIN"}
             onUpgradeClick={onUpgradeClick}
+            onAddShopClick={onAddShopClick}
           />
         </div>
       )}
 
-      {/* Footer version */}
       <div className="shrink-0 border-t border-white/10 p-3">
         <div className="rounded-xl bg-white/5 px-4 py-2.5">
           <p className="text-xs font-semibold text-white/80">v1.0</p>
@@ -758,10 +718,20 @@ function SidebarContent({
 export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isAddShopModalOpen, setAddShopModalOpen] = useState(false);
+
+  const [shopList, setShopList] = useState<ShopItem[]>([]);
+
+  const refreshShopList = () => {
+    getShopList().then((shops) => setShopList(shops));
+  };
+
+  useEffect(() => {
+    refreshShopList();
+  }, []);
 
   return (
     <>
-      {/* Burger mobile */}
       <button
         type="button"
         onClick={() => setMobileOpen(true)}
@@ -770,12 +740,15 @@ export default function Sidebar() {
         <Menu size={20} />
       </button>
 
-      {/* Sidebar desktop */}
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 overflow-hidden md:flex">
-        <SidebarContent onUpgradeClick={() => setIsUpgradeModalOpen(true)} />
+        <SidebarContent
+          onUpgradeClick={() => setIsUpgradeModalOpen(true)}
+          shopList={shopList}
+          refreshShopList={refreshShopList}
+          onAddShopClick={() => setAddShopModalOpen(true)}
+        />
       </aside>
 
-      {/* Sidebar mobile */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
@@ -786,12 +759,14 @@ export default function Sidebar() {
             <SidebarContent
               onClose={() => setMobileOpen(false)}
               onUpgradeClick={() => setIsUpgradeModalOpen(true)}
+              shopList={shopList}
+              refreshShopList={refreshShopList}
+              onAddShopClick={() => setAddShopModalOpen(true)}
             />
           </div>
         </div>
       )}
 
-      {/* Modal upgrade */}
       {isUpgradeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
@@ -842,6 +817,16 @@ export default function Sidebar() {
             </div>
           </div>
         </div>
+      )}
+
+      {isAddShopModalOpen && (
+        <AddShopModal
+          onClose={() => setAddShopModalOpen(false)}
+          onCreated={() => {
+            refreshShopList();
+            setAddShopModalOpen(false);
+          }}
+        />
       )}
     </>
   );

@@ -236,10 +236,6 @@ const proofTags = [
 export default function LandingPage() {
   const navigate = useNavigate();
 
-  const scrollToPricing = () => {
-    document.querySelector("#pricing")?.scrollIntoView({ behavior: "smooth" });
-  };
-
   return (
     <div className="min-h-screen bg-white font-sans antialiased text-slate-800">
       {/* ── HERO ── */}
