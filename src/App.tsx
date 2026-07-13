@@ -22,6 +22,8 @@ import SuperAdminLogin from "./pages/superAdmin/SuperAdminLogin";
 import Suppliers from "./pages/Suppliers";
 import Users from "./pages/Users";
 import SuperAdminDashboard from "./pages/superAdmin/SuperAdminDashboard";
+import SuperAdminShops from "./pages/superAdmin/SuperAdminShops";
+import SuperAdminShopDetail from "./pages/superAdmin/SuperAdminShopDetail";
 
 export default function App() {
   return (
@@ -55,6 +57,8 @@ export default function App() {
         >
 
           <Route path="/admin/dash" element={<SuperAdminDashboard/>} />
+          <Route path="/admin/shops" element={<SuperAdminShops/>} />
+          <Route path="/admin/shops/:id" element={<SuperAdminShopDetail />} />
         </Route>
 
         {/* Protected dashboard routes */}
