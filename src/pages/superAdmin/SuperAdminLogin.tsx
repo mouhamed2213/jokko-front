@@ -15,7 +15,7 @@ export default function SuperAdminLogin() {
     setLoginLoading(true);
     try {
       const res = await loginSuperAdmin({ email, password });
-      localStorage.setItem("sa_token", res.token);
+      localStorage.setItem("sa_user", res.token);
       toast.success("Connexion Super Admin réussie");
       navigate("/admin/dash"); // Redirect to the admin dashboard
     } catch (error: any) {

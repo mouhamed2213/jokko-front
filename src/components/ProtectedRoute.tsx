@@ -22,10 +22,10 @@ export default function ProtectedRoute({
 
 
 export function SuperAdminGuard({ children }: Props) {
-  const token = localStorage.getItem("sa_token");
+  const token = localStorage.getItem("sa_user");
 
   if (!token) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/super-admin/login" replace />;
   }
 
   return <>{children}</>;
