@@ -15,8 +15,10 @@ import {
   MapPin,
   FileText,
   History,
+  Loader2,
 } from "lucide-react";
-import { getShopDetail } from "../../services";
+import toast from "react-hot-toast";
+import { getShopDetail, changeSubscriptionPlan } from "../../services";
 
 type ShopDetail = {
   id: number;
@@ -108,6 +110,8 @@ const paymentStatusBadge: Record<string, string> = {
   CANCELLED: "bg-slate-100 text-slate-500",
 };
 
+const plans = ["FREE", "BASIC", "PRO", "PREMIUM"];
+
 function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
     <div className="flex items-center gap-3 text-sm">
@@ -137,14 +141,38 @@ export default function SuperAdminShopDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
+  // Plan change modal state
+  const [planModalOpen, setPlanModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState("");
+  const [changingPlan, setChangingPlan] = useState(false);
+
+  const loadShop = () => {
     if (!id) return;
-    setLoading(true);
-    getShopDetail(Number(id))
+    return getShopDetail(Number(id))
       .then(setShop)
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+      .catch(() => setError(true));
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    loadShop()?.finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  const handleChangePlan = async () => {
+    if (!selectedPlan || !shop) return;
+    setChangingPlan(true);
+    try {
+      await changeSubscriptionPlan(shop.id, selectedPlan);
+      toast.success("Plan mis à jour avec succès");
+      setPlanModalOpen(false);
+      await loadShop();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Erreur lors du changement de plan");
+    } finally {
+      setChangingPlan(false);
+    }
+  };
 
   if (loading) {
     return <div className="flex h-64 items-center justify-center text-sm text-gray-400">Chargement...</div>;
@@ -233,9 +261,30 @@ export default function SuperAdminShopDetail() {
 
           {/* Subscription card */}
           <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-900">
-              <Crown size={15} /> Abonnement
-            </h3>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                <Crown size={15} /> Abonnement
+              </h3>
+              <div className="flex gap-2">
+                <button
+                  disabled
+                  title="Fonctionnalité en cours de développement côté backend"
+                  className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-400 cursor-not-allowed"
+                >
+                  Changer le statut
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedPlan(shop.subscription?.plan.code ?? "");
+                    setPlanModalOpen(true);
+                  }}
+                  className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-100"
+                >
+                  Changer le plan
+                </button>
+              </div>
+            </div>
+
             {shop.subscription ? (
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
@@ -276,16 +325,28 @@ export default function SuperAdminShopDetail() {
                   </p>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <p className="text-gray-500">
-                      Ventes/mois: <span className="font-medium text-slate-700">{shop.subscription.plan.limits.sales ?? "∞"}</span>
+                      Ventes/mois:{" "}
+                      <span className="font-medium text-slate-700">
+                        {shop.subscription.plan.limits.sales ?? "∞"}
+                      </span>
                     </p>
                     <p className="text-gray-500">
-                      Produits: <span className="font-medium text-slate-700">{shop.subscription.plan.limits.products ?? "∞"}</span>
+                      Produits:{" "}
+                      <span className="font-medium text-slate-700">
+                        {shop.subscription.plan.limits.products ?? "∞"}
+                      </span>
                     </p>
                     <p className="text-gray-500">
-                      Clients: <span className="font-medium text-slate-700">{shop.subscription.plan.limits.customers ?? "∞"}</span>
+                      Clients:{" "}
+                      <span className="font-medium text-slate-700">
+                        {shop.subscription.plan.limits.customers ?? "∞"}
+                      </span>
                     </p>
                     <p className="text-gray-500">
-                      Utilisateurs: <span className="font-medium text-slate-700">{shop.subscription.plan.limits.users ?? "∞"}</span>
+                      Utilisateurs:{" "}
+                      <span className="font-medium text-slate-700">
+                        {shop.subscription.plan.limits.users ?? "∞"}
+                      </span>
                     </p>
                   </div>
                 </div>
@@ -322,10 +383,7 @@ export default function SuperAdminShopDetail() {
             </h3>
             <div className="flex flex-col gap-2">
               {shop.users.map((u) => (
-                <div
-                  key={u.id}
-                  className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-2.5"
-                >
+                <div key={u.id} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-2.5">
                   <div>
                     <p className="text-sm font-medium text-slate-800">{u.name}</p>
                     <p className="text-xs text-gray-400">{u.email}</p>
@@ -413,6 +471,54 @@ export default function SuperAdminShopDetail() {
           </div>
         </div>
       </div>
+
+      {/* Plan change modal */}
+      {planModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="mb-1 text-lg font-bold text-slate-900">Changer le plan</h3>
+            <p className="mb-4 text-sm text-gray-500">
+              Boutique : <span className="font-medium text-slate-700">{shop.name}</span>
+            </p>
+
+            <div className="flex flex-col gap-2 mb-5">
+              {plans.map((code) => (
+                <button
+                  key={code}
+                  onClick={() => setSelectedPlan(code)}
+                  className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-medium transition ${
+                    selectedPlan === code
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                      : "border-gray-200 text-slate-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {code}
+                  {shop.subscription?.plan.code === code && (
+                    <span className="text-xs text-gray-400">actuel</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPlanModalOpen(false)}
+                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleChangePlan}
+                disabled={changingPlan || !selectedPlan || selectedPlan === shop.subscription?.plan.code}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {changingPlan && <Loader2 size={14} className="animate-spin" />}
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

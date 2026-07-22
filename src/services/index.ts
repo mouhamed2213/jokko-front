@@ -438,3 +438,36 @@ export const switchShop = async (data: {
 };
 
 
+// New: matches SubscriptionManagementService.changePlan via flat POST route
+export const changeSubscriptionPlan = async (shopId: number, planType: string) => {
+  const res = await api.post("/super-admin/subscription", {
+    shop_id: shopId,
+    planType,
+  });
+  return res.data as {
+    subscription: {
+      id: number;
+      status: string;
+      startDate: string;
+      endDate: string | null;
+      plan: {
+        code: string;
+        name: string;
+        price: number;
+        maxStores: number | null;
+        planFeature: { feature: { code: string; name: string } }[];
+      };
+    };
+    payment: {
+      id: number;
+      amount: number;
+      currency: string;
+      provider: string;
+      status: string;
+      planCode: string;
+      planName: string;
+      createdAt: string;
+    } | null;
+  };
+};
+
