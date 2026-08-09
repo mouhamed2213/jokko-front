@@ -1,18 +1,29 @@
-import { CreditCard, Filter, Lock, Printer, Search, X } from "lucide-react";
+import { CreditCard, Filter, Lock, Pencil, Plus, Printer, Search, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import PaymentMethodSelect from "../components/Paymentmethodselect";
 import {
   addInvoicePayment,
+  getClients,
   getCurrentCash,
   getInvoices,
+  getProducts,
+  updateSale,
 } from "../services/index";
-import { getStoredUser } from "../types/auth";
-import type { Sale } from "../types/index";
+import { getStoredUser, isAdmin } from "../types/auth";
+import type { Client, Product, Sale } from "../types/index";
 import { printInvoice as doPrint } from "../utils/printInvoice";
 import { showModal } from "../components/upgradeModal";
 
 const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
+
+type EditCartItem = {
+  productId: number;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  stock: number; // stock actuellement disponible (hors réservation de cette facture)
+};
 
 const statusBadge: Record<string, string> = {
   PAID: "bg-emerald-100 text-emerald-700",
@@ -58,6 +69,18 @@ export default function Invoices() {
   const [detailInvoice, setDetailInvoice] = useState<Sale | null>(null);
   const [printMenuFor, setPrintMenuFor] = useState<number | null>(null);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState<boolean>(false);
+
+  // Modification de facture
+  const [editingInvoice, setEditingInvoice] = useState<Sale | null>(null);
+  const [editItems, setEditItems] = useState<EditCartItem[]>([]);
+  const [editClientId, setEditClientId] = useState<number | "">("");
+  const [editCustomerName, setEditCustomerName] = useState("");
+  const [editNote, setEditNote] = useState("");
+  const [editAddProductId, setEditAddProductId] = useState<number>(0);
+  const [editAddQty, setEditAddQty] = useState<number>(1);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   const user = getStoredUser();
 
@@ -140,6 +163,120 @@ export default function Invoices() {
       toast.error(error?.response?.data?.message || "Erreur paiement");
     } finally {
       setPaySubmitting(false);
+    }
+  };
+
+  const canEdit = (invoice: Sale) =>
+    isAdmin() && invoice.status !== "PAID" && invoice.paidAmount === 0;
+
+  const openEdit = async (invoice: Sale) => {
+    if (!canEdit(invoice)) return;
+    try {
+      const [productsRes, clientsRes] = await Promise.all([
+        getProducts({ limit: 1000 }),
+        getClients(),
+      ]);
+      setProducts(productsRes.data);
+      setClients(clientsRes.client);
+    } catch {
+      toast.error("Erreur chargement produits/clients");
+      return;
+    }
+    setEditingInvoice(invoice);
+    setEditItems(
+      invoice.items.map((it) => ({
+        productId: it.productId as number,
+        productName: it.productName,
+        quantity: it.quantity,
+        unitPrice: it.unitPrice,
+        stock: 0, // sera recalculé via le produit sélectionné le cas échéant
+      })),
+    );
+    setEditClientId(invoice.client?.id || "");
+    setEditCustomerName(invoice.customerName || "");
+    setEditNote(invoice.note || "");
+    setEditAddProductId(0);
+    setEditAddQty(1);
+  };
+
+  const updateEditItemQty = (productId: number, quantity: number) => {
+    setEditItems((prev) =>
+      prev.map((it) => (it.productId === productId ? { ...it, quantity } : it)),
+    );
+  };
+
+  const updateEditItemPrice = (productId: number, unitPrice: number) => {
+    setEditItems((prev) =>
+      prev.map((it) => (it.productId === productId ? { ...it, unitPrice } : it)),
+    );
+  };
+
+  const removeEditItem = (productId: number) => {
+    setEditItems((prev) => prev.filter((it) => it.productId !== productId));
+  };
+
+  const addEditItem = () => {
+    if (!editAddProductId || editAddQty <= 0) {
+      return toast.error("Sélectionnez un produit et une quantité valide");
+    }
+    const product = products.find((p) => p.id === editAddProductId);
+    if (!product) return;
+    setEditItems((prev) => {
+      const existing = prev.find((it) => it.productId === product.id);
+      if (existing) {
+        return prev.map((it) =>
+          it.productId === product.id
+            ? { ...it, quantity: it.quantity + editAddQty }
+            : it,
+        );
+      }
+      return [
+        ...prev,
+        {
+          productId: product.id,
+          productName: product.name,
+          quantity: editAddQty,
+          unitPrice: product.salePrice,
+          stock: product.quantity,
+        },
+      ];
+    });
+    setEditAddProductId(0);
+    setEditAddQty(1);
+  };
+
+  const editTotal = editItems.reduce(
+    (sum, it) => sum + it.quantity * it.unitPrice,
+    0,
+  );
+
+  const handleUpdateSale = async () => {
+    if (!editingInvoice) return;
+    if (editItems.length === 0) {
+      return toast.error("La facture doit contenir au moins un article");
+    }
+    if (!editClientId && !editCustomerName.trim()) {
+      return toast.error("Client ou nom du client passager requis");
+    }
+    setEditSubmitting(true);
+    try {
+      await updateSale(editingInvoice.id, {
+        clientId: editClientId ? Number(editClientId) : null,
+        customerName: editCustomerName || undefined,
+        note: editNote || undefined,
+        items: editItems.map((it) => ({
+          productId: it.productId,
+          quantity: it.quantity,
+          unitPrice: it.unitPrice,
+        })),
+      });
+      toast.success("Facture modifiée avec succès");
+      setEditingInvoice(null);
+      await fetchInvoices();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Erreur lors de la modification");
+    } finally {
+      setEditSubmitting(false);
     }
   };
 
@@ -376,6 +513,184 @@ export default function Invoices() {
         </div>
       )}
 
+      {/* Modal modification facture */}
+      {editingInvoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between mb-5">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">
+                  Modifier — {editingInvoice.invoiceNumber}
+                </h3>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  Modification possible tant qu'aucun paiement n'a été reçu.
+                </p>
+              </div>
+              <button onClick={() => setEditingInvoice(null)}>
+                <X size={20} className="text-gray-400 hover:text-gray-600" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  Client enregistré
+                </label>
+                <select
+                  value={editClientId}
+                  onChange={(e) =>
+                    setEditClientId(e.target.value ? Number(e.target.value) : "")
+                  }
+                  className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+                >
+                  <option value="">— Aucun —</option>
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  Ou nom client passager
+                </label>
+                <input
+                  type="text"
+                  value={editCustomerName}
+                  onChange={(e) => setEditCustomerName(e.target.value)}
+                  className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+                  placeholder="Nom du client"
+                />
+              </div>
+            </div>
+
+            {/* Lignes articles */}
+            <div className="mb-4">
+              <p className="text-xs font-semibold uppercase text-gray-400 mb-2">
+                Articles
+              </p>
+              <div className="space-y-2">
+                {editItems.map((it) => (
+                  <div
+                    key={it.productId}
+                    className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2"
+                  >
+                    <span className="flex-1 text-sm font-medium text-slate-800">
+                      {it.productName}
+                    </span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={it.quantity}
+                      onChange={(e) =>
+                        updateEditItemQty(it.productId, Number(e.target.value))
+                      }
+                      className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right outline-none focus:border-emerald-500"
+                    />
+                    <input
+                      type="number"
+                      min={0}
+                      value={it.unitPrice}
+                      onChange={(e) =>
+                        updateEditItemPrice(it.productId, Number(e.target.value))
+                      }
+                      className="w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right outline-none focus:border-emerald-500"
+                    />
+                    <span className="w-24 text-right text-sm font-semibold">
+                      {fmt(it.quantity * it.unitPrice)}
+                    </span>
+                    <button
+                      onClick={() => removeEditItem(it.productId)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                ))}
+                {editItems.length === 0 && (
+                  <p className="text-sm text-gray-400 italic">
+                    Aucun article — ajoutez-en un ci-dessous.
+                  </p>
+                )}
+              </div>
+
+              {/* Ajout d'un article */}
+              <div className="mt-3 flex items-end gap-2">
+                <div className="flex-1">
+                  <label className="mb-1 block text-xs text-gray-500">
+                    Ajouter un produit
+                  </label>
+                  <select
+                    value={editAddProductId}
+                    onChange={(e) => setEditAddProductId(Number(e.target.value))}
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                  >
+                    <option value={0}>— Choisir un produit —</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} (stock: {p.quantity})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="w-24">
+                  <label className="mb-1 block text-xs text-gray-500">Qté</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={editAddQty}
+                    onChange={(e) => setEditAddQty(Number(e.target.value))}
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <button
+                  onClick={addEditItem}
+                  className="flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                >
+                  <Plus size={14} /> Ajouter
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Note (optionnel)
+              </label>
+              <input
+                type="text"
+                value={editNote}
+                onChange={(e) => setEditNote(e.target.value)}
+                className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            <div className="mt-4 flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+              <span className="text-sm text-gray-500">Nouveau total</span>
+              <span className="text-lg font-bold text-slate-900">
+                {fmt(editTotal)}
+              </span>
+            </div>
+
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={handleUpdateSale}
+                disabled={editSubmitting}
+                className="flex-1 rounded-xl bg-emerald-600 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 transition"
+              >
+                {editSubmitting ? "Enregistrement..." : "✓ Enregistrer les modifications"}
+              </button>
+              <button
+                onClick={() => setEditingInvoice(null)}
+                className="rounded-xl border border-gray-300 px-5 py-3 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal détail facture */}
       {detailInvoice && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
@@ -544,6 +859,18 @@ export default function Invoices() {
                   </div>
                 )}
               </div>
+              {canEdit(detailInvoice) && (
+                <button
+                  onClick={() => {
+                    const inv = detailInvoice;
+                    setDetailInvoice(null);
+                    openEdit(inv);
+                  }}
+                  className="flex items-center gap-2 rounded-xl border border-gray-300 px-5 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  <Pencil size={15} /> Modifier
+                </button>
+              )}
               {detailInvoice.status !== "PAID" && (
                 <button
                   onClick={() => {
@@ -703,6 +1030,14 @@ export default function Invoices() {
                         </div>
                       )}
                     </div>
+                    {canEdit(invoice) && (
+                      <button
+                        onClick={() => openEdit(invoice)}
+                        className="flex items-center gap-1.5 rounded-xl border border-gray-300 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                      >
+                        <Pencil size={13} /> Modifier
+                      </button>
+                    )}
                     {invoice.status !== "PAID" && (
                       <button
                         onClick={() => {

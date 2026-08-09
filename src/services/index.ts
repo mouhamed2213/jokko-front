@@ -1,27 +1,8 @@
 // ============================================================
-//  services/api.ts
+//  services/index.ts
 // ============================================================
-import axios from "axios";
-
-export const api = axios.create({ baseURL: `${apiUrl}` });
-
-api.interceptors.request.use((config) => {
-  let token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
-api.interceptors.response.use(
-  (r) => r,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  },
-);
+import { api, apiUrl } from "./api";
+export { api, apiUrl };
 
 // ── Auth ──────────────────────────────────────────────────────
 export const login = async (data: { email: string; password: string }) => {
@@ -59,7 +40,6 @@ import type {
   Supplier,
   User,
 } from "../types/index";
-import { apiUrl } from "./api";
 
 export type CreateProductPayload = {
   name: string;
@@ -229,6 +209,14 @@ export const getSaleById = async (id: number): Promise<Sale> =>
   (await api.get(`/sales/${id}`)).data;
 export const createSale = async (payload: CreateSalePayload) =>
   (await api.post("/sales", payload)).data;
+export type UpdateSalePayload = {
+  clientId?: number | null;
+  customerName?: string;
+  note?: string;
+  items: SaleItemPayload[];
+};
+export const updateSale = async (id: number, payload: UpdateSalePayload) =>
+  (await api.put(`/sales/${id}`, payload)).data;
 export const addSalePayment = async (
   saleId: number,
   amount: number,
@@ -343,15 +331,6 @@ export const deleteShop = async (id: number): Promise<void> => {
   await api.delete(`/super-admin/shops/${id}`);
 };
 // Subscription management endpoints
-export const updateSubscriptionPlan = async (
-  shopId: number,
-  planCode: string,
-  paymentReference?: string,
-) =>
-  (await api.patch(`/super-admin/shops/${shopId}/subscription/plan`, {
-    planCode,
-    paymentReference,
-  })).data;
 export const updateSubscriptionStatus = async (
   shopId: number,
   status: string,
@@ -470,4 +449,3 @@ export const changeSubscriptionPlan = async (shopId: number, planType: string) =
     } | null;
   };
 };
-

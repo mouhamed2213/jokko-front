@@ -1,12 +1,15 @@
-
 import axios from "axios";
-export const apiUrl = import.meta.env.DEV ?   "http://localhost:5000/api"  :  "https://jokko-back.onrender.com/api"
+export const apiUrl = import.meta.env.DEV ? "http://localhost:5000/api" : "https://jokko-back.onrender.com/api";
 export const api = axios.create({
   baseURL: apiUrl,
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const isSuperAdminRequest = config.url?.includes("/super-admin");
+  const token = isSuperAdminRequest
+    ? localStorage.getItem("sa_user") || localStorage.getItem("token")
+    : localStorage.getItem("token") || localStorage.getItem("sa_user");
+
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -14,10 +17,19 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
+    const status = error.response?.status;
+    const code = error.response?.data?.code;
+    const isSuperAdminRequest = error.config?.url?.includes("/super-admin");
+
+    if (status === 401 || (status === 403 && code === "ACCOUNT_DISABLED")) {
+      if (isSuperAdminRequest) {
+        localStorage.removeItem("sa_user");
+        window.location.href = "/super-admin/login";
+      } else {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }
