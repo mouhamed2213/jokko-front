@@ -1,4 +1,5 @@
-import type { PlanType } from "../pages/superAdmin/SuperAdmin";
+import type { PlanCode } from ".";
+
 export type UserRole = "ADMIN" | "EMPLOYEE" | "SUPER_ADMIN";
 
 export type AuthUser = {
@@ -7,7 +8,7 @@ export type AuthUser = {
   email: string;
   role: UserRole;
   shopId: number;
-  plan:  PlanType;
+  plan:  PlanCode;
   shopName: string;
 };
 
