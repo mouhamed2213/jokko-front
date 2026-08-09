@@ -33,8 +33,12 @@ export default function Users() {
   const [subscription, setSubscription] = useState<SubscriptionInfo>();
 
   const maxUsers = subscription?.limits.users ?? 0;
-  const limiteReached = users.length >= maxUsers ? true : false;
-
+  let limiteReached: boolean = false;
+  
+  if (maxUsers !== 0) {
+    limiteReached = users.length >= maxUsers ? true : false;
+  }
+  
   let limiteMessage;
 
   switch (subscription?.plan.code) {
@@ -156,7 +160,7 @@ export default function Users() {
         >
           {limiteReached ? <Lock size={16} /> : <Plus size={16} />}
 
-          <span>Nouvel utilisateur</span>
+          <span>Nouvel utilisateur </span>
         </button>
 
         {limiteReached &&
