@@ -151,6 +151,8 @@ export default function Settings() {
       setLogoPreview(res.data.logoUrl || "");
       if (res.data.logoUrl) {
         localStorage.setItem("shopLogo", res.data.logoUrl);
+
+
         localStorage.setItem("shopName", res.data.name);
       }
     } catch {
@@ -206,6 +208,7 @@ export default function Settings() {
       localStorage.setItem("shopLogo", res.data.logoUrl);
       toast.success("Logo mis à jour — visible sur vos factures");
       window.dispatchEvent(new Event("shopLogoUpdated"));
+      fetchShop()
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Erreur upload logo");
       setLogoPreview(shop?.logoUrl || "");
