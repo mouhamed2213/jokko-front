@@ -79,7 +79,7 @@ export default function Products() {
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isUpgradeModalSupplierOpen, setIsUpgradeModalSupplierOpen] = useState(false);
-
+const [selectedFile, setSelectedFile] = useState<File | null>(null);
   // Upload image
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
@@ -130,130 +130,125 @@ export default function Products() {
       : 0;
   const reste = totalCost > 0 ? totalCost - supplierForm.paidAmount : 0;
 
-  const resetForm = () => {
-    setForm(emptyForm);
-    setSupplierForm(emptySupplierForm);
-    setShowSupplierSection(false);
-    setEditingId(null);
-    setShowForm(false);
-    setImagePreview("");
-  };
 
   // ── Upload image ──────────────────────────────────────────
-  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-    // Preview immédiat
-    const reader = new FileReader();
-    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
+  // 1. Stocker le fichier
+  setSelectedFile(file);
 
-    // Upload
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
-      const res = await api.post("/upload/product-image", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setForm((p) => ({ ...p, imageUrl: res.data.imageUrl }));
-      toast.success("Image uploadée");
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Erreur upload");
-      setImagePreview("");
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+  // 2. Générer le preview local pour l'UI
+  const reader = new FileReader();
+  reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+  reader.readAsDataURL(file);
+};
+
+const handleRemoveImage = () => {
+  setForm((p) => ({ ...p, imageUrl: "" }));
+  setImagePreview("");
+  setSelectedFile(null); // Clear le fichier sélectionné
+  if (fileInputRef.current) fileInputRef.current.value = "";
+};
+
+const resetForm = () => {
+  setForm(emptyForm);
+  setSupplierForm(emptySupplierForm);
+  setShowSupplierSection(false);
+  setEditingId(null);
+  setShowForm(false);
+  setImagePreview("");
+  setSelectedFile(null); // Reset du fichier
+};
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!form.name || !form.purchasePrice || !form.salePrice) {
+    return toast.error("Nom, prix d'achat et prix de vente obligatoires");
+  }
+  if (
+    showSupplierSection &&
+    supplierForm.createDebt &&
+    !supplierForm.supplierId
+  ) {
+    return toast.error("Sélectionnez un fournisseur");
+  }
+  if (
+    showSupplierSection &&
+    supplierForm.createDebt &&
+    supplierForm.unitCost <= 0
+  ) {
+    return toast.error("Entrez le coût unitaire");
+  }
+
+  setSubmitting(true);
+  try {
+    // 1. Instancier le FormData
+    const formDataToSend = new FormData();
+
+    // 2. Champs principaux du produit
+    formDataToSend.append("name", form.name);
+    if (form.description) formDataToSend.append("description", form.description);
+    if (form.reference) formDataToSend.append("reference", form.reference);
+    if (form.categoryId) formDataToSend.append("categoryId", String(form.categoryId));
+    
+    formDataToSend.append("purchasePrice", String(form.purchasePrice));
+    formDataToSend.append("salePrice", String(form.salePrice));
+    formDataToSend.append("alertThreshold", String(form.alertThreshold));
+
+    // Niveaux tarifaires optionnels
+    if (form.semiWholesalePrice) formDataToSend.append("semiWholesalePrice", String(form.semiWholesalePrice));
+    if (form.semiWholesaleMinQty) formDataToSend.append("semiWholesaleMinQty", String(form.semiWholesaleMinQty));
+    if (form.wholesalePrice) formDataToSend.append("wholesalePrice", String(form.wholesalePrice));
+    if (form.wholesaleMinQty) formDataToSend.append("wholesaleMinQty", String(form.wholesaleMinQty));
+
+    // 3. Ajouter l'image sous la clé "image" (correspond à upload.single("image"))
+    if (selectedFile) {
+      formDataToSend.append("image", selectedFile);
+    } else if (form.imageUrl) {
+      // Fallback si l'utilisateur a renseigné une URL directe sans fichier
+      formDataToSend.append("imageUrl", form.imageUrl);
     }
-  };
 
-  const handleRemoveImage = () => {
-    setForm((p) => ({ ...p, imageUrl: "" }));
-    setImagePreview("");
-  };
+    if (editingId) {
+      // Pour l'édition
+      await updateProduct(editingId, formDataToSend);
+      toast.success("Produit modifié");
+    } else {
+      // Pour la création
+      const created = await createProduct(formDataToSend);
 
-  // ── Soumettre le formulaire ───────────────────────────────
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.name || !form.purchasePrice || !form.salePrice) {
-      return toast.error("Nom, prix d'achat et prix de vente obligatoires");
-    }
-    if (
-      showSupplierSection &&
-      supplierForm.createDebt &&
-      !supplierForm.supplierId
-    ) {
-      return toast.error("Sélectionnez un fournisseur");
-    }
-    if (
-      showSupplierSection &&
-      supplierForm.createDebt &&
-      supplierForm.unitCost <= 0
-    ) {
-      return toast.error("Entrez le coût unitaire");
-    }
-
-    setSubmitting(true);
-    try {
-      // Pour la création : on n'envoie PAS quantity dans le payload
-      // Le stock sera géré uniquement par addStockEntry
-      const payload = {
-        ...form,
-        categoryId: form.categoryId ? Number(form.categoryId) : null,
-        quantity: editingId ? Number(form.quantity) : 0, // 0 à la création
-        purchasePrice: Number(form.purchasePrice),
-        salePrice: Number(form.salePrice),
-        alertThreshold: Number(form.alertThreshold),
-        imageUrl: form.imageUrl || undefined,
-        semiWholesalePrice:
-          form.semiWholesalePrice !== ""
-            ? Number(form.semiWholesalePrice)
-            : null,
-        semiWholesaleMinQty:
-          form.semiWholesaleMinQty !== ""
-            ? Number(form.semiWholesaleMinQty)
-            : null,
-        wholesalePrice:
-          form.wholesalePrice !== "" ? Number(form.wholesalePrice) : null,
-        wholesaleMinQty:
-          form.wholesaleMinQty !== "" ? Number(form.wholesaleMinQty) : null,
-      };
-
-      if (editingId) {
-        await updateProduct(editingId, payload);
-        toast.success("Produit modifié");
-      } else {
-        const created = await createProduct(payload);
-        // Toujours créer une entrée de stock si quantité > 0
-        if (created.id && Number(form.quantity) > 0) {
-          await addStockEntry({
-            productId: created.id,
-            quantity: Number(form.quantity),
-            note: "Stock initial",
-            supplierId:
-              showSupplierSection && supplierForm.supplierId
-                ? supplierForm.supplierId
-                : undefined,
-            unitCost: showSupplierSection
-              ? supplierForm.unitCost || undefined
+      // Toujours créer une entrée de stock si quantité > 0
+      if (created?.id && Number(form.quantity) > 0) {
+        await addStockEntry({
+          productId: created.id,
+          quantity: Number(form.quantity),
+          note: "Stock initial",
+          supplierId:
+            showSupplierSection && supplierForm.supplierId
+              ? supplierForm.supplierId
               : undefined,
-            paidAmount: showSupplierSection
-              ? supplierForm.paidAmount || undefined
-              : undefined,
-            createDebt: showSupplierSection ? supplierForm.createDebt : false,
-          } as any);
-        }
-        toast.success("Produit créé");
+          unitCost: showSupplierSection
+            ? supplierForm.unitCost || undefined
+            : undefined,
+          paidAmount: showSupplierSection
+            ? supplierForm.paidAmount || undefined
+            : undefined,
+          createDebt: showSupplierSection ? supplierForm.createDebt : false,
+        } as any);
       }
-      resetForm();
-      await fetchData();
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Erreur");
-    } finally {
-      setSubmitting(false);
+      toast.success("Produit créé");
     }
-  };
+
+    resetForm();
+    await fetchData();
+  } catch (error: any) {
+    toast.error(error?.response?.data?.message || "Erreur lors de l'enregistrement");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const handleEdit = (p: Product) => {
     setForm({
@@ -595,6 +590,7 @@ export default function Products() {
                 <input
                   type="number"
                   min={0}
+                  onFocus={(e) => e.target.select()} 
                   value={form.purchasePrice}
                   onChange={(e) =>
                     setForm((p) => ({
@@ -615,6 +611,8 @@ export default function Products() {
                 <input
                   type="number"
                   min={0}
+
+                  onFocus={(e)=> e.target.select()}
                   value={form.salePrice}
                   onChange={(e) =>
                     setForm((p) => ({
@@ -635,6 +633,7 @@ export default function Products() {
                 <input
                   type="number"
                   min={0}
+                  onFocus={(e) => e.target.select()} 
                   value={form.quantity}
                   onChange={(e) =>
                     setForm((p) => ({ ...p, quantity: Number(e.target.value) }))
@@ -652,6 +651,7 @@ export default function Products() {
                   type="number"
                   min={0}
                   value={form.alertThreshold}
+                  onFocus={(e)=> e.target.select()}
                   onChange={(e) =>
                     setForm((p) => ({
                       ...p,

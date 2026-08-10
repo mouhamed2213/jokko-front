@@ -211,6 +211,7 @@ export default function Stock() {
               <input
                 type="number"
                 min={1}
+                 onFocus={(e)=> e.target.select()}
                 value={entryForm.quantity}
                 onChange={(e) =>
                   setEntryForm((p) => ({
@@ -483,6 +484,7 @@ export default function Stock() {
               </label>
               <textarea
                 value={outForm.note}
+                 onFocus={(e)=> e.target.select()}
                 onChange={(e) =>
                   setOutForm((p) => ({ ...p, note: e.target.value }))
                 }

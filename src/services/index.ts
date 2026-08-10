@@ -74,13 +74,16 @@ export const getProducts = async (params?: {
 };
 export const getProductById = async (id: number): Promise<Product> =>
   (await api.get(`/products/${id}`)).data;
-export const createProduct = async (
-  payload: CreateProductPayload,
-): Promise<Product> => (await api.post("/products", payload)).data.product;
+export const createProduct = async (formData: FormData) => {
+  const response = await api.post("/products", formData);
+  return response.data;
+};
+
 export const updateProduct = async (
   id: number,
-  payload: Partial<CreateProductPayload>,
+  payload: Partial<FormData>,
 ): Promise<Product> => (await api.put(`/products/${id}`, payload)).data.product;
+
 export const deleteProduct = async (id: number): Promise<void> => {
   await api.delete(`/products/${id}`);
 };
