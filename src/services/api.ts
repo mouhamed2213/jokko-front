@@ -1,5 +1,6 @@
 import axios from "axios";
-export const apiUrl = import.meta.env.DEV ? "http://localhost:5000/api" : "https://jokko-back.onrender.com/api";
+export const apiUrl = import.meta.env.VITE_BASE_URL 
+
 export const api = axios.create({
   baseURL: apiUrl,
 });
