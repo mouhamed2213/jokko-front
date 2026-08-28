@@ -2,7 +2,7 @@ import axios from "axios";
 export const apiUrl = 
   import.meta.env.VITE_API_URL || 
   (import.meta.env.DEV 
-    ? "http://localhost:3000/api" 
+    ? "http://localhost:5000/api" 
     : "https://api.jokko-business.com/api");
 
 export const api = axios.create({
