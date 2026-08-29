@@ -35,7 +35,7 @@ export default function InvoiceModal({ open, onClose, sale }: Props) {
     const printContent = `
       <html>
         <head>
-          <title>Facture ${invoiceNumber} - SamaStock</title>
+          <title>Facture ${invoiceNumber} - jokko-business</title>
           <style>
             body {
               font-family: Arial, Helvetica, sans-serif;
@@ -214,9 +214,9 @@ export default function InvoiceModal({ open, onClose, sale }: Props) {
           <div class="container">
             <div class="topbar">
               <div class="brand">
-                <img src="${logoUrl}" alt="SamaStock" />
+                <img src="${logoUrl}" alt="Jokko business" />
                 <div>
-                  <h1>SamaStock</h1>
+                  <h1>Jokko business</h1>
                   <p>Gestion de stock intelligente</p>
                   <p>Dakar, Sénégal</p>
                 </div>
@@ -232,14 +232,14 @@ export default function InvoiceModal({ open, onClose, sale }: Props) {
             <div class="section-grid">
               <div class="card">
                 <p class="card-title">Facturé par</p>
-                <p><strong>SamaStock</strong></p>
+                <p><strong>Jokko business</strong></p>
                 <p>Gestion de stock intelligente</p>
-                <p>Email : admin@samastock.com</p>
+                // <p>Email : admin@jokko business.com</p>
               </div>
 
               <div class="card">
                 <p class="card-title">Client</p>
-                <p><strong>${sale.client?.name || sale.customer  || "Client non précisé"}</strong></p>
+                <p><strong>${sale.client?.name || sale.customer || "Client non précisé"}</strong></p>
                 <p>Date de la vente : ${formattedDate}</p>
               </div>
             </div>
@@ -294,7 +294,7 @@ export default function InvoiceModal({ open, onClose, sale }: Props) {
             }
 
             <div class="footer">
-              Merci pour votre confiance - SamaStock
+              Merci pour votre confiance - Jokko business
             </div>
           </div>
         </body>
@@ -339,12 +339,12 @@ export default function InvoiceModal({ open, onClose, sale }: Props) {
             <div className="flex items-center gap-3">
               <img
                 src={logo}
-                alt="SamaStock"
+                alt="Jokko business"
                 className="h-14 w-14 object-contain"
               />
               <div>
                 <h4 className="text-3xl font-bold text-slate-900">
-                  SamaStock
+                  Jokko business
                 </h4>
                 <p className="mt-1 text-sm text-gray-500">
                   Gestion de stock intelligente
@@ -369,9 +369,9 @@ export default function InvoiceModal({ open, onClose, sale }: Props) {
               <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
                 Facturé par
               </p>
-              <p className="mt-2 font-semibold text-slate-900">SamaStock</p>
+              <p className="mt-2 font-semibold text-slate-900">Jokko business</p>
               <p className="text-sm text-gray-600">Gestion de stock</p>
-              <p className="text-sm text-gray-600">admin@samastock.com</p>
+              <p className="text-sm text-gray-600">admin@jokko business.com</p>
             </div>
 
             <div className="rounded-2xl bg-white p-4">
