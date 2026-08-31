@@ -2,6 +2,7 @@ import {
   Boxes,
   Check,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Crown,
   Eye,
@@ -532,12 +533,16 @@ function SidebarContent({
   shopList,
   refreshShopList,
   onAddShopClick,
+  collapsed = false,
+  onToggleCollapse,
 }: {
   onClose?: () => void;
   onUpgradeClick: () => void;
   shopList: ShopItem[];
   refreshShopList: () => void;
   onAddShopClick: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }) {
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const role = storedUser.role;
@@ -607,18 +612,20 @@ function SidebarContent({
     <div className="flex h-full flex-col overflow-hidden bg-slate-900 text-white">
       <div className="shrink-0 border-b border-white/10 px-5 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className={`flex items-center gap-3 ${collapsed ? "justify-center w-full" : ""}`}>
             <img
               src={shopLogo || logo}
               alt={shopName}
-              className="h-10 w-10 rounded-xl bg-white object-contain p-1"
+              className="h-10 w-10 shrink-0 rounded-xl bg-white object-contain p-1"
             />
-            <div>
-              <h1 className="text-base font-bold truncate max-w-32.5">
-                {shopName}
-              </h1>
-              <p className="text-xs text-white/50">Gestion commerciale</p>
-            </div>
+            {!collapsed && (
+              <div className="min-w-0">
+                <h1 className="text-base font-bold truncate max-w-32.5">
+                  {shopName}
+                </h1>
+                <p className="text-xs text-white/50">Gestion commerciale</p>
+              </div>
+            )}
           </div>
           {onClose && (
             <button
@@ -630,6 +637,17 @@ function SidebarContent({
             </button>
           )}
         </div>
+        {onToggleCollapse && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            title={collapsed ? "Agrandir le menu" : "Réduire le menu"}
+            className="mt-3 hidden w-full items-center justify-center gap-2 rounded-lg py-1.5 text-xs font-medium text-white/50 hover:bg-white/10 hover:text-white/80 transition md:flex"
+          >
+            {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+            {!collapsed && <span>Réduire</span>}
+          </button>
+        )}
       </div>
 
       <nav className="flex-1 min-h-0 space-y-0.5 overflow-y-auto px-3 py-3">
@@ -649,16 +667,25 @@ function SidebarContent({
                   if (onClose) onClose();
                   onUpgradeClick();
                 }}
-                className="group flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition text-amber-400/80 hover:bg-amber-500/10 hover:text-amber-400"
+                title={collapsed ? link.name : undefined}
+                className={`group flex w-full items-center rounded-xl px-3 py-2 text-sm font-medium transition text-amber-400/80 hover:bg-amber-500/10 hover:text-amber-400 ${
+                  collapsed ? "justify-center" : "justify-between"
+                }`}
               >
-                <div className="flex items-center gap-3">
+                <div
+                  className={`flex items-center gap-3 ${collapsed ? "gap-0" : ""}`}
+                >
                   <Icon size={17} />
-                  <span>{link.name}</span>
-                  <span className="rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-400 uppercase tracking-wider">
-                    Pro
-                  </span>
+                  {!collapsed && (
+                    <>
+                      <span>{link.name}</span>
+                      <span className="rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-400 uppercase tracking-wider">
+                        Pro
+                      </span>
+                    </>
+                  )}
                 </div>
-                <Crown size={13} className="opacity-60" />
+                {!collapsed && <Crown size={13} className="opacity-60" />}
               </button>
             );
           }
@@ -669,8 +696,11 @@ function SidebarContent({
               to={link.path}
               onClick={onClose}
               end={link.path === "/dashboard"}
+              title={collapsed ? link.name : undefined}
               className={({ isActive }) =>
-                `group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition ${
+                `group flex items-center rounded-xl px-3 py-2 text-sm font-medium transition ${
+                  collapsed ? "justify-center" : "justify-between"
+                } ${
                   isActive
                     ? "bg-white text-slate-900"
                     : "text-white/70 hover:bg-white/10 hover:text-white"
@@ -679,18 +709,20 @@ function SidebarContent({
             >
               <div className="flex items-center gap-3">
                 <Icon size={17} />
-                <span>{link.name}</span>
+                {!collapsed && <span>{link.name}</span>}
               </div>
-              <ChevronRight
-                size={14}
-                className="opacity-30 group-hover:opacity-60"
-              />
+              {!collapsed && (
+                <ChevronRight
+                  size={14}
+                  className="opacity-30 group-hover:opacity-60"
+                />
+              )}
             </NavLink>
           );
         })}
       </nav>
 
-      {shopList.length > 0 && (
+      {shopList.length > 0 && !collapsed && (
         <div className="shrink-0 border-t border-white/10 pt-2">
           <ShopSwitcher
             shops={shopList}
@@ -704,12 +736,14 @@ function SidebarContent({
         </div>
       )}
 
-      <div className="shrink-0 border-t border-white/10 p-3">
-        <div className="rounded-xl bg-white/5 px-4 py-2.5">
-          <p className="text-xs font-semibold text-white/80">v1.0</p>
-          <p className="text-xs text-white/40">Jokko Business SaaS</p>
+      {!collapsed && (
+        <div className="shrink-0 border-t border-white/10 p-3">
+          <div className="rounded-xl bg-white/5 px-4 py-2.5">
+            <p className="text-xs font-semibold text-white/80">v1.0</p>
+            <p className="text-xs text-white/40">Jokko Business SaaS</p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -720,6 +754,9 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isAddShopModalOpen, setAddShopModalOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem("sidebarCollapsed") === "1",
+  );
 
   const [shopList, setShopList] = useState<ShopItem[]>([]);
 
@@ -731,6 +768,14 @@ export default function Sidebar() {
     refreshShopList();
   }, []);
 
+  const toggleCollapse = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem("sidebarCollapsed", next ? "1" : "0");
+      return next;
+    });
+  };
+
   return (
     <>
       <button
@@ -741,12 +786,18 @@ export default function Sidebar() {
         <Menu size={20} />
       </button>
 
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 overflow-hidden md:flex">
+      <aside
+        className={`sticky top-0 hidden h-screen shrink-0 overflow-hidden transition-all duration-200 md:flex ${
+          collapsed ? "w-20" : "w-60"
+        }`}
+      >
         <SidebarContent
           onUpgradeClick={() => setIsUpgradeModalOpen(true)}
           shopList={shopList}
           refreshShopList={refreshShopList}
           onAddShopClick={() => setAddShopModalOpen(true)}
+          collapsed={collapsed}
+          onToggleCollapse={toggleCollapse}
         />
       </aside>
 

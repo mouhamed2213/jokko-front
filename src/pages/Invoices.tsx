@@ -732,7 +732,8 @@ export default function Invoices() {
             </div>
 
             {/* Articles */}
-            <table className="w-full text-sm mb-4">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-100 text-sm mb-4">
               <thead>
                 <tr className="border-b text-gray-500 text-xs">
                   <th className="pb-2 text-left">Produit</th>
@@ -754,6 +755,7 @@ export default function Invoices() {
                 ))}
               </tbody>
             </table>
+            </div>
 
             {/* Totaux */}
             <div className="rounded-xl bg-slate-50 p-4 space-y-2 text-sm mb-4">

@@ -645,8 +645,8 @@ export default function Sales() {
 
           {/* Panier */}
           {cart.length > 0 && (
-            <div className="rounded-xl border border-gray-200 overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="rounded-xl border border-gray-200 overflow-x-auto">
+              <table className="w-full min-w-125 text-sm">
                 <thead>
                   <tr className="bg-slate-50 text-gray-500 text-xs">
                     <th className="px-4 py-2 text-left">Produit</th>
