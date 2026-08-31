@@ -69,7 +69,7 @@ export default function Products() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<number | undefined>();
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(true);
+  const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [supplierForm, setSupplierForm] = useState(emptySupplierForm);
