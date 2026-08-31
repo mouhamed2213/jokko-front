@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import logo from "../assets/logo.svg";
+import logo from "../assets/jb_logo.jpg";
 
 export function HeaderPublic() {
   const navigate = useNavigate();
