@@ -1,6 +1,8 @@
 import toast from "react-hot-toast";
 import type { AuthUser } from "../types/auth";
 import type { Sale } from "../types/index";
+import logo from "../assets/jb_logo.jpg";
+
 
 // ============================================================
 //  Format A4 — facture professionnelle complète

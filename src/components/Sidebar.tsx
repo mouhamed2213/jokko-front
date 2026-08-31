@@ -23,7 +23,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { NavLink } from "react-router-dom";
-import logo from "../assets/logo.svg";
+import logo from "../assets/jb_logo.jpg";
+
 import { api } from "../services/api";
 import {
   createNewShop,
