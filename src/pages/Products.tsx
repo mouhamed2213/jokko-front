@@ -167,6 +167,8 @@ const handleSubmit = async (e: React.FormEvent) => {
   if (!form.name || !form.purchasePrice || !form.salePrice) {
     return toast.error("Nom, prix d'achat et prix de vente obligatoires");
   }
+
+  
   if (
     showSupplierSection &&
     supplierForm.createDebt &&
@@ -192,6 +194,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     if (form.description) formDataToSend.append("description", form.description);
     if (form.reference) formDataToSend.append("reference", form.reference);
     if (form.categoryId) formDataToSend.append("categoryId", String(form.categoryId));
+    if (form.quantity) formDataToSend.append("quantity", String(form.quantity));
     
     formDataToSend.append("purchasePrice", String(form.purchasePrice));
     formDataToSend.append("salePrice", String(form.salePrice));
@@ -217,6 +220,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       toast.success("Produit modifié");
     } else {
       // Pour la création
+      console.log("FormData to send:", Array.from(formDataToSend.entries())); // Debug: afficher le contenu du FormData
       const created = await createProduct(formDataToSend);
 
       // Toujours créer une entrée de stock si quantité > 0
