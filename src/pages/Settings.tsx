@@ -66,7 +66,7 @@ const PLANS_INFO = [
   {
     code: "STARTER",
     name: "Starter",
-    price: 5000,
+    price: 6500,
     color: "emerald",
     features: [
       "2 utilisateurs",
@@ -81,7 +81,7 @@ const PLANS_INFO = [
   {
     code: "PRO",
     name: "Pro",
-    price: 10000,
+    price: 14000,
     color: "blue",
     features: [
       "5 utilisateurs",
@@ -95,7 +95,7 @@ const PLANS_INFO = [
   {
     code: "PREMIUM",
     name: "Premium",
-    price: 20000,
+    price: 22000,
     color: "purple",
     features: [
       "Utilisateurs illimités",
