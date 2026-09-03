@@ -16,7 +16,7 @@ export function HeaderPublic() {
     { href: "/#features", label: "Fonctionnalités" },
     { href: "/#pricing", label: "Tarifs" },
     { href: "/help", label: "Découvrir l'application" },
-    { href: "/#faq", label: "FAQ" },
+    // { href: "/#faq", label: "FAQ" },
   ];
 
   return (
@@ -79,12 +79,12 @@ export function HeaderPublic() {
               Découvrir l'application
             </a>
             
-            <a
+            {/* <a
               href="/#faq"
               className="text-sm font-medium text-slate-600 hover:text-slate-900 transition duration-200"
             >
               FAQ
-            </a>
+            </a> */}
           </div>
 
           {/* Bloc 3 : Boutons de Call to Action (Poussés à l'extrême droite) */}
