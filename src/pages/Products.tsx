@@ -978,7 +978,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     </div>
                   )}
                   {/* Badge stock */}
-                  {(isLow || isOut) && user?.plan !== "FREE" && (
+                  {(isLow || isOut)  && (
                     <div
                       className={`absolute top-2 right-2 flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${isOut ? "bg-red-500 text-white" : "bg-yellow-400 text-yellow-900"}`}
                     >
@@ -1042,7 +1042,6 @@ const handleSubmit = async (e: React.FormEvent) => {
                     )}
                   </div>
 
-                  {user?.plan !== "FREE" ? (
                     <div
                       className={`rounded-lg px-3 py-2 text-xs font-medium ${
                         isOut
@@ -1058,7 +1057,6 @@ const handleSubmit = async (e: React.FormEvent) => {
                           ? `⚠ Stock faible — ${product.quantity} restant(s)`
                           : `Stock : ${product.quantity} unité(s)`}
                     </div>
-                  ) : null}
 
                   {admin && (
                     <div className="flex gap-2 pt-1">
