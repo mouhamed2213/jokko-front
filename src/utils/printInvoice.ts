@@ -405,11 +405,6 @@ export function printInvoice(
   const shopName = user?.shopName || "Jokko Business";
   const ShopPlan = user.plan;
   if (ShopPlan && format === "A4") {
-    if (ShopPlan === "FREE") {
-      toast.error("Votre plan actuel ne vous permet pas d'imprimer ce format");
-
-      return;
-    }
   }
 
   const html =
