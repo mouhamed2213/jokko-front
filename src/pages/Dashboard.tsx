@@ -45,8 +45,8 @@ function StatCard({
   };
 
   const plan = subscription?.plan.code;
-  const isHiddenStats = plan === "FREE" && statType ? true : false;
 
+  // Can be seen by Pro &  Premium users only
   const isHiddenSupplierStats =
     plan === "FREE" || (plan === "BASIC" && statType === "SUPPLIER_MANAGEMENT");
   return (
@@ -56,16 +56,15 @@ function StatCard({
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-500">{title}</p>
 
-          {/* card value displayed based on plan  */}
-
+          {/* card value:  Hide supplier  value for FREE and BASIC users */}
           <div
             className={`mt-2 text-2xl font-bold text-slate-900 transition-all ${
-              isHiddenStats || isHiddenSupplierStats
+               isHiddenSupplierStats && statType === "SUPPLIER_MANAGEMENT"
                 ? "blur-sm select-none text-slate-300"
                 : ""
             }`}
           >
-            {isHiddenStats || isHiddenSupplierStats ? "———" : value}
+            {isHiddenSupplierStats  && statType === "SUPPLIER_MANAGEMENT" ? "———" : value}
           </div>
 
           <p className="mt-1 text-xs text-gray-400">{subtitle}</p>
@@ -73,25 +72,20 @@ function StatCard({
 
         {/* Icône — toujours visible */}
         <div
-          className={`rounded-xl p-3 shrink-0 ${colors[color]} ${isHiddenStats ? "opacity-40" : ""}`}
+          className={`rounded-xl p-3 shrink-0 ${colors[color]}}`}
         >
           {icon}
         </div>
       </div>
 
       {/* Display badge based on plan */}
-      {isHiddenStats && (
+      {isHiddenSupplierStats &&  statType === "SUPPLIER_MANAGEMENT" && (
         <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
           <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md">
-            {statType === "SUPPLIER_MANAGEMENT" ? (
+   
               <>
                 <Crown size={10} /> PRO
               </>
-            ) : (
-              <>
-                <Lock size={10} /> Starter
-              </>
-            )}
           </span>
         </div>
       )}
@@ -133,6 +127,7 @@ export default function Dashboard() {
   const currentMonthCA = stats?.currentMonthSalesAmount ?? 0;
   // const shopPlan = subscription?.plan.code;
   const hasFeature = hasFeatures(subscription);
+  console.log("hasFeature", hasFeature);
 
   if (loading) {
     return (
