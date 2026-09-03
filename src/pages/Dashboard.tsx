@@ -127,7 +127,6 @@ export default function Dashboard() {
   const currentMonthCA = stats?.currentMonthSalesAmount ?? 0;
   // const shopPlan = subscription?.plan.code;
   const hasFeature = hasFeatures(subscription);
-  console.log("hasFeature", hasFeature);
 
   if (loading) {
     return (
