@@ -11,16 +11,7 @@ const fmtAmount = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 // ── Export ventes ─────────────────────────────────────────────
 export function exportSalesToExcel(sales: Sale[], user: AuthUser) {
   const shopName = user?.shopName || "Boutique";
-  const ShopPlan = user.plan;
-  if (ShopPlan) {
-    if (ShopPlan === "FREE") {
-      toast.error(
-        "Votre plan actuel ne vous permet pas d'exporter la list de vos client",
-      );
 
-      return;
-    }
-  }
 
   const rows = sales.flatMap((sale) =>
     sale.items.map((item) => ({
@@ -116,17 +107,6 @@ export function exportSalesToExcel(sales: Sale[], user: AuthUser) {
 // ── Export stock (mouvements) ─────────────────────────────────
 export function exportStockToExcel(movements: StockMovement[], user: AuthUser) {
   const shopName = user?.shopName || "Boutique";
-  const ShopPlan = user.plan;
-  if (ShopPlan) {
-    if (ShopPlan === "FREE") {
-      toast.error(
-        "Votre plan actuel ne vous permet pas d'exporter la list de vos client",
-      );
-
-      return;
-    }
-  }
-
   const typeLabel: Record<string, string> = {
     ENTRY: "Entrée",
     OUT: "Sortie",
@@ -167,16 +147,6 @@ export function exportStockToExcel(movements: StockMovement[], user: AuthUser) {
 // ── Export clients ────────────────────────────────────────────
 export function exportClientsToExcel(clients: Client[], user: AuthUser) {
   const shopName = user?.shopName || "Boutique";
-  const ShoPlan = user.plan;
-  if (ShoPlan) {
-    if (ShoPlan === "FREE") {
-      toast.error(
-        "Votre plan actuel ne vous permet pas d'exporter la list de vos client",
-      );
-
-      return;
-    }
-  }
 
   const rows = clients.map((c) => ({
     Nom: c.name,

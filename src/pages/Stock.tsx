@@ -526,23 +526,12 @@ export default function Stock() {
             </span>
             <button
               onClick={() => {
-                if (user?.plan === "FREE") {
-                  setIsUpgradeModalOpen(true); // Ouvre le modal de conversion
-                  return;
-                }
+       
                 exportStockToExcel(movements, user);
               }}
-              className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm transition ${
-                user?.plan === "FREE"
-                  ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100" // Mode premium/verrouillé
-                  : "border-gray-300 text-gray-700 hover:bg-gray-50" // Mode normal
-              }`}
+              className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm transition border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
             >
-              {user?.plan === "FREE" ? (
-                <Lock size={14} className="text-amber-600" />
-              ) : (
                 <Download size={14} />
-              )}
               <span>Excel</span>
             </button>
           </div>
