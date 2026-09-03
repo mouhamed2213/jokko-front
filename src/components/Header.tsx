@@ -61,7 +61,7 @@ function getSubscriptionAlert(endDate: Date | null): SubscriptionAlert | null {
 
   if (daysRemaining <= 0) {
     return {
-      text: " Votre boutique est actuellement au Plan Gratuit (FREE). Reabonnez-vous pour debloquer toutes les fonctionnalites.",
+      text: "Reabonnez-vous pour debloquer toutes les fonctionnalites.",
       type: "danger",
     };
   } 
@@ -169,13 +169,13 @@ export default function Header() {
           
           <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <p className="leading-relaxed">
-              <b>{alertConfig.type === "danger" ? "Abonnement expire !" : "Renouvellement requis :"}</b>{" "}
+              <b>{alertConfig.type === "danger" ? "Abonnement à expiré !" : "Renouvellement requis :"}</b>{" "}
               {alertConfig.text}
             </p>
             <button
               type="button"
               onClick={() => navigate("/settings")} // Ou redirection vers ta page de tarification/modal
-              className={`text-xs font-bold uppercase tracking-wider underline shrink-0 whitespace-nowrap self-end sm:self-center ${
+              className={`text-xs font-bold uppercase tracking-wider  shrink-0 whitespace-nowrap self-end sm:self-center cursor-pointer  text-black ${
                 alertConfig.type === "danger"
                   ? "text-red-950 hover:text-red-900"
                   : "text-amber-950 hover:text-amber-900"
