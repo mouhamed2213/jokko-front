@@ -976,37 +976,22 @@ export default function Invoices() {
                         <div className="absolute right-0 top-9 z-20 w-44 rounded-xl bg-white shadow-lg border border-gray-200 overflow-hidden">
                           <button
                             onClick={() => {
-                              if (user?.plan === "FREE") {
-                                setPrintMenuFor(null);
-                                setIsUpgradeModalOpen(true);
-                                return;
-                              }
+                              // if (user?.plan === "FREE") {
+                              //   setPrintMenuFor(null);
+                              //   setIsUpgradeModalOpen(true);
+                              //   return;
+                              // }
 
                               printA4(invoice);
                               setPrintMenuFor(null);
                             }}
-                            className={`flex w-full items-center gap-3 px-4 py-3 text-sm transition ${
-                              user?.plan === "FREE"
-                                ? "text-amber-800 bg-amber-50/50 hover:bg-amber-50"
-                                : "text-gray-700 hover:bg-slate-50"
-                            }`}
+                            className="flex w-full items-center gap-3 px-4 py-3 text-sm transition  text-gray-700 hover:bg-slate-50"
                           >
-                            {user?.plan === "FREE" ? (
-                              <Lock
-                                size={13}
-                                className="text-amber-600 shrink-0"
-                              />
-                            ) : (
+                      
                               <Printer size={13} className="shrink-0" />
-                            )}
                             <div className="text-left">
                               <p className="font-medium flex items-center gap-1.5">
                                 Format A4
-                                {user?.plan === "FREE" && (
-                                  <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-md font-semibold">
-                                    Starter
-                                  </span>
-                                )}
                               </p>
                               <p className="text-xs text-gray-400">
                                 Facture professionnelle
