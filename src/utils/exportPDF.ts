@@ -221,16 +221,6 @@ export function exportSalesPDF(
   period?: string,
 ) {
   const shopName = user?.shopName || "Boutique";
-  const ShopPlan = user.plan;
-  if (ShopPlan) {
-    if (ShopPlan === "FREE") {
-      toast.error(
-        "Votre plan actuel ne vous permet pas d'exporter la list de vos client",
-      );
-
-      return;
-    }
-  }
 
   const totalCA = sales.reduce((s, v) => s + v.totalAmount, 0);
   const totalPaid = sales.reduce((s, v) => s + v.paidAmount, 0);

@@ -444,45 +444,21 @@ export default function Sales() {
         <div className="flex gap-2">
           <button
             onClick={() => {
-              if (user?.plan === "FREE") {
-                setIsUpgradeModalOpen(true); // Ouvre le modal de conversion
-                return;
-              }
               exportSalesToExcel(sales, user);
             }}
-            className={`flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm transition ${
-              user?.plan === "FREE"
-                ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100" // Mode premium/verrouillé
-                : "border-gray-300 text-gray-700 hover:bg-gray-50" // Mode normal
-            }`}
-          >
-            {user?.plan === "FREE" ? (
-              <Lock size={15} className="text-amber-600" />
-            ) : (
+            className="flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm transition border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">
               <Download size={15} />
-            )}
             <span>Excel</span>
           </button>
           <button
             onClick={() => {
-              if (user?.plan === "FREE") {
-                setIsUpgradeModalOpen(true);
-
-                return;
-              }
+  
               exportSalesPDF(sales, user);
             }}
-            className={`flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm transition ${
-              user?.plan === "FREE"
-                ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100" // Mode premium/verrouillé
-                : "border-gray-300 text-gray-700 hover:bg-gray-50" // Mode normal
-            }`}
-          >
-            {user?.plan === "FREE" ? (
-              <Lock size={15} className="text-amber-600" />
-            ) : (
+            className="flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm transition border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">
+
               <Download size={15} />
-            )}
+   
             <span>PDF</span>
           </button>
         </div>
