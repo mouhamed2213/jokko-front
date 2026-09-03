@@ -26,7 +26,11 @@ api.interceptors.response.use(
     const code = error.response?.data?.code;
     const isSuperAdminRequest = error.config?.url?.includes("/super-admin");
 
-    if (status === 401 || (status === 403 && code === "ACCOUNT_DISABLED")) {
+    // Ignore login request errors to avoid redirect loops
+        const isLoginRequest = error.config?.url?.includes("/auth/login");
+
+
+    if (  !isLoginRequest &&  status === 401 || (status === 403 && code === "ACCOUNT_DISABLED")) {
       if (isSuperAdminRequest) {
         localStorage.removeItem("sa_user");
         window.location.href = "/super-admin/login";

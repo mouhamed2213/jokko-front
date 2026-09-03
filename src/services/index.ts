@@ -7,7 +7,6 @@ export { api, apiUrl };
 // ── Auth ──────────────────────────────────────────────────────
 export const login = async (data: { email: string; password: string }) => {
   const res = await api.post("/auth/login", data);
-  // console.log(res.data)
   return res.data;
 };
 
