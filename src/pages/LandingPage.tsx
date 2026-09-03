@@ -70,7 +70,7 @@ const plans: Plan[] = [
     badgeClass: "bg-emerald-100 text-emerald-700",
     features: [
       "3 utilisateurs (rôles Administrateur / Employé)",
-      "Jusqu'à 600 produits",
+      "Produits illimités",
       "Ventes illimitées",
       "Clients & suivi des dettes illimités",
       "Alertes stock faible & rupture",
@@ -217,10 +217,7 @@ const faqs = [
     q: "Puis-je changer de plan plus tard ?",
     a: "Absolument. Vous pouvez évoluer ou réduire votre plan à tout moment. Et si votre abonnement arrive à expiration, vous n'êtes jamais bloqué : votre compte repasse simplement au plan Gratuit, sans perte de données ni interruption de votre activité.",
   },
-  {
-    q: "Le plan gratuit est-il vraiment gratuit ?",
-    a: "Oui, sans limite de durée. C'est idéal pour tester la plateforme avant de choisir un plan payant adapté.",
-  },
+
 ];
 
 const proofTags = [
@@ -525,7 +522,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── FAQ ── */}
+      {/* ── FAQ ──
       <section
         id="faq"
         className="bg-slate-50 border-y border-slate-200 px-6 py-20 sm:py-24"
@@ -551,7 +548,7 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ── CTA BANNER ── */}
       <section className="px-6 py-12">

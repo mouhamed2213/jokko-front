@@ -300,7 +300,7 @@ export default function HelpPage() {
                       {/* 3. Placeholder de la Vidéo */}
                       <div>
                         <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-                          Démonstration Visuelle
+                          Démonstration Visuelle <small className="text-red-400 text-xs font-normal">(bientôt disponible)</small>
                         </h4>
                         <div className="relative group rounded-2xl overflow-hidden bg-slate-900 aspect-video flex flex-col items-center justify-center text-center p-6 border border-slate-800 shadow-inner">
                           {/* Couche d'effet visuel en fond */}
