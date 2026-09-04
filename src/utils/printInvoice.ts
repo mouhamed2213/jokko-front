@@ -403,9 +403,6 @@ export function printInvoice(
   logoUrl?: string,
 ) {
   const shopName = user?.shopName || "Jokko Business";
-  const ShopPlan = user.plan;
-  if (ShopPlan && format === "A4") {
-  }
 
   const html =
     format === "THERMAL"
