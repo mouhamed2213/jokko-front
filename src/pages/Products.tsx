@@ -13,7 +13,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
-  addStockEntry,
   api,
   createCategory,
   createProduct,
@@ -219,29 +218,14 @@ const handleSubmit = async (e: React.FormEvent) => {
       await updateProduct(editingId, formDataToSend);
       toast.success("Produit modifié");
     } else {
-      // Pour la création
-      console.log("FormData to send:", Array.from(formDataToSend.entries())); // Debug: afficher le contenu du FormData
-      const created = await createProduct(formDataToSend);
-
-      // Toujours créer une entrée de stock si quantité > 0
-      if (created?.id && Number(form.quantity) > 0) {
-        await addStockEntry({
-          productId: created.id,
-          quantity: Number(form.quantity),
-          note: "Stock initial",
-          supplierId:
-            showSupplierSection && supplierForm.supplierId
-              ? supplierForm.supplierId
-              : undefined,
-          unitCost: showSupplierSection
-            ? supplierForm.unitCost || undefined
-            : undefined,
-          paidAmount: showSupplierSection
-            ? supplierForm.paidAmount || undefined
-            : undefined,
-          createDebt: showSupplierSection ? supplierForm.createDebt : false,
-        } as any);
+      if (showSupplierSection && supplierForm.supplierId) {
+        formDataToSend.append("supplierId", String(supplierForm.supplierId));
+        formDataToSend.append("unitCost", String(supplierForm.unitCost));
+        formDataToSend.append("paidAmount", String(supplierForm.paidAmount));
+        formDataToSend.append("createDebt", String(supplierForm.createDebt));
       }
+      await createProduct(formDataToSend);
+
       toast.success("Produit créé");
     }
 

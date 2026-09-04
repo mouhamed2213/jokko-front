@@ -73,7 +73,9 @@ export const getProducts = async (params?: {
 };
 export const getProductById = async (id: number): Promise<Product> =>
   (await api.get(`/products/${id}`)).data;
-export const createProduct = async (formData: FormData) => {
+export const createProduct = async (
+  formData: FormData,
+): Promise<{ message: string; product: Product }> => {
   const response = await api.post("/products", formData);
   return response.data;
 };
