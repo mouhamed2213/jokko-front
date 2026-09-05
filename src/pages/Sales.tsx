@@ -72,7 +72,6 @@ export default function Sales() {
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [salesCount, setSalesCount] = useState<number>(0);
   const [subscription, setSubscription] = useState<SubscriptionInfo>();
-  const maxLimit = 100;
 
   const checkCash = async () => {
     try {
@@ -106,11 +105,17 @@ export default function Sales() {
     }
   };
 
+  const maxLimit = subscription?.limits.sales;
   const isLimitReached =
-    subscription?.plan.code === "FREE" && salesCount >= maxLimit;
+    maxLimit !== null &&
+    maxLimit !== undefined &&
+    salesCount >= maxLimit;
 
   const isLimitReachedApproche =
-    subscription?.plan.code === "FREE" && maxLimit - salesCount <= 10;
+    maxLimit !== null &&
+    maxLimit !== undefined &&
+    salesCount < maxLimit &&
+    salesCount >= Math.ceil(maxLimit * 0.8);
 
   useEffect(() => {
     fetchData();
@@ -359,7 +364,7 @@ export default function Sales() {
                 Plus que {maxLimit - salesCount} ventes disponibles ce mois
               </p>
               <p className="text-sm text-yellow-700 mt-0.5">
-                Vous approchez de la limite du plan Gratuit (100 ventes/mois).
+                Vous approchez de la limite de votre abonnement ({maxLimit} ventes/mois).
               </p>
             </div>
           </div>
@@ -383,7 +388,7 @@ export default function Sales() {
                 Limite mensuelle atteinte — Ventes bloquées
               </p>
               <p className="text-sm text-red-600 mt-0.5">
-                Vous avez utilisé vos 100 ventes ce mois. Réinitialisation le
+                Vous avez utilisé vos {maxLimit} ventes ce mois. Réinitialisation le
                 1er du mois prochain.
               </p>
             </div>

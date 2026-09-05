@@ -42,12 +42,14 @@ export default function Clients() {
   const [limitCostumer, setLimitCostumer] = useState<number | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionInfo>();
   const shopPlan = subscription?.plan.code;
-  const maxCustomers = subscription?.limits.maxCutomers ?? 50;
+  const maxCustomers = subscription?.limits.customers;
 
   // Calcul des seuils critiques
-  const isLimitCustomerReached = subscription?.limits.maxCutomers;
-  // const isLimitCustomerReached = 2;
-  shopPlan == "FREE" && limitCostumer !== null && limitCostumer >= maxCustomers;
+  const isLimitCustomerReached =
+    maxCustomers !== null &&
+    maxCustomers !== undefined &&
+    limitCostumer !== null &&
+    limitCostumer >= maxCustomers;
 
   const fetchClients = async () => {
     try {

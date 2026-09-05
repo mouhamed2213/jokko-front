@@ -21,8 +21,8 @@ export type FeatureCode =
 
 export type SubscriptionInfo = {
   id: number;
-  status: "ACTIVE" | "EXPIRED" | "SUSPENDED" | "TRIAL";
-  endDate: Date;
+  status: "ACTIVE" | "EXPIRED" | "SUSPENDED" | "TRIAL" | "TRIAL_EXPIRED";
+  endDate: Date | string | null;
   plan: {
     code: PlanCode;
     name: string;
@@ -31,9 +31,10 @@ export type SubscriptionInfo = {
   limits: {
     sales: number | null;
     products: number | null;
-    maxCutomers: number | null;
+    customers: number | null;
     users: number | null;
     stores: number | null;
+    suppliers: number | null;
   };
 
   features: FeatureCode[];
@@ -144,6 +145,26 @@ export type Supplier = {
 export type SupplierListResponse = {
   data: Supplier[];
   pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+};
+
+export type SupplierHistoryResponse = Supplier & {
+  totalPurchases: number;
+  totalPaid: number;
+  stockMovements: Array<{
+    id: number;
+    type: string;
+    quantity: number;
+    unitCost?: number | null;
+    note?: string | null;
+    createdAt: string;
+    product: { id: number; name: string };
+  }>;
+  stockMovementsPagination: {
     total: number;
     page: number;
     limit: number;

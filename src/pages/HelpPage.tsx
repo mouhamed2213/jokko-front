@@ -143,7 +143,7 @@ export default function HelpPage() {
         'Vente à un client déjà enregistré ou à un client passager, en saisissant simplement son nom.',
         'Paiement total ou partiel à la vente, avec possibilité d\'ajouter un paiement complémentaire plus tard.',
         'Impression du ticket ou de la facture juste après la vente.',
-        'La caisse doit être ouverte pour enregistrer une vente, et le plan Gratuit est limité à 100 ventes par mois, renouvelées chaque mois.',
+        'La caisse doit être ouverte pour enregistrer une vente, et le plan Gratuit est limité à 10 ventes par mois, renouvelées chaque mois.',
       ],
       videoPlaceholderText: 'Vidéo : Réaliser une vente et appliquer un tarif de gros (Prochainement)',
     },

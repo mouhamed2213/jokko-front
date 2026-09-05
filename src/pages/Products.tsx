@@ -60,6 +60,7 @@ export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [supplierSearch, setSupplierSearch] = useState("");
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -83,14 +84,17 @@ const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [totalProducts, setTotalProducts] = useState(0);
 
   const admin = isAdmin();
-  let maxProducts = subscription?.limits.products;
-  if (!maxProducts) {
-    maxProducts = 50;
-  }
-
-  const warningThreshold = Math.floor(maxProducts * 0.8);
-  const isAlmostReached = totalProducts >= warningThreshold;
-  const limiteReached = totalProducts >= maxProducts;
+  const maxProducts = subscription?.limits.products;
+  const warningThreshold =
+    maxProducts === null || maxProducts === undefined
+      ? null
+      : Math.ceil(maxProducts * 0.8);
+  const isAlmostReached =
+    warningThreshold !== null && totalProducts >= warningThreshold;
+  const limiteReached =
+    maxProducts !== null &&
+    maxProducts !== undefined &&
+    totalProducts >= maxProducts;
 
   const fetchData = async () => {
     setLoading(true);
@@ -100,7 +104,7 @@ const [selectedFile, setSelectedFile] = useState<File | null>(null);
       const [prodRes, cats, sups] = await Promise.all([
         getProducts({ search, categoryId: categoryFilter, page, limit: 6 }),
         getCategories(),
-        getSuppliers(),
+        getSuppliers({ page: 1, limit: 20 }),
       ]);
       setProducts(prodRes.data);
       setTotalProducts(prodRes.totalProducts);
@@ -118,6 +122,13 @@ const [selectedFile, setSelectedFile] = useState<File | null>(null);
   useEffect(() => {
     fetchData();
   }, [search, categoryFilter, page]);
+
+  useEffect(() => {
+    if (!showSupplierSection) return;
+    getSuppliers({ page: 1, limit: 20, search: supplierSearch || undefined })
+      .then((result) => setSuppliers(result.data))
+      .catch(() => toast.error("Erreur recherche fournisseurs"));
+  }, [supplierSearch, showSupplierSection]);
 
   const totalCost =
     supplierForm.unitCost > 0 && form.quantity > 0
@@ -153,6 +164,7 @@ const resetForm = () => {
   setShowSupplierSection(false);
   setEditingId(null);
   setShowForm(false);
+  setSupplierSearch("");
   setImagePreview("");
   setSelectedFile(null); // Reset du fichier
 };
@@ -177,6 +189,13 @@ const handleSubmit = async (e: React.FormEvent) => {
     supplierForm.unitCost <= 0
   ) {
     return toast.error("Entrez le coût unitaire");
+  }
+  if (
+    showSupplierSection &&
+    supplierForm.createDebt &&
+    supplierForm.paidAmount > totalCost
+  ) {
+    return toast.error("L'acompte ne peut pas dépasser le montant total");
   }
 
   setSubmitting(true);
@@ -770,7 +789,15 @@ const handleSubmit = async (e: React.FormEvent) => {
                     if (!subscription) {
                       return;
                     }
-                    setShowSupplierSection((v) => !v);
+                    setShowSupplierSection((v) => {
+                      if (!v && supplierForm.unitCost <= 0) {
+                        setSupplierForm((p) => ({
+                          ...p,
+                          unitCost: Number(form.purchasePrice) || 0,
+                        }));
+                      }
+                      return !v;
+                    });
                   }}
                   className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 group transition-colors"
                 >
@@ -799,23 +826,45 @@ const handleSubmit = async (e: React.FormEvent) => {
                       <label className="mb-1 block text-sm font-medium text-gray-700">
                         Fournisseur
                       </label>
-                      <select
-                        value={supplierForm.supplierId}
-                        onChange={(e) =>
-                          setSupplierForm((p) => ({
-                            ...p,
-                            supplierId: Number(e.target.value),
-                          }))
-                        }
+                      <input
+                        value={supplierSearch}
+                        onChange={(e) => {
+                          setSupplierSearch(e.target.value);
+                          setSupplierForm((p) => ({ ...p, supplierId: 0 }));
+                        }}
+                        placeholder="Rechercher un fournisseur..."
                         className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                      >
-                        <option value={0}>Sélectionner un fournisseur</option>
-                        {suppliers.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.name}
-                          </option>
-                        ))}
-                      </select>
+                      />
+                      {supplierSearch && !supplierForm.supplierId && (
+                        <div className="mt-1 max-h-48 overflow-y-auto rounded-xl border bg-white shadow-sm">
+                          {suppliers.map((s) => (
+                            <button
+                              type="button"
+                              key={s.id}
+                              onClick={() => {
+                                setSupplierForm((p) => ({
+                                  ...p,
+                                  supplierId: s.id,
+                                  unitCost:
+                                    p.unitCost > 0
+                                      ? p.unitCost
+                                      : Number(form.purchasePrice) || 0,
+                                }));
+                                setSupplierSearch(s.name);
+                              }}
+                              className="block w-full px-4 py-2 text-left text-sm hover:bg-emerald-50"
+                            >
+                              {s.name}
+                              {s.phone ? ` — ${s.phone}` : ""}
+                            </button>
+                          ))}
+                          {!suppliers.length && (
+                            <p className="px-4 py-3 text-sm text-gray-500">
+                              Aucun fournisseur trouvé
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input

@@ -50,25 +50,46 @@ const pageConfig: Record<string, { title: string; description: string }> = {
 interface SubscriptionAlert {
   text: string;
   type: "warning" | "danger";
+  title: string;
 }
 
-function getSubscriptionAlert(endDate: Date | null): SubscriptionAlert | null {
-  if (!endDate) return null;
+function getSubscriptionAlert(
+  subscription?: SubscriptionInfo,
+): SubscriptionAlert | null {
+  if (!subscription) return null;
+
+  if (
+    subscription.status === "EXPIRED" ||
+    subscription.status === "TRIAL_EXPIRED"
+  ) {
+    return {
+      title: "Abonnement expiré :",
+      text: "Renouvelez votre abonnement pour retrouver les fonctionnalités de votre offre.",
+      type: "danger",
+    };
+  }
+
+  if (!subscription.endDate) return null;
 
   const now = new Date();
-  const diff = new Date(endDate).getTime() - now.getTime();
+  const diff = new Date(subscription.endDate).getTime() - now.getTime();
+  if (Number.isNaN(diff)) return null;
   const daysRemaining = Math.ceil(diff / (1000 * 60 * 60 * 24));
 
   if (daysRemaining <= 0) {
     return {
-      text: "Reabonnez-vous pour debloquer toutes les fonctionnalites.",
+      title: "Abonnement expiré :",
+      text: "Renouvelez votre abonnement pour retrouver les fonctionnalités de votre offre.",
       type: "danger",
     };
-  } 
-  
+  }
+
   if (daysRemaining <= 7) {
     return {
-      text: `Attention : Il ne vous reste plus que ${daysRemaining} ${daysRemaining === 1 ? 'jour' : 'jours'} d'abonnement. Pensez a renouveler votre forfait pour eviter toute interruption.`,
+      title: "Renouvellement à prévoir :",
+      text: `Il vous reste ${daysRemaining} ${
+        daysRemaining === 1 ? "jour" : "jours"
+      } d'abonnement. Renouvelez votre offre pour éviter une interruption.`,
       type: "warning",
     };
   }
@@ -95,9 +116,7 @@ export default function Header() {
     description: "Gestion commerciale intelligente.",
   };
 
-  const endDate = new Date(subscription?.endDate as Date);
-
-  const alertConfig = getSubscriptionAlert(endDate);
+  const alertConfig = getSubscriptionAlert(subscription);
 
   const currentDate = new Date().toLocaleDateString("fr-FR", {
     weekday: "long",
@@ -169,7 +188,7 @@ export default function Header() {
           
           <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <p className="leading-relaxed">
-              <b>{alertConfig.type === "danger" ? "Abonnement à expiré !" : "Renouvellement requis :"}</b>{" "}
+              <b>{alertConfig.title}</b>{" "}
               {alertConfig.text}
             </p>
             <button

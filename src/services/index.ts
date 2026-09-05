@@ -40,6 +40,7 @@ import type {
   SupplierListResponse,
   SupplierQuota,
   SupplierDebtAging,
+  SupplierHistoryResponse,
   User,
 } from "../types/index";
 
@@ -160,14 +161,18 @@ export const getSuppliers = async (params?: {
   page?: number;
   limit?: number;
   agingBucket?: string;
+  search?: string;
 }): Promise<SupplierListResponse> =>
   (await api.get("/suppliers", { params })).data;
 export const getSupplierQuota = async (): Promise<SupplierQuota> =>
   (await api.get("/suppliers/quota")).data;
 export const getSupplierDebtAging = async (): Promise<SupplierDebtAging> =>
   (await api.get("/suppliers/aging")).data;
-export const getSupplierById = async (id: number) =>
-  (await api.get(`/suppliers/${id}`)).data;
+export const getSupplierById = async (
+  id: number,
+  params?: { page?: number; limit?: number },
+): Promise<SupplierHistoryResponse> =>
+  (await api.get(`/suppliers/${id}`, { params })).data;
 export const createSupplier = async (
   payload: SupplierPayload,
 ): Promise<Supplier> => (await api.post("/suppliers", payload)).data.supplier;

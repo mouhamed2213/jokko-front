@@ -19,7 +19,7 @@ import { getStoredUser } from "../types/auth";
 
 type Plan = {
   id: number;
-  code: "FREE" | "STARTER" | "PRO" | "PREMIUM";
+  code: "FREE" | "BASIC" | "PRO" | "PREMIUM";
   name: string;
   maxSalesPerMonth: number | null;
   maxProducts: number | null;
@@ -61,21 +61,28 @@ const PLANS_INFO = [
     name: "Gratuit",
     price: 0,
     color: "slate",
-    features: ["1 utilisateur", "50 produits", "90 ventes/mois", "50 clients"],
+    features: [
+      "1 utilisateur",
+      "20 produits",
+      "10 ventes/mois",
+      "Clients illimités",
+      "2 fournisseurs",
+    ],
   },
   {
-    code: "STARTER",
-    name: "Starter",
+    code: "BASIC",
+    name: "Basic",
     price: 6500,
     color: "emerald",
     features: [
-      "2 utilisateurs",
+      "3 utilisateurs",
       "Produits illimités",
       "Ventes illimitées",
       "Clients illimités",
       "Factures PDF A4",
       "Export Excel",
       "Alertes stock",
+      "5 fournisseurs",
     ],
   },
   {
@@ -85,7 +92,7 @@ const PLANS_INFO = [
     color: "blue",
     features: [
       "5 utilisateurs",
-      "Tout Starter inclus",
+      "Tout Basic inclus",
       "Gestion fournisseurs",
       "Rapports & statistiques",
       "Paiements par tranches",
@@ -107,7 +114,7 @@ const PLANS_INFO = [
   },
 ];
 
-const PLAN_ORDER = ["FREE", "STARTER", "PRO", "PREMIUM"];
+const PLAN_ORDER = ["FREE", "BASIC", "PRO", "PREMIUM"];
 
 function getPlanIndex(code: string) {
   return PLAN_ORDER.indexOf(code);
@@ -363,7 +370,7 @@ export default function Settings() {
               className={`text-xs font-bold px-3 py-1 rounded-full ${
                 currentPlanCode === "FREE"
                   ? "bg-slate-100 text-slate-600"
-                  : currentPlanCode === "STARTER"
+                  : currentPlanCode === "BASIC"
                     ? "bg-emerald-100 text-emerald-700"
                     : currentPlanCode === "PRO"
                       ? "bg-blue-100 text-blue-700"
@@ -432,7 +439,7 @@ export default function Settings() {
                   <div
                     key={plan.code}
                     className={`rounded-xl border p-4 cursor-pointer hover:shadow-sm transition ${
-                      plan.code === "STARTER"
+                      plan.code === "BASIC"
                         ? "border-emerald-200 bg-emerald-50"
                         : plan.code === "PRO"
                           ? "border-blue-200 bg-blue-50"
@@ -450,7 +457,7 @@ export default function Settings() {
                     <div className="flex items-center justify-between mb-2">
                       <span
                         className={`text-sm font-bold ${
-                          plan.code === "STARTER"
+                          plan.code === "BASIC"
                             ? "text-emerald-700"
                             : plan.code === "PRO"
                               ? "text-blue-700"
@@ -462,7 +469,7 @@ export default function Settings() {
                       <Crown
                         size={14}
                         className={
-                          plan.code === "STARTER"
+                          plan.code === "BASIC"
                             ? "text-emerald-500"
                             : plan.code === "PRO"
                               ? "text-blue-500"
@@ -497,7 +504,7 @@ export default function Settings() {
                     </ul>
                     <button
                       className={`mt-3 w-full py-1.5 rounded-lg text-xs font-semibold transition ${
-                        plan.code === "STARTER"
+                        plan.code === "BASIC"
                           ? "bg-emerald-600 text-white hover:bg-emerald-700"
                           : plan.code === "PRO"
                             ? "bg-blue-600 text-white hover:bg-blue-700"

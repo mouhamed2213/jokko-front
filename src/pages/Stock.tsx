@@ -25,6 +25,7 @@ const fmtCFA = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 export default function Stock() {
   const [products, setProducts] = useState<Product[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [supplierSearch, setSupplierSearch] = useState("");
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [totalMovements, setTotalMovements] = useState(0);
   const [page, setPage] = useState(1);
@@ -66,7 +67,7 @@ export default function Stock() {
     try {
       const [prodRes, sups, movRes] = await Promise.all([
         getProducts({ limit: 200 }),
-        getSuppliers(),
+        getSuppliers({ page: 1, limit: 20, search: supplierSearch || undefined }),
         getStockMovements({ page, limit: 15 }),
       ]);
       setProducts(prodRes.data);
@@ -84,6 +85,13 @@ export default function Stock() {
   useEffect(() => {
     fetchData();
   }, [page]);
+
+  useEffect(() => {
+    if (!showSupplierSection) return;
+    getSuppliers({ page: 1, limit: 20, search: supplierSearch || undefined })
+      .then((result) => setSuppliers(result.data))
+      .catch(() => toast.error("Erreur recherche fournisseurs"));
+  }, [supplierSearch, showSupplierSection]);
 
   const totalCost =
     entryForm.unitCost > 0 && entryForm.quantity > 0
@@ -127,6 +135,7 @@ export default function Stock() {
         paidAmount: 0,
         createDebt: false,
       });
+      setSupplierSearch("");
       setShowSupplierSection(false);
       await fetchData();
     } catch (error: any) {
@@ -185,6 +194,10 @@ export default function Stock() {
                   setEntryForm((p) => ({
                     ...p,
                     productId: Number(e.target.value),
+                    unitCost:
+                      products.find(
+                        (product) => product.id === Number(e.target.value),
+                      )?.purchasePrice || 0,
                   }))
                 }
                 className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
@@ -243,7 +256,18 @@ export default function Stock() {
                 if (!subscription) {
                   return;
                 }
-                setShowSupplierSection((v) => !v);
+                setShowSupplierSection((v) => {
+                  if (!v && entryForm.unitCost <= 0 && entryForm.productId) {
+                    const product = products.find(
+                      (item) => item.id === entryForm.productId,
+                    );
+                    setEntryForm((p) => ({
+                      ...p,
+                      unitCost: product?.purchasePrice || 0,
+                    }));
+                  }
+                  return !v;
+                });
               }}
               className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 group transition-colors"
             >
@@ -274,23 +298,47 @@ export default function Stock() {
                   <label className="mb-1 block text-sm font-medium text-gray-700">
                     Fournisseur
                   </label>
-                  <select
-                    value={entryForm.supplierId}
-                    onChange={(e) =>
-                      setEntryForm((p) => ({
-                        ...p,
-                        supplierId: Number(e.target.value),
-                      }))
-                    }
+                  <input
+                    value={supplierSearch}
+                    onChange={(e) => {
+                      setSupplierSearch(e.target.value);
+                      setEntryForm((p) => ({ ...p, supplierId: 0 }));
+                    }}
+                    placeholder="Rechercher un fournisseur..."
                     className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                  >
-                    <option value={0}>Sélectionner un fournisseur</option>
-                    {suppliers.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
+                  />
+                  {supplierSearch && !entryForm.supplierId && (
+                    <div className="mt-1 max-h-48 overflow-y-auto rounded-xl border bg-white shadow-sm">
+                      {suppliers.map((s) => (
+                        <button
+                          type="button"
+                          key={s.id}
+                          onClick={() => {
+                            setEntryForm((p) => ({
+                              ...p,
+                              supplierId: s.id,
+                              unitCost:
+                                p.unitCost > 0
+                                  ? p.unitCost
+                                  : products.find(
+                                      (product) => product.id === p.productId,
+                                    )?.purchasePrice || 0,
+                            }));
+                            setSupplierSearch(s.name);
+                          }}
+                          className="block w-full px-4 py-2 text-left text-sm hover:bg-emerald-50"
+                        >
+                          {s.name}
+                          {s.phone ? ` — ${s.phone}` : ""}
+                        </button>
+                      ))}
+                      {!suppliers.length && (
+                        <p className="px-4 py-3 text-sm text-gray-500">
+                          Aucun fournisseur trouvé
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Créer une dette ? */}

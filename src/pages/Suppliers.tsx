@@ -8,6 +8,7 @@ import {
   deleteSupplier,
   getCurrentCash,
   getSupplierDebtAging,
+  getSupplierById,
   getSupplierQuota,
   getSuppliers,
   updateSupplier,
@@ -16,6 +17,7 @@ import type {
   Supplier,
   SupplierDebt,
   SupplierDebtAging,
+  SupplierHistoryResponse,
   SupplierQuota,
 } from "../types/index";
 
@@ -33,6 +35,10 @@ export default function Suppliers() {
   );
   const [supplierPage, setSupplierPage] = useState(1);
   const [supplierTotalPages, setSupplierTotalPages] = useState(1);
+  const [historySupplier, setHistorySupplier] =
+    useState<SupplierHistoryResponse | null>(null);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -102,6 +108,33 @@ export default function Suppliers() {
     if (!confirm("Supprimer ce fournisseur ?")) return;
     try { await deleteSupplier(id); toast.success("Fournisseur supprimé"); await fetchSuppliers(); }
     catch (error: any) { toast.error(error?.response?.data?.message || "Erreur"); }
+  };
+
+  const openSupplierHistory = async (supplierId: number) => {
+    setHistoryLoading(true);
+    setHistoryPage(1);
+    try {
+      setHistorySupplier(await getSupplierById(supplierId, { page: 1, limit: 10 }));
+    } catch {
+      toast.error("Erreur chargement historique fournisseur");
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const changeHistoryPage = async (page: number) => {
+    if (!historySupplier) return;
+    setHistoryLoading(true);
+    try {
+      setHistorySupplier(
+        await getSupplierById(historySupplier.id, { page, limit: 10 }),
+      );
+      setHistoryPage(page);
+    } catch {
+      toast.error("Erreur chargement historique fournisseur");
+    } finally {
+      setHistoryLoading(false);
+    }
   };
 
   const handleAddDebt = async (supplierId: number) => {
@@ -388,29 +421,6 @@ export default function Suppliers() {
                         Doit : {fmt(s.totalDebt ?? 0)}
                       </span>
                     )}
-                    {supplierTotalPages > 1 && (
-                      <div className="flex items-center justify-center gap-4">
-                        <button
-                          type="button"
-                          disabled={supplierPage === 1}
-                          onClick={() => setSupplierPage((page) => page - 1)}
-                          className="rounded-xl border border-gray-300 px-4 py-2 text-sm disabled:opacity-40"
-                        >
-                          ← Précédent
-                        </button>
-                        <span className="text-sm text-gray-500">
-                          Page {supplierPage} / {supplierTotalPages}
-                        </span>
-                        <button
-                          type="button"
-                          disabled={supplierPage === supplierTotalPages}
-                          onClick={() => setSupplierPage((page) => page + 1)}
-                          className="rounded-xl border border-gray-300 px-4 py-2 text-sm disabled:opacity-40"
-                        >
-                          Suivant →
-                        </button>
-                      </div>
-                    )}
                     {(s.totalDebt ?? 0) === 0 && (s as any).totalPurchases > 0 && (
                       <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
                         Tout réglé
@@ -464,10 +474,19 @@ export default function Suppliers() {
                     </div>
 
                     {/* Ajouter une nouvelle dette */}
-                    <button onClick={() => setShowDebtForm(showDebtForm === s.id ? null : s.id)}
-                      className="text-sm font-medium text-red-600 hover:text-red-700">
-                      {showDebtForm === s.id ? "▲ Annuler" : "+ Ajouter une dette / approvisionnement"}
-                    </button>
+                    <div className="flex flex-wrap items-center gap-4">
+                      <button onClick={() => setShowDebtForm(showDebtForm === s.id ? null : s.id)}
+                        className="text-sm font-medium text-red-600 hover:text-red-700">
+                        {showDebtForm === s.id ? "▲ Annuler" : "+ Ajouter une dette / approvisionnement"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openSupplierHistory(s.id)}
+                        className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
+                      >
+                        Voir l’historique des achats
+                      </button>
+                    </div>
 
                     {showDebtForm === s.id && (
                       <div className="rounded-xl bg-white p-4 space-y-3">
@@ -557,6 +576,156 @@ export default function Suppliers() {
               </div>
             );
           })}
+          {supplierTotalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 rounded-2xl bg-white px-5 py-4 shadow-sm">
+              <button
+                type="button"
+                disabled={supplierPage === 1}
+                onClick={() => setSupplierPage((page) => page - 1)}
+                className="rounded-xl border border-gray-300 px-4 py-2 text-sm disabled:opacity-40"
+              >
+                ← Précédent
+              </button>
+              <span className="text-sm text-gray-500">
+                Page {supplierPage} / {supplierTotalPages}
+              </span>
+              <button
+                type="button"
+                disabled={supplierPage === supplierTotalPages}
+                onClick={() => setSupplierPage((page) => page + 1)}
+                className="rounded-xl border border-gray-300 px-4 py-2 text-sm disabled:opacity-40"
+              >
+                Suivant →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      {historySupplier && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-white shadow-xl">
+            <div className="flex items-start justify-between border-b px-5 py-4">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">
+                  Historique des achats — {historySupplier.name}
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  Détail des approvisionnements enregistrés
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setHistorySupplier(null)}
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="space-y-5 p-5">
+              <div className="grid grid-cols-1 gap-3 text-center sm:grid-cols-3">
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <p className="text-xs text-gray-400">Total achats</p>
+                  <p className="font-bold text-slate-900">
+                    {fmt(historySupplier.totalPurchases)}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <p className="text-xs text-gray-400">Total payé</p>
+                  <p className="font-bold text-emerald-700">
+                    {fmt(historySupplier.totalPaid)}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <p className="text-xs text-gray-400">Reste dû</p>
+                  <p className="font-bold text-red-600">
+                    {fmt(historySupplier.totalDebt ?? 0)}
+                  </p>
+                </div>
+              </div>
+              {historyLoading ? (
+                <p className="py-8 text-center text-sm text-gray-400">
+                  Chargement de l’historique...
+                </p>
+              ) : historySupplier.stockMovements.length === 0 ? (
+                <p className="py-8 text-center text-sm text-gray-400">
+                  Aucun approvisionnement enregistré.
+                </p>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border">
+                  <table className="w-full min-w-[700px] text-left text-sm">
+                    <thead className="border-b bg-slate-50 text-xs text-gray-500">
+                      <tr>
+                        <th className="px-4 py-3">Date</th>
+                        <th className="px-4 py-3">Produit</th>
+                        <th className="px-4 py-3">Type</th>
+                        <th className="px-4 py-3">Quantité</th>
+                        <th className="px-4 py-3">Prix unitaire</th>
+                        <th className="px-4 py-3">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {historySupplier.stockMovements.map((movement) => (
+                        <tr key={movement.id} className="border-b last:border-0">
+                          <td className="px-4 py-3 text-gray-600">
+                            {new Date(movement.createdAt).toLocaleDateString("fr-FR")}
+                          </td>
+                          <td className="px-4 py-3 font-medium text-slate-800">
+                            {movement.product.name}
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">
+                            {{
+                              ENTRY: "Entrée",
+                              OUT: "Sortie",
+                              SALE: "Vente",
+                              ADJUST: "Ajustement",
+                            }[movement.type] || movement.type}
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">
+                            {movement.quantity}
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">
+                            {movement.unitCost == null ? "—" : fmt(movement.unitCost)}
+                          </td>
+                          <td className="px-4 py-3 font-medium text-slate-800">
+                            {movement.unitCost == null
+                              ? "—"
+                              : fmt(movement.unitCost * movement.quantity)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {historySupplier.stockMovementsPagination.totalPages > 1 && (
+                <div className="flex items-center justify-center gap-4">
+                  <button
+                    type="button"
+                    disabled={historyPage === 1 || historyLoading}
+                    onClick={() => changeHistoryPage(historyPage - 1)}
+                    className="rounded-lg border px-3 py-1.5 text-xs disabled:opacity-40"
+                  >
+                    ← Précédent
+                  </button>
+                  <span className="text-xs text-gray-500">
+                    Page {historyPage} /{" "}
+                    {historySupplier.stockMovementsPagination.totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={
+                      historyPage === historySupplier.stockMovementsPagination.totalPages ||
+                      historyLoading
+                    }
+                    onClick={() => changeHistoryPage(historyPage + 1)}
+                    className="rounded-lg border px-3 py-1.5 text-xs disabled:opacity-40"
+                  >
+                    Suivant →
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </section>

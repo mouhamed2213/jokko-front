@@ -276,9 +276,12 @@ function ShopSwitcher({
 
   const otherShops = shops.filter((s) => s.id !== currentShopId);
 
-  const maxStore = subscription.limits.stores ?? 0;
-  const maxStoreIsReached = otherShops.length >= maxStore;
-  const isExpired = new Date(subscription.endDate) < now;
+  const maxStore = subscription.limits.stores;
+  const maxStoreIsReached =
+    maxStore !== null && otherShops.length >= maxStore;
+  const isExpired =
+    subscription.endDate !== null &&
+    new Date(subscription.endDate) < now;
 
   type AddShopStatus =
     | { kind: "allowed" }
