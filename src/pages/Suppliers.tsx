@@ -228,13 +228,13 @@ export default function Suppliers() {
       )}
 
       {/* Stats */}
-      {totalDebtAll > 0 && (
+      {/* {totalDebtAll > 0 && (
         <div className="rounded-2xl bg-red-50 border border-red-200 px-5 py-4">
           <p className="text-sm font-semibold text-red-800">
             Total dû à tous les fournisseurs : <span className="text-lg">{fmt(totalDebtAll)}</span>
           </p>
         </div>
-      )}
+      )} */}
 
       {/* Actions */}
       <div className="flex items-center justify-between">
