@@ -28,6 +28,11 @@ export default function Suppliers() {
   const [cashOpen, setCashOpen] = useState<boolean | null>(null);
   const [quota, setQuota] = useState<SupplierQuota | null>(null);
   const [aging, setAging] = useState<SupplierDebtAging | null>(null);
+  const [selectedAgingBucket, setSelectedAgingBucket] = useState<string | null>(
+    null,
+  );
+  const [supplierPage, setSupplierPage] = useState(1);
+  const [supplierTotalPages, setSupplierTotalPages] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -59,11 +64,16 @@ export default function Suppliers() {
   const fetchSuppliers = async () => {
     try {
       const [supplierData, quotaData, agingData] = await Promise.all([
-        getSuppliers(),
+        getSuppliers({
+          page: supplierPage,
+          limit: 10,
+          agingBucket: selectedAgingBucket ?? undefined,
+        }),
         getSupplierQuota(),
         getSupplierDebtAging(),
       ]);
-      setSuppliers(supplierData);
+      setSuppliers(supplierData.data);
+      setSupplierTotalPages(supplierData.pagination.totalPages);
       setQuota(quotaData);
       setAging(agingData);
     } catch { toast.error("Erreur chargement fournisseurs"); }
@@ -73,7 +83,7 @@ export default function Suppliers() {
   useEffect(() => {
     fetchSuppliers();
     checkCash();
-  }, []);
+  }, [selectedAgingBucket, supplierPage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,7 +180,21 @@ export default function Suppliers() {
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
               {aging.buckets.map((bucket) => (
-                <div key={bucket.key} className="rounded-xl bg-white p-3">
+                <button
+                  key={bucket.key}
+                  type="button"
+                  onClick={() => {
+                    setSupplierPage(1);
+                    setSelectedAgingBucket(
+                      selectedAgingBucket === bucket.key ? null : bucket.key,
+                    );
+                  }}
+                  className={`rounded-xl p-3 text-left transition ${
+                    selectedAgingBucket === bucket.key
+                      ? "bg-red-100 ring-2 ring-red-400"
+                      : "bg-white hover:bg-red-100"
+                  }`}
+                >
                   <p className="text-xs text-gray-500">{bucket.label}</p>
                   <p className="mt-1 font-bold text-slate-900">
                     {fmt(bucket.amount)}
@@ -178,7 +202,7 @@ export default function Suppliers() {
                   <p className="text-xs text-gray-400">
                     {bucket.count} dette(s)
                   </p>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -306,9 +330,37 @@ export default function Suppliers() {
         </div>
       )}
 
-      {/* Liste fournisseurs */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold text-slate-800">
+          {selectedAgingBucket
+            ? `Fournisseurs avec dettes : ${
+                aging?.buckets.find(
+                  (bucket) => bucket.key === selectedAgingBucket,
+                )?.label
+              }`
+            : "Tous les fournisseurs"}
+        </p>
+        {selectedAgingBucket && (
+          <button
+            type="button"
+            onClick={() => {
+              setSupplierPage(1);
+              setSelectedAgingBucket(null);
+            }}
+            className="text-xs font-medium text-emerald-700 hover:text-emerald-800"
+          >
+            Voir tout
+          </button>
+        )}
+      </div>
+
+      {/* Liste fournisseurs filtrée et paginée par le backend */}
       {!suppliers.length ? (
-        <div className="rounded-2xl bg-white p-8 text-center text-gray-400">Aucun fournisseur enregistré.</div>
+        <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
+          {selectedAgingBucket
+            ? "Aucun fournisseur avec une dette dans cette tranche."
+            : "Aucun fournisseur enregistré."}
+        </div>
       ) : (
         <div className="space-y-3">
           {suppliers.map((s) => {
@@ -335,6 +387,29 @@ export default function Suppliers() {
                       <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
                         Doit : {fmt(s.totalDebt ?? 0)}
                       </span>
+                    )}
+                    {supplierTotalPages > 1 && (
+                      <div className="flex items-center justify-center gap-4">
+                        <button
+                          type="button"
+                          disabled={supplierPage === 1}
+                          onClick={() => setSupplierPage((page) => page - 1)}
+                          className="rounded-xl border border-gray-300 px-4 py-2 text-sm disabled:opacity-40"
+                        >
+                          ← Précédent
+                        </button>
+                        <span className="text-sm text-gray-500">
+                          Page {supplierPage} / {supplierTotalPages}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={supplierPage === supplierTotalPages}
+                          onClick={() => setSupplierPage((page) => page + 1)}
+                          className="rounded-xl border border-gray-300 px-4 py-2 text-sm disabled:opacity-40"
+                        >
+                          Suivant →
+                        </button>
+                      </div>
                     )}
                     {(s.totalDebt ?? 0) === 0 && (s as any).totalPurchases > 0 && (
                       <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">

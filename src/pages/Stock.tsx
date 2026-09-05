@@ -70,7 +70,7 @@ export default function Stock() {
         getStockMovements({ page, limit: 15 }),
       ]);
       setProducts(prodRes.data);
-      setSuppliers(sups);
+      setSuppliers(sups.data);
       setMovements(movRes.data || []);
       setTotalMovements(movRes.pagination?.total || 0);
       setTotalPages(movRes.pagination?.totalPages || 1);

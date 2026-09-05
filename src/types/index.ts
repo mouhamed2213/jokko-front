@@ -141,6 +141,16 @@ export type Supplier = {
   supplierDebts?: SupplierDebt[];
 };
 
+export type SupplierListResponse = {
+  data: Supplier[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+};
+
 export type SupplierDebt = {
   id: number;
   supplierId: number;

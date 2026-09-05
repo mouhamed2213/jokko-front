@@ -107,7 +107,7 @@ const [selectedFile, setSelectedFile] = useState<File | null>(null);
       setTotal(prodRes.pagination.total);
       setTotalPages(prodRes.pagination.totalPages);
       setCategories(cats);
-      setSuppliers(sups);
+      setSuppliers(sups.data);
     } catch {
       toast.error("Erreur chargement");
     } finally {

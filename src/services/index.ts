@@ -37,6 +37,7 @@ import type {
   Shop,
   SubscriptionInfo,
   Supplier,
+  SupplierListResponse,
   SupplierQuota,
   SupplierDebtAging,
   User,
@@ -155,8 +156,12 @@ export type SupplierPayload = {
   email?: string;
   address?: string;
 };
-export const getSuppliers = async (): Promise<Supplier[]> =>
-  (await api.get("/suppliers")).data;
+export const getSuppliers = async (params?: {
+  page?: number;
+  limit?: number;
+  agingBucket?: string;
+}): Promise<SupplierListResponse> =>
+  (await api.get("/suppliers", { params })).data;
 export const getSupplierQuota = async (): Promise<SupplierQuota> =>
   (await api.get("/suppliers/quota")).data;
 export const getSupplierDebtAging = async (): Promise<SupplierDebtAging> =>
