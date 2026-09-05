@@ -39,6 +39,37 @@ export type SubscriptionInfo = {
   features: FeatureCode[];
 };
 
+export type SupplierQuota = {
+  count: number;
+  limit: number | null;
+  remaining: number | null;
+  plan: PlanCode;
+};
+
+export type SupplierDebtAging = {
+  referenceDate: string;
+  totalRemaining: number;
+  totalDebts: number;
+  buckets: Array<{
+    key: string;
+    label: string;
+    count: number;
+    amount: number;
+  }>;
+  debts: Array<{
+    id: number;
+    supplierId: number;
+    supplierName: string;
+    totalAmount: number;
+    remaining: number;
+    status: "UNPAID" | "PARTIAL";
+    createdAt: string;
+    ageDays: number;
+    bucket: string;
+    note?: string | null;
+  }>;
+};
+
 // ============================================================
 //  types/product.ts
 // ============================================================
@@ -389,4 +420,3 @@ export type ShopsListResponse = {
   };
   data: Shop[];
 };
-

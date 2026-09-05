@@ -2,7 +2,6 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronUp,
-  Crown,
   Lock,
   Plus,
   Search,
@@ -30,7 +29,6 @@ import type {
   SubscriptionInfo,
   Supplier,
 } from "../types/index";
-import { hasFeatures } from "../utils/subscription.checker";
 import { showModal } from "../components/upgradeModal";
 
 const emptyForm = {
@@ -77,14 +75,12 @@ export default function Products() {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-  const [isUpgradeModalSupplierOpen, setIsUpgradeModalSupplierOpen] = useState(false);
 const [selectedFile, setSelectedFile] = useState<File | null>(null);
   // Upload image
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [totalProducts, setTotalProducts] = useState(0);
-  const hasFeature = hasFeatures(subscription as SubscriptionInfo);
 
   const admin = isAdmin();
   let maxProducts = subscription?.limits.products;
@@ -771,8 +767,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <button
                   type="button"
                   onClick={() => {
-                    if (!hasFeature.supplierManagement) {
-                      setIsUpgradeModalSupplierOpen(true);
+                    if (!subscription) {
                       return;
                     }
                     setShowSupplierSection((v) => !v);
@@ -792,12 +787,6 @@ const handleSubmit = async (e: React.FormEvent) => {
                         : "Lier à un fournisseur "}
                     </span>
 
-                    {/* Petit badge PRO si la fonctionnalité est verrouillée */}
-                    {!hasFeature.supplierManagement && (
-                      <span className="ml-1 flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md group-hover:bg-amber-200 transition-colors">
-                        <Crown size={9} className="fill-amber-800" /> PRO
-                      </span>
-                    )}
                   </div>
                 </button>
 
@@ -1095,12 +1084,6 @@ const handleSubmit = async (e: React.FormEvent) => {
           "maxProductReached",
         )}
 
-      {isUpgradeModalSupplierOpen &&
-        showModal(
-          isUpgradeModalSupplierOpen,
-          () => setIsUpgradeModalSupplierOpen(false),
-          "supplierFeatures",
-        )}
     </section>
   );
 }

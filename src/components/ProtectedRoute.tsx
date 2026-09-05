@@ -39,9 +39,5 @@ export function SubscriptionGuard({ children }: Props) {
     return <Navigate to="/login" replace />;
   }
 
-  if (user.plan === "FREE" || user.plan === "BASIC") {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   return <>{children}</>;
 }

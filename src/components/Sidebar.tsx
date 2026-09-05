@@ -33,7 +33,7 @@ import {
   getSubscription,
   switchShop,
 } from "../services";
-import type { NewShopForm, SubscriptionInfo } from "../types";
+import type { FeatureCode, NewShopForm, SubscriptionInfo } from "../types";
 import { hasFeature, hasFeatures } from "../utils/subscription.checker";
 
 // ── Types ────────────────────────────────────────────────────
@@ -57,7 +57,16 @@ const emptyShopForm: NewShopForm = {
 };
 
 // ── Nav links ────────────────────────────────────────────────
-const allLinks = [
+type NavLinkItem = {
+  name: string;
+  path: string;
+  icon: typeof LayoutDashboard;
+  adminOnly: boolean;
+  premium?: boolean;
+  featureKey?: FeatureCode;
+};
+
+const allLinks: NavLinkItem[] = [
   {
     name: "Tableau de bord",
     path: "/dashboard",
@@ -72,8 +81,6 @@ const allLinks = [
     path: "/suppliers",
     icon: Truck,
     adminOnly: false,
-    premium: true,
-    featureKey: "SUPPLIER_MANAGEMENT" as const,
   },
   { name: "Stock", path: "/stock", icon: Boxes, adminOnly: false },
   { name: "Ventes", path: "/sales", icon: ShoppingCart, adminOnly: false },

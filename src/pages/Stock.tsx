@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Crown, Download, Lock } from "lucide-react";
+import { ChevronDown, ChevronUp, Download, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
@@ -17,7 +17,6 @@ import type {
   Supplier,
 } from "../types/index";
 import { exportStockToExcel } from "../utils/exportExcel";
-import { hasFeatures } from "../utils/subscription.checker";
 import { showModal } from "../components/upgradeModal";
 
 const fmt = (v: number) => v.toLocaleString("fr-FR");
@@ -35,8 +34,6 @@ export default function Stock() {
   const [submittingEntry, setSubmittingEntry] = useState(false);
   const [submittingOut, setSubmittingOut] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-  const [isUpgradeModalSupplierOpen, setIsUpgradeModalSupplierOpen] =
-    useState(false);
 
   const [subscription, setSubscription] = useState<SubscriptionInfo>();
 
@@ -61,7 +58,6 @@ export default function Stock() {
   // Afficher sections optionnelles
   const [showSupplierSection, setShowSupplierSection] = useState(false);
   // , locales, {})
-  const hasFeature = hasFeatures(subscription as SubscriptionInfo);
 
   const fetchData = async () => {
     setLoading(true);
@@ -244,8 +240,7 @@ export default function Stock() {
             <button
               type="button"
               onClick={() => {
-                if (!hasFeature.supplierManagement) {
-                  setIsUpgradeModalSupplierOpen(true);
+                if (!subscription) {
                   return;
                 }
                 setShowSupplierSection((v) => !v);
@@ -265,12 +260,6 @@ export default function Stock() {
                     : "Lier à un fournisseur "}
                 </span>
 
-                {/* Petit badge PRO si la fonctionnalité est verrouillée */}
-                {!hasFeature.supplierManagement && (
-                  <span className="ml-1 flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md group-hover:bg-amber-200 transition-colors">
-                    <Crown size={9} className="fill-amber-800" /> PRO
-                  </span>
-                )}
               </div>
             </button>
 
@@ -669,12 +658,6 @@ export default function Stock() {
             "exportPdfOrExcel",
           )}
 
-        {isUpgradeModalSupplierOpen &&
-          showModal(
-            isUpgradeModalSupplierOpen,
-            () => setIsUpgradeModalSupplierOpen(false),
-            "supplierFeatures",
-          )}
       </div>
     </section>
   );

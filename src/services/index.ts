@@ -37,6 +37,8 @@ import type {
   Shop,
   SubscriptionInfo,
   Supplier,
+  SupplierQuota,
+  SupplierDebtAging,
   User,
 } from "../types/index";
 
@@ -155,6 +157,10 @@ export type SupplierPayload = {
 };
 export const getSuppliers = async (): Promise<Supplier[]> =>
   (await api.get("/suppliers")).data;
+export const getSupplierQuota = async (): Promise<SupplierQuota> =>
+  (await api.get("/suppliers/quota")).data;
+export const getSupplierDebtAging = async (): Promise<SupplierDebtAging> =>
+  (await api.get("/suppliers/aging")).data;
 export const getSupplierById = async (id: number) =>
   (await api.get(`/suppliers/${id}`)).data;
 export const createSupplier = async (

@@ -7,10 +7,17 @@ import {
   createSupplier,
   deleteSupplier,
   getCurrentCash,
+  getSupplierDebtAging,
+  getSupplierQuota,
   getSuppliers,
   updateSupplier,
 } from "../services/index";
-import type { Supplier, SupplierDebt } from "../types/index";
+import type {
+  Supplier,
+  SupplierDebt,
+  SupplierDebtAging,
+  SupplierQuota,
+} from "../types/index";
 
 const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 const emptyForm = { name: "", phone: "", email: "", address: "" };
@@ -19,6 +26,8 @@ export default function Suppliers() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [cashOpen, setCashOpen] = useState<boolean | null>(null);
+  const [quota, setQuota] = useState<SupplierQuota | null>(null);
+  const [aging, setAging] = useState<SupplierDebtAging | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -49,7 +58,14 @@ export default function Suppliers() {
 
   const fetchSuppliers = async () => {
     try {
-      setSuppliers(await getSuppliers());
+      const [supplierData, quotaData, agingData] = await Promise.all([
+        getSuppliers(),
+        getSupplierQuota(),
+        getSupplierDebtAging(),
+      ]);
+      setSuppliers(supplierData);
+      setQuota(quotaData);
+      setAging(agingData);
     } catch { toast.error("Erreur chargement fournisseurs"); }
     finally { setLoading(false); }
   };
@@ -126,6 +142,49 @@ export default function Suppliers() {
 
   return (
     <section className="space-y-6">
+    {quota && (
+      <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
+        <p className="text-sm font-semibold text-slate-800">
+          Fournisseurs : {quota.count}
+          {quota.limit === null ? " (illimité)" : ` / ${quota.limit}`}
+        </p>
+        {quota.remaining !== null && (
+          <p className="mt-1 text-xs text-slate-500">
+            {quota.remaining} place(s) restante(s) sur votre plan
+          </p>
+        )}
+        {aging && (
+          <div className="rounded-2xl border border-red-100 bg-red-50 p-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-semibold text-red-800">
+                  Ancienneté des dettes fournisseurs
+                </p>
+                <p className="mt-1 text-xs text-red-600">
+                  Basée sur la date de création de chaque dette
+                </p>
+              </div>
+              <p className="text-sm font-bold text-red-800">
+                {fmt(aging.totalRemaining)} restant dû
+              </p>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {aging.buckets.map((bucket) => (
+                <div key={bucket.key} className="rounded-xl bg-white p-3">
+                  <p className="text-xs text-gray-500">{bucket.label}</p>
+                  <p className="mt-1 font-bold text-slate-900">
+                    {fmt(bucket.amount)}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {bucket.count} dette(s)
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )}
 
       {/* Alerte caisse fermée */}
       {cashOpen === false && (
@@ -156,8 +215,16 @@ export default function Suppliers() {
       {/* Actions */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500">{suppliers.length} fournisseur(s)</p>
-        <button onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }}
-          className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition">
+        <button
+          disabled={quota?.remaining === 0}
+          onClick={() => {
+            setShowForm(true);
+            setEditingId(null);
+            setForm(emptyForm);
+          }}
+          className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition disabled:cursor-not-allowed disabled:bg-slate-300"
+          title={quota?.remaining === 0 ? "Quota fournisseur atteint" : undefined}
+        >
           <Plus size={16} /> Nouveau fournisseur
         </button>
       </div>
