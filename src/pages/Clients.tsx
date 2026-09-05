@@ -514,9 +514,9 @@ export default function Clients() {
                         onClick={() => {
                           window.location.href = `/invoices?search=${encodeURIComponent(sale.invoiceNumber || String(sale.id))}`;
                         }}
-                        className="font-medium text-emerald-700 hover:underline"
+                        className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-medium text-emerald-700 transition hover:bg-emerald-100"
                       >
-                        Voir la facture →
+                        Voir la facture
                       </button>
                     </div>
                   </div>
