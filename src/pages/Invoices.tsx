@@ -51,7 +51,9 @@ export default function Invoices() {
   const [cashOpen, setCashOpen] = useState<boolean | null>(null);
 
   // Filtres
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(
+    () => new URLSearchParams(window.location.search).get("search") || "",
+  );
   const [status, setStatus] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");

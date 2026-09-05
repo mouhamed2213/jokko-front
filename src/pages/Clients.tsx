@@ -1,7 +1,5 @@
 import {
   AlertTriangle,
-  ChevronDown,
-  ChevronUp,
   Download,
   Lock,
   Plus,
@@ -14,12 +12,13 @@ import { showModal } from "../components/upgradeModal";
 import {
   createClient,
   deleteClient,
+  getClientById,
   getClients,
   getSubscription,
   updateClient,
 } from "../services/index";
 import { getStoredUser, isAdmin } from "../types/auth";
-import type { Client, SubscriptionInfo } from "../types/index";
+import type { Client, Sale, SubscriptionInfo } from "../types/index";
 import { exportClientsToExcel } from "../utils/exportExcel";
 import { hasFeature } from "../utils/subscription.checker";
 
@@ -28,7 +27,6 @@ const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
 export default function Clients() {
   const [clients, setClients] = useState<Client[]>([]);
-  const [filtered, setFiltered] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const user = getStoredUser();
   const [search, setSearch] = useState("");
@@ -36,13 +34,20 @@ export default function Clients() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [historyClient, setHistoryClient] = useState<Client | null>(null);
+  const [historySales, setHistorySales] = useState<Sale[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyTotalPages, setHistoryTotalPages] = useState(1);
+  const [historyStatus, setHistoryStatus] = useState("");
   const admin = isAdmin();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [limitCostumer, setLimitCostumer] = useState<number | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionInfo>();
-  const shopPlan = subscription?.plan.code;
   const maxCustomers = subscription?.limits.customers;
+  const [page, setPage] = useState(1);
+  const [totalClients, setTotalClients] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Calcul des seuils critiques
   const isLimitCustomerReached =
@@ -53,11 +58,15 @@ export default function Clients() {
 
   const fetchClients = async () => {
     try {
-      getSubscription().then(setSubscription);
-      const { client, customerCount } = await getClients();
+      const { client, customerCount, pagination } = await getClients({
+        search: search.trim() || undefined,
+        page,
+        limit: 10,
+      });
       setClients(client);
-      setFiltered(client);
       setLimitCostumer(customerCount);
+      setTotalClients(pagination.total);
+      setTotalPages(pagination.totalPages);
     } catch {
       toast.error("Erreur chargement clients");
     } finally {
@@ -71,17 +80,15 @@ export default function Clients() {
   );
 
   useEffect(() => {
-    fetchClients();
+    getSubscription().then(setSubscription).catch(() => {
+      toast.error("Erreur chargement abonnement");
+    });
   }, []);
 
   useEffect(() => {
-    const q = search.toLowerCase();
-    setFiltered(
-      clients.filter(
-        (c) => c.name.toLowerCase().includes(q) || c.phone.includes(q),
-      ),
-    );
-  }, [search, clients]);
+    const timeout = window.setTimeout(fetchClients, 300);
+    return () => window.clearTimeout(timeout);
+  }, [search, page]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,6 +106,7 @@ export default function Clients() {
       setShowForm(false);
       setEditingId(null);
       setForm(emptyForm);
+      setPage(1);
       await fetchClients();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Erreur");
@@ -124,10 +132,35 @@ export default function Clients() {
     try {
       await deleteClient(id);
       toast.success("Client supprimé");
+      setPage(1);
       await fetchClients();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Erreur suppression");
     }
+  };
+
+  const loadHistory = async (client: Client, nextPage = historyPage, nextStatus = historyStatus) => {
+    setHistoryClient(client);
+    setHistoryLoading(true);
+    try {
+      const details = await getClientById(client.id, {
+        page: nextPage,
+        limit: 5,
+        status: nextStatus || undefined,
+      });
+      setHistorySales(details.sales || []);
+      setHistoryTotalPages(details.salesPagination?.totalPages || 1);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Erreur chargement historique");
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const openHistory = (client: Client) => {
+    setHistoryPage(1);
+    setHistoryStatus("");
+    void loadHistory(client, 1, "");
   };
 
   if (!user) {
@@ -304,10 +337,12 @@ export default function Clients() {
         </div>
       )}
 
-      <p className="text-sm text-gray-500">{filtered.length} client(s)</p>
+      <p className="text-sm text-gray-500">
+        {totalClients} client(s)
+      </p>
 
       {/* Liste clients */}
-      {!filtered.length ? (
+      {!clients.length ? (
         <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
           {search
             ? `Aucun client pour "${search}"`
@@ -315,7 +350,7 @@ export default function Clients() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((client) => (
+          {clients.map((client) => (
             <div
               key={client.id}
               className="rounded-2xl bg-white shadow-sm overflow-hidden"
@@ -333,23 +368,21 @@ export default function Clients() {
                       {client.phone}
                       {client.email ? ` • ${client.email}` : ""}
                     </p>
+                    <span
+                      className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                        (client.totalRemaining ?? 0) > 0
+                          ? "bg-red-100 text-red-700"
+                          : "bg-emerald-100 text-emerald-700"
+                      }`}
+                    >
+                      {(client.totalRemaining ?? 0) > 0
+                        ? "Compte à régler"
+                        : "En règle"}
+                    </span>
                   </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  {/* Solde restant */}
-                  {(client.totalRemaining ?? 0) > 0 && (
-                    <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
-                      Doit : {fmt(client.totalRemaining ?? 0)}
-                    </span>
-                  )}
-                  {(client.totalRemaining ?? 0) === 0 &&
-                    (client.totalPurchases ?? 0) > 0 && (
-                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
-                        À jour
-                      </span>
-                    )}
-
                   <button
                     onClick={() => handleEdit(client)}
                     className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
@@ -365,54 +398,161 @@ export default function Clients() {
                     </button>
                   )}
                   <button
-                    onClick={() =>
-                      setExpandedId(expandedId === client.id ? null : client.id)
-                    }
-                    className="text-gray-400 hover:text-gray-600"
+                    onClick={() => openHistory(client)}
+                    className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs text-emerald-700 hover:bg-emerald-50"
                   >
-                    {expandedId === client.id ? (
-                      <ChevronUp size={18} />
-                    ) : (
-                      <ChevronDown size={18} />
-                    )}
+                    Voir détail
                   </button>
                 </div>
               </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-              {/* Détails financiers */}
-              {expandedId === client.id && (
-                <div className="border-t bg-slate-50 px-5 py-4">
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div className="rounded-xl bg-white p-3">
-                      <p className="text-xs text-gray-400">Total acheté</p>
-                      <p className="mt-1 text-sm font-bold text-slate-900">
-                        {fmt(client.totalPurchases ?? 0)}
-                      </p>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between rounded-2xl bg-white px-5 py-3 shadow-sm">
+          <button
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            disabled={page === 1}
+            className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            ← Précédent
+          </button>
+          <span className="text-sm text-gray-500">
+            Page <strong className="text-slate-900">{page}</strong> sur{" "}
+            <strong className="text-slate-900">{totalPages}</strong>
+          </span>
+          <button
+            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+            disabled={page === totalPages}
+            className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            Suivant →
+          </button>
+        </div>
+      )}
+
+      {historyClient && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-xl">
+            <div className="sticky top-0 flex items-center justify-between border-b bg-white px-6 py-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">
+                  Historique de {historyClient.name}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {historyClient.phone}
+                  {historyClient.email ? ` • ${historyClient.email}` : ""}
+                </p>
+              </div>
+              <button onClick={() => setHistoryClient(null)}>
+                <X size={20} className="text-gray-400" />
+              </button>
+            </div>
+            <div className="space-y-3 p-6">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium text-slate-700">
+                  Factures et achats
+                </p>
+                <select
+                  value={historyStatus}
+                  onChange={(event) => {
+                    const nextStatus = event.target.value;
+                    setHistoryStatus(nextStatus);
+                    setHistoryPage(1);
+                    void loadHistory(historyClient, 1, nextStatus);
+                  }}
+                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                >
+                  <option value="">Tous les statuts</option>
+                  <option value="PAID">Payées</option>
+                  <option value="PARTIAL">Partielles</option>
+                  <option value="UNPAID">Non réglées</option>
+                </select>
+              </div>
+              {historyLoading ? (
+                <p className="py-8 text-center text-gray-400">Chargement...</p>
+              ) : !historySales.length ? (
+                <p className="py-8 text-center text-gray-400">
+                  Aucun achat enregistré.
+                </p>
+              ) : (
+                historySales.map((sale) => (
+                  <div key={sale.id} className="rounded-xl border border-gray-200 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="font-semibold text-slate-900">
+                          {sale.invoiceNumber || `Facture #${sale.id}`}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(sale.createdAt).toLocaleDateString("fr-FR")}
+                        </p>
+                      </div>
+                      <span className={`rounded-full px-2 py-1 text-xs font-medium ${
+                        sale.status === "PAID"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : sale.status === "PARTIAL"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-red-100 text-red-700"
+                      }`}>
+                        {sale.status === "PAID" ? "Payée" : sale.status === "PARTIAL" ? "Partielle" : "Non réglée"}
+                      </span>
                     </div>
-                    <div className="rounded-xl bg-white p-3">
-                      <p className="text-xs text-gray-400">Total payé</p>
-                      <p className="mt-1 text-sm font-bold text-emerald-700">
-                        {fmt(client.totalPaid ?? 0)}
-                      </p>
+                    <div className="mt-3 space-y-1 text-sm text-gray-600">
+                      {sale.items.map((item) => (
+                        <p key={item.id}>
+                          {item.productName} × {item.quantity} — {fmt(item.totalAmount)}
+                        </p>
+                      ))}
                     </div>
-                    <div className="rounded-xl bg-white p-3">
-                      <p className="text-xs text-gray-400">Reste à payer</p>
-                      <p
-                        className={`mt-1 text-sm font-bold ${(client.totalRemaining ?? 0) > 0 ? "text-red-600" : "text-emerald-600"}`}
+                    <div className="mt-3 flex flex-wrap gap-4 border-t pt-3 text-xs">
+                      <span>Total : <strong>{fmt(sale.totalAmount)}</strong></span>
+                      <span>Payé : <strong className="text-emerald-700">{fmt(sale.paidAmount)}</strong></span>
+                      <span>Reste : <strong className="text-red-600">{fmt(sale.remaining)}</strong></span>
+                      <button
+                        onClick={() => {
+                          window.location.href = `/invoices?search=${encodeURIComponent(sale.invoiceNumber || String(sale.id))}`;
+                        }}
+                        className="font-medium text-emerald-700 hover:underline"
                       >
-                        {fmt(client.totalRemaining ?? 0)}
-                      </p>
+                        Voir la facture →
+                      </button>
                     </div>
                   </div>
-                  {client.address && (
-                    <p className="mt-3 text-sm text-gray-500">
-                      📍 {client.address}
-                    </p>
-                  )}
+                ))
+              )}
+              {!historyLoading && historyTotalPages > 1 && (
+                <div className="flex items-center justify-between border-t pt-4">
+                  <button
+                    onClick={() => {
+                      const nextPage = Math.max(1, historyPage - 1);
+                      setHistoryPage(nextPage);
+                      void loadHistory(historyClient, nextPage, historyStatus);
+                    }}
+                    disabled={historyPage === 1}
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-xs disabled:opacity-40"
+                  >
+                    ← Précédent
+                  </button>
+                  <span className="text-xs text-gray-500">
+                    Page {historyPage} sur {historyTotalPages}
+                  </span>
+                  <button
+                    onClick={() => {
+                      const nextPage = Math.min(historyTotalPages, historyPage + 1);
+                      setHistoryPage(nextPage);
+                      void loadHistory(historyClient, nextPage, historyStatus);
+                    }}
+                    disabled={historyPage === historyTotalPages}
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-xs disabled:opacity-40"
+                  >
+                    Suivant →
+                  </button>
                 </div>
               )}
             </div>
-          ))}
+          </div>
         </div>
       )}
 

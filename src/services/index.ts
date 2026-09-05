@@ -130,16 +130,32 @@ export type ClientPayload = {
   email?: string;
   address?: string;
 };
-export const getClients = async (): Promise<{
+export const getClients = async (params?: {
+  search?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{
   client: Client[];
   customerCount: number;
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }> => {
-  const data = (await api.get("/clients")).data;
+  const data = (await api.get("/clients", { params })).data;
 
-  return { client: data.data, customerCount: data.customerCount };
+  return {
+    client: data.data,
+    customerCount: data.customerCount,
+    pagination: data.pagination,
+  };
 };
-export const getClientById = async (id: number) =>
-  (await api.get(`/clients/${id}`)).data;
+export const getClientById = async (
+  id: number,
+  params?: { page?: number; limit?: number; status?: string },
+) => (await api.get(`/clients/${id}`, { params })).data;
 export const createClient = async (payload: ClientPayload): Promise<Client> =>
   (await api.post("/clients", payload)).data.client;
 export const updateClient = async (
