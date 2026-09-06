@@ -1,9 +1,7 @@
-import { Download, Lock, Plus, Printer, Search, X } from "lucide-react";
+import { Download, Lock, Plus, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import PaymentMethodSelect from "../components/Paymentmethodselect";
 import {
-  addSalePayment,
   createSale,
   deleteSale,
   getClients,
@@ -17,7 +15,6 @@ import { getStoredUser, isAdmin } from "../types/auth";
 import type { Client, Product, Sale, SubscriptionInfo } from "../types/index";
 import { exportSalesToExcel } from "../utils/exportExcel";
 import { exportSalesPDF } from "../utils/exportPDF";
-import { printInvoice as doPrint } from "../utils/printInvoice";
 import { showModal } from "../components/upgradeModal";
 
 const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
@@ -39,6 +36,7 @@ export default function Sales() {
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+  const [clientSearch, setClientSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [cashOpen, setCashOpen] = useState<boolean | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -57,17 +55,7 @@ export default function Sales() {
   const [priceSuggestion, setPriceSuggestion] = useState<string>("");
   const [clientId, setClientId] = useState<number | "">("");
   const [customerName, setCustomerName] = useState("");
-  const [paidAmount, setPaidAmount] = useState<number | "">("");
   const [note, setNote] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("CASH");
-
-  // Paiement partiel
-  const [paymentSaleId, setPaymentSaleId] = useState<number | null>(null);
-  const [paymentAmount, setPaymentAmount] = useState("");
-
-  // Facture
-  const [invoiceSale, setInvoiceSale] = useState<Sale | null>(null);
-  const [printMenuFor, setPrintMenuFor] = useState<number | null>(null);
   const [productSearch, setProductSearch] = useState("");
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [salesCount, setSalesCount] = useState<number>(0);
@@ -85,11 +73,15 @@ export default function Sales() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [subscription, salesRes, prods, cls] = await Promise.all([
+      const [subscription, salesRes, prods] = await Promise.all([
         getSubscription(),
-        getSales({ status: statusFilter || undefined, page, limit: 5 }),
+        getSales({
+          status: statusFilter || undefined,
+          search: search.trim() || undefined,
+          page,
+          limit: 5,
+        }),
         getProducts({ limit: 200 }),
-        getClients(),
       ]);
       setSubscription(subscription);
       setSales(salesRes.data);
@@ -97,7 +89,6 @@ export default function Sales() {
       setTotal(salesRes.pagination.total);
       setTotalPages(salesRes.pagination.totalPages);
       setProducts(prods.data);
-      setClients(cls.client);
     } catch {
       toast.error("Erreur chargement ventes");
     } finally {
@@ -120,7 +111,24 @@ export default function Sales() {
   useEffect(() => {
     fetchData();
     checkCash();
-  }, [statusFilter, page]);
+  }, [statusFilter, search, page]);
+
+  useEffect(() => {
+    if (!showForm) return;
+    const timeout = window.setTimeout(async () => {
+      try {
+        const result = await getClients({
+          search: clientSearch.trim() || undefined,
+          page: 1,
+          limit: 10,
+        });
+        setClients(result.client);
+      } catch {
+        toast.error("Erreur chargement clients");
+      }
+    }, 300);
+    return () => window.clearTimeout(timeout);
+  }, [showForm, clientSearch]);
 
   const cartTotal = cart.reduce(
     (sum, item) => sum + item.unitPrice * item.quantity,
@@ -232,13 +240,11 @@ export default function Sales() {
       return toast.error("Client ou nom du client requis");
     setSubmitting(true);
     try {
-      const paid = paidAmount === "" ? cartTotal : Number(paidAmount);
-      const res = await createSale({
+      await createSale({
         clientId: clientId ? Number(clientId) : null,
         customerName: customerName || undefined,
-        paidAmount: paid,
+        paidAmount: 0,
         note: note || undefined,
-        paymentMethod,
         items: cart.map((c) => ({
           productId: c.productId,
           quantity: c.quantity,
@@ -246,14 +252,12 @@ export default function Sales() {
         })),
       } as any);
       toast.success("Vente enregistrée avec succès");
-      setInvoiceSale(res.sale);
       setShowForm(false);
       setCart([]);
       setClientId("");
+      setClientSearch("");
       setCustomerName("");
-      setPaidAmount("");
       setNote("");
-      setPaymentMethod("CASH");
       await fetchData();
     } catch (error: any) {
       toast.error(
@@ -261,27 +265,6 @@ export default function Sales() {
       );
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleAddPayment = async () => {
-    if (!cashOpen) {
-      return toast.error(
-        "⚠️ La caisse est fermée. Ouvrez la caisse avant d'enregistrer un paiement.",
-        { duration: 5000 },
-      );
-    }
-    if (!paymentSaleId || !paymentAmount || Number(paymentAmount) <= 0) {
-      return toast.error("Montant invalide");
-    }
-    try {
-      await addSalePayment(paymentSaleId, Number(paymentAmount));
-      toast.success("Paiement ajouté");
-      setPaymentSaleId(null);
-      setPaymentAmount("");
-      await fetchData();
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Erreur paiement");
     }
   };
 
@@ -301,10 +284,6 @@ export default function Sales() {
     return;
   }
 
-  const printA4 = (sale: Sale) =>
-    doPrint(sale, user, "A4", localStorage.getItem("shopLogo") || undefined);
-  const printThermal = (sale: Sale) => doPrint(sale, user, "THERMAL");
-
   const statusBadge: Record<string, string> = {
     PAID: "bg-emerald-100 text-emerald-700",
     PARTIAL: "bg-yellow-100 text-yellow-700",
@@ -315,15 +294,6 @@ export default function Sales() {
     PARTIAL: "Partielle",
     UNPAID: "Non réglée",
   };
-
-  const filteredSales = search
-    ? sales.filter(
-        (s) =>
-          s.invoiceNumber?.toLowerCase().includes(search.toLowerCase()) ||
-          s.client?.name?.toLowerCase().includes(search.toLowerCase()) ||
-          s.customerName?.toLowerCase().includes(search.toLowerCase()),
-      )
-    : sales;
 
   if (!user) {
     toast.error("User Not found");
@@ -684,21 +654,55 @@ export default function Sales() {
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Client enregistré
               </label>
-              <select
-                value={clientId}
-                onChange={(e) => {
-                  setClientId(e.target.value ? Number(e.target.value) : "");
-                  if (e.target.value) setCustomerName("");
+              <input
+                type="search"
+                value={
+                  clientId
+                    ? clients.find((client) => client.id === clientId)?.name || ""
+                    : clientSearch
+                }
+                onChange={(event) => {
+                  setClientId("");
+                  setCustomerName("");
+                  setClientSearch(event.target.value);
                 }}
                 className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-              >
-                <option value="">-- Sélectionner un client --</option>
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} - {c.phone}
-                  </option>
-                ))}
-              </select>
+                placeholder="Rechercher par nom, téléphone ou email..."
+              />
+              {!clientId && clientSearch.trim() && (
+                <div className="mt-2 max-h-40 overflow-y-auto rounded-xl border border-gray-200 bg-white">
+                  {clients.length ? (
+                    clients.map((client) => (
+                      <button
+                        key={client.id}
+                        type="button"
+                        onClick={() => {
+                          setClientId(client.id);
+                          setClientSearch("");
+                          setCustomerName("");
+                        }}
+                        className="block w-full border-b border-gray-100 px-3 py-2 text-left text-sm hover:bg-emerald-50"
+                      >
+                        <span className="font-medium">{client.name}</span>
+                        <span className="ml-2 text-gray-500">{client.phone}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <p className="px-3 py-2 text-sm text-gray-400">
+                      Aucun client trouvé
+                    </p>
+                  )}
+                </div>
+              )}
+              {clientId && (
+                <button
+                  type="button"
+                  onClick={() => setClientId("")}
+                  className="mt-1 text-xs text-emerald-700 hover:underline"
+                >
+                  Changer de client
+                </button>
+              )}
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -718,33 +722,6 @@ export default function Sales() {
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Mode de paiement
-              </label>
-              <PaymentMethodSelect
-                value={paymentMethod}
-                onChange={setPaymentMethod}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Montant payé (FCFA)
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={paidAmount}
-                onChange={(e) =>
-                  setPaidAmount(
-                    e.target.value === "" ? "" : Number(e.target.value),
-                  )
-                }
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                placeholder={`Total : ${fmt(cartTotal)}`}
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Note
               </label>
               <input
@@ -755,12 +732,6 @@ export default function Sales() {
                 placeholder="Optionnel..."
               />
             </div>
-            {paidAmount !== "" && Number(paidAmount) < cartTotal && (
-              <div className="sm:col-span-2 rounded-xl bg-yellow-50 px-4 py-3 text-sm text-yellow-700">
-                ⚠️ Paiement partiel — Reste à payer :{" "}
-                {fmt(cartTotal - Number(paidAmount))}
-              </div>
-            )}
             <div className="flex gap-3 sm:col-span-2">
               <button
                 type="submit"
@@ -784,108 +755,6 @@ export default function Sales() {
         </div>
       )}
 
-      {/* Modal paiement partiel */}
-      {paymentSaleId && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm border border-yellow-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-slate-900">
-              Ajouter un paiement
-            </h3>
-            <button
-              onClick={() => {
-                setPaymentSaleId(null);
-                setPaymentAmount("");
-              }}
-            >
-              <X size={20} className="text-gray-400" />
-            </button>
-          </div>
-          <div className="flex gap-3">
-            <input
-              type="number"
-              min={1}
-              value={paymentAmount}
-              onChange={(e) => setPaymentAmount(e.target.value)}
-              className="flex-1 rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-              placeholder="Montant (FCFA)"
-            />
-            <button
-              onClick={handleAddPayment}
-              className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-medium text-white hover:bg-emerald-700"
-            >
-              Confirmer
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Modale facture après vente */}
-      {invoiceSale && (
-        <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-5 flex items-center justify-between gap-4">
-          <div>
-            <p className="font-semibold text-emerald-800">
-              ✅ Vente enregistrée — {invoiceSale.invoiceNumber}
-            </p>
-            <p className="text-sm text-emerald-600 mt-0.5">
-              Voulez-vous imprimer la facture ?
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <div className="relative">
-              <button
-                onClick={() =>
-                  setPrintMenuFor(
-                    printMenuFor === invoiceSale.id ? null : invoiceSale.id,
-                  )
-                }
-                className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-              >
-                <Printer size={15} /> Imprimer ▾
-              </button>
-              {printMenuFor === invoiceSale.id && (
-                <div className="absolute left-0 top-11 z-20 w-44 rounded-xl bg-white shadow-lg border border-gray-200 overflow-hidden">
-                  <button
-                    onClick={() => {
-                      printA4(invoiceSale);
-                      setPrintMenuFor(null);
-                    }}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-slate-50"
-                  >
-                    <Printer size={13} />
-                    <div className="text-left">
-                      <p className="font-medium">Format A4</p>
-                      <p className="text-xs text-gray-400">
-                        Facture professionnelle
-                      </p>
-                    </div>
-                  </button>
-                  <div className="border-t border-gray-100" />
-                  <button
-                    onClick={() => {
-                      printThermal(invoiceSale);
-                      setPrintMenuFor(null);
-                    }}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-slate-50"
-                  >
-                    <Printer size={13} />
-                    <div className="text-left">
-                      <p className="font-medium">Ticket thermique</p>
-                      <p className="text-xs text-gray-400">Imprimante 80mm</p>
-                    </div>
-                  </button>
-                </div>
-              )}
-            </div>
-            <button
-              onClick={() => setInvoiceSale(null)}
-              className="rounded-xl border border-emerald-300 px-4 py-2 text-sm text-emerald-700 hover:bg-emerald-100"
-            >
-              Plus tard
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Stats */}
       <p className="text-sm text-gray-500">{total} vente(s)</p>
 
@@ -894,13 +763,13 @@ export default function Sales() {
         <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
           Chargement...
         </div>
-      ) : !filteredSales.length ? (
+      ) : !sales.length ? (
         <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
           Aucune vente trouvée.
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredSales.map((sale) => (
+          {sales.map((sale) => (
             <div
               key={sale.id}
               className="rounded-2xl bg-white px-5 py-4 shadow-sm"
@@ -909,7 +778,7 @@ export default function Sales() {
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="font-semibold text-slate-900">
-                      {sale.invoiceNumber || `#${sale.id}`}
+                      {sale.items.map((item) => item.productName).join(", ")}
                     </p>
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusBadge[sale.status]}`}
@@ -924,7 +793,7 @@ export default function Sales() {
                     • {new Date(sale.createdAt).toLocaleDateString("fr-FR")}
                   </p>
                   <div className="mt-1 text-xs text-gray-400">
-                    {sale.items.length} article(s) • Total :{" "}
+                    {sale.items.reduce((sum, item) => sum + item.quantity, 0)} article(s) • Total :{" "}
                     <strong className="text-slate-700">
                       {fmt(sale.totalAmount)}
                     </strong>{" "}
@@ -944,23 +813,14 @@ export default function Sales() {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {sale.status !== "PAID" && (
-                    <button
-                      onClick={() => {
-                        if (!cashOpen) {
-                          toast.error("⚠️ La caisse est fermée.", {
-                            duration: 4000,
-                          });
-                          return;
-                        }
-                        setPaymentSaleId(sale.id);
-                        setPaymentAmount("");
-                      }}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${cashOpen ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
-                    >
-                      + Paiement
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      window.location.href = `/invoices?search=${encodeURIComponent(sale.invoiceNumber || String(sale.id))}`;
+                    }}
+                    className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100"
+                  >
+                    Voir la facture
+                  </button>
                   {admin && (
                     <button
                       onClick={() => handleDeleteSale(sale.id)}
