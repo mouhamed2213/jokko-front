@@ -210,6 +210,96 @@ function EmptyState({ message }: { message: string }) {
   return <div className="rounded-2xl bg-white p-8 text-center text-sm text-slate-400">{message}</div>;
 }
 
+function Pagination({
+  pagination,
+  onPageChange,
+}: {
+  pagination?: { page: number; totalPages: number; total: number };
+  onPageChange: (page: number) => void;
+}) {
+  if (!pagination || pagination.totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+      <span>{pagination.total} résultat(s)</span>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={pagination.page <= 1}
+          onClick={() => onPageChange(pagination.page - 1)}
+          className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Précédent
+        </button>
+        <span>Page {pagination.page} / {pagination.totalPages}</span>
+        <button
+          type="button"
+          disabled={pagination.page >= pagination.totalPages}
+          onClick={() => onPageChange(pagination.page + 1)}
+          className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Suivant
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AnalyticsFilters({
+  section,
+  filters,
+  onChange,
+}: {
+  section: Section;
+  filters: Record<string, string>;
+  onChange: (key: string, value: string) => void;
+}) {
+  const select = (key: string, label: string, options: Array<[string, string]>) => (
+    <label className="text-xs font-medium text-slate-500">
+      {label}
+      <select
+        value={filters[key] ?? ""}
+        onChange={(event) => onChange(key, event.target.value)}
+        className="mt-1 block rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
+      >
+        <option value="">Tous</option>
+        {options.map(([value, text]) => <option key={value} value={value}>{text}</option>)}
+      </select>
+    </label>
+  );
+
+  const controls =
+    section === "products"
+      ? [
+          select("status", "Statut", [["NEW", "Nouveau"], ["FAST", "Rotation rapide"], ["SLOW", "Rotation lente"], ["REGULAR", "Rotation normale"], ["DORMANT", "Dormant"]]),
+          select("stockStatus", "État du stock", [["IN_STOCK", "En stock"], ["LOW_STOCK", "Stock faible"], ["OUT_OF_STOCK", "Rupture"]]),
+          select("costSource", "Coût", [["HISTORICAL", "Historique"], ["ESTIMATED", "Estimé"]]),
+        ]
+      : section === "stock"
+        ? [
+            select("status", "Statut", [["NEW", "Nouveau"], ["FAST", "Rotation rapide"], ["SLOW", "Rotation lente"], ["REGULAR", "Rotation normale"], ["DORMANT", "Dormant"]]),
+            select("stockStatus", "État du stock", [["IN_STOCK", "En stock"], ["LOW_STOCK", "Stock faible"], ["OUT_OF_STOCK", "Rupture"]]),
+          ]
+        : section === "customers"
+          ? [
+              select("status", "Statut client", [["NEW", "Nouveau"], ["ACTIVE", "Actif"], ["INACTIVE", "Inactif"]]),
+              select("recurrent", "Fidélité", [["true", "Récurrent"], ["false", "Non récurrent"]]),
+            ]
+          : section === "cash"
+            ? [
+                select("type", "Flux", [["IN", "Entrées"], ["OUT", "Sorties"]]),
+                select("category", "Catégorie", [["SALE_PAYMENT", "Paiement vente"], ["SUPPLIER_DEPOSIT", "Acompte fournisseur"], ["SUPPLIER_PAYMENT", "Paiement fournisseur"], ["PAYMENT_REVERSAL", "Annulation"]]),
+              ]
+            : section === "insights"
+              ? [
+                  select("severity", "Sévérité", [["POSITIVE", "Positive"], ["INFO", "Information"], ["WARNING", "Alerte"]]),
+                  select("type", "Type", [["REVENUE_GROWTH", "Hausse du CA"], ["REVENUE_DECLINE", "Baisse du CA"], ["OUT_OF_STOCK", "Rupture"], ["LOW_STOCK", "Stock faible"], ["DORMANT_PRODUCTS", "Produits dormants"], ["SALES_CONCENTRATION", "Concentration"], ["RECEIVABLES", "Créances"]]),
+                ]
+              : [];
+
+  if (!controls.length) return null;
+  return <div className="flex flex-wrap items-end gap-3 rounded-2xl bg-slate-50 p-4">{controls}</div>;
+}
+
 export default function Analytics() {
   const navigate = useNavigate();
   const [section, setSection] = useState<Section>("overview");
@@ -222,8 +312,10 @@ export default function Analytics() {
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const [multiStoreMode, setMultiStoreMode] = useState(false);
   const [multiStoreData, setMultiStoreData] = useState<Awaited<ReturnType<typeof getAnalyticsMultiStoreOverview>> | null>(null);
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<Record<string, string>>({});
 
-  const params = useMemo(() => ({ startDate, endDate, limit: 50 }), [startDate, endDate]);
+  const params = useMemo(() => ({ startDate, endDate, limit: 50, page, pageSize: 20, ...filters }), [startDate, endDate, page, filters]);
   const dateError =
     dateFromInput(startDate).getTime() > dateFromInput(endDate).getTime()
       ? "La date de début doit être antérieure ou égale à la date de fin."
@@ -293,7 +385,7 @@ export default function Analytics() {
 
   useEffect(() => {
     if (subscription) void load();
-  }, [section, subscription, multiStoreMode]);
+  }, [section, subscription, multiStoreMode, page]);
 
   const overviewChart = data
     ? {
@@ -349,7 +441,7 @@ export default function Analytics() {
               <button type="button" title="Jour suivant" onClick={() => setEndDate(shiftDate(endDate, 1))} className="rounded-lg border border-slate-200 p-2 hover:bg-slate-100"><ChevronRight size={15} /></button>
             </div>
           </label>
-          <button type="button" onClick={() => { setStartDate(defaultStart); setEndDate(defaultEnd); void load({ startDate: defaultStart, endDate: defaultEnd, limit: 50 }); }} title="Réinitialiser la période" className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-100"><RotateCcw size={18} /></button>
+          <button type="button" onClick={() => { setStartDate(defaultStart); setEndDate(defaultEnd); setPage(1); void load({ startDate: defaultStart, endDate: defaultEnd, limit: 50, page: 1, pageSize: 20 }); }} title="Réinitialiser la période" className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-100"><RotateCcw size={18} /></button>
           <button disabled={Boolean(dateError)} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">Actualiser</button>
           {subscription && hasFeature(subscription, "MULTI_STORE") && subscription.plan.code === "PREMIUM" && (
             <button
@@ -387,6 +479,8 @@ export default function Analytics() {
                 return;
               }
               setError("");
+              setPage(1);
+              setFilters({});
               setSection(item.id);
             }}
             className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium ${
@@ -406,6 +500,16 @@ export default function Analytics() {
 
       {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
       {dateError && <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{dateError}</div>}
+      {!loading && section !== "overview" && (
+        <AnalyticsFilters
+          section={section}
+          filters={filters}
+          onChange={(key, value) => {
+            setPage(1);
+            setFilters((current) => ({ ...current, [key]: value }));
+          }}
+        />
+      )}
       {loading ? (
         <EmptyState message="Chargement de l'analyse..." />
       ) : section === "overview" ? (
@@ -445,7 +549,7 @@ export default function Analytics() {
           </div>
         </div>
       ) : (
-        <DetailSection section={section} detail={detail} onNavigate={navigate} />
+        <DetailSection section={section} detail={detail} onNavigate={navigate} onPageChange={setPage} />
       )}
     </section>
   );
@@ -455,14 +559,16 @@ function DetailSection({
   section,
   detail,
   onNavigate,
+  onPageChange,
 }: {
   section: Exclude<Section, "overview">;
   detail: any;
   onNavigate: (path: string) => void;
+  onPageChange: (page: number) => void;
 }) {
   if (!detail) return <EmptyState message="Aucune donnée disponible." />;
   if (section === "insights") {
-    return <InsightsSection insights={detail.insights ?? []} onNavigate={onNavigate} />;
+    return <InsightsSection insights={detail.insights ?? []} pagination={detail.pagination} onNavigate={onNavigate} onPageChange={onPageChange} />;
   }
   if (section === "sales") {
     const timeline = detail.timeline ?? [];
@@ -476,10 +582,14 @@ function DetailSection({
 
   function InsightsSection({
     insights,
+    pagination,
     onNavigate,
+    onPageChange,
   }: {
     insights: any[];
-    onNavigate: (path: string) => void;
+      pagination: any;
+      onNavigate: (path: string) => void;
+      onPageChange: (page: number) => void;
   }) {
     const insightLabels: Record<string, string> = {
       ALL: "Toutes",
@@ -534,6 +644,7 @@ function DetailSection({
             )}
           </div>
         )) : <EmptyState message="Aucun insight pour ce filtre et cette période." />}
+        <Pagination pagination={pagination} onPageChange={onPageChange} />
       </div>
     );
   }
@@ -547,17 +658,21 @@ function DetailSection({
           <Kpi title="Dormants" value={detail.summary?.dormant ?? 0} icon={<PackageSearch size={18} />} />
         </div>
         <EntityTable rows={detail.products ?? []} columns={["productName", "currentStock", "stockValue", "status"]} />
+        <Pagination pagination={detail.pagination} onPageChange={onPageChange} />
       </div>
     );
   }
-  if (section === "products") return <EntityTable rows={detail.products ?? []} columns={["productName", "soldQuantity", "revenue", "grossMargin", "status"]} money={["revenue", "grossMargin"]} />;
-  if (section === "customers") return <EntityTable rows={detail.customers ?? []} columns={["customerName", "orderCount", "purchasedAmount", "receivable", "status"]} money={["purchasedAmount", "receivable"]} />;
+  if (section === "products") return <><EntityTable rows={detail.products ?? []} columns={["productName", "soldQuantity", "revenue", "grossMargin", "status"]} money={["revenue", "grossMargin"]} /><Pagination pagination={detail.pagination} onPageChange={onPageChange} /></>;
+  if (section === "customers") return <><EntityTable rows={detail.customers ?? []} columns={["customerName", "orderCount", "purchasedAmount", "receivable", "status"]} money={["purchasedAmount", "receivable"]} /><Pagination pagination={detail.pagination} onPageChange={onPageChange} /></>;
   if (section === "cash") {
     return (
-      <CashTable
-        rows={detail.transactions ?? []}
-        onNavigate={onNavigate}
-      />
+      <>
+        <CashTable
+          rows={detail.transactions ?? []}
+          onNavigate={onNavigate}
+        />
+        <Pagination pagination={detail.pagination} onPageChange={onPageChange} />
+      </>
     );
   }
   return <EntityTable rows={detail.byWeekday ?? []} columns={["day", "salesCount", "revenue", "quantitySold", "averageBasket"]} money={["revenue", "averageBasket"]} />;
