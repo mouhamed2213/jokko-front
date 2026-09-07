@@ -22,7 +22,6 @@ export default function Login() {
     try {
       const res = await login({ email, password });
       localStorage.setItem("token", res.token);
-      console.log("Should include user subscription info", res.user);
       localStorage.setItem("user", JSON.stringify(res.user));
       localStorage.setItem("shopName", res.user.shopName || "Jokko Business");
 
