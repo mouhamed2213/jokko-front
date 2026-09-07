@@ -475,6 +475,22 @@ export const getSubscription = async (): Promise<SubscriptionInfo> => {
   return subscriptionPromise;
 };
 
+export const getAnalyticsMultiStoreOverview = async (params: {
+  startDate?: string;
+  endDate?: string;
+  compare?: boolean;
+}) => {
+  const res = await api.get("/analytics/overview/multi-store", { params });
+  return res.data as {
+    period: { startDate: string; endDate: string } | null;
+    shops: Array<{
+      shop: { id: number; name: string };
+      overview: AnalyticsOverview;
+    }>;
+    consolidated: AnalyticsOverview["kpis"];
+  };
+};
+
 // create secondary shop
 
 

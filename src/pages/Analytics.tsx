@@ -33,12 +33,16 @@ import {
   getAnalyticsCustomers,
   getAnalyticsInsights,
   getAnalyticsOverview,
+  getAnalyticsMultiStoreOverview,
   getAnalyticsProducts,
   getAnalyticsSales,
   getAnalyticsStock,
   getAnalyticsTrends,
+  getSubscription,
   type AnalyticsOverview,
 } from "../services";
+import type { PlanCode, SubscriptionInfo } from "../types";
+import { hasFeature } from "../utils/subscription.checker";
 
 ChartJS.register(
   CategoryScale,
@@ -71,6 +75,19 @@ const sections: Array<{ id: Section; label: string; icon: React.ReactNode }> = [
   { id: "trends", label: "Tendances", icon: <BarChart3 size={16} /> },
   { id: "insights", label: "Insights", icon: <Lightbulb size={16} /> },
 ];
+
+const minimumPlan: Record<Section, PlanCode> = {
+  overview: "FREE",
+  sales: "FREE",
+  stock: "FREE",
+  cash: "FREE",
+  products: "BASIC",
+  customers: "BASIC",
+  trends: "BASIC",
+  insights: "PRO",
+};
+
+const planRank: Record<PlanCode, number> = { FREE: 0, BASIC: 1, PRO: 2, PREMIUM: 3 };
 
 const formatMoney = (value: number) => `${value.toLocaleString("fr-FR")} FCFA`;
 const defaultEnd = new Date().toISOString().slice(0, 10);
@@ -148,6 +165,25 @@ const shiftDate = (value: string, days: number) => {
 const readableStatus = (value: unknown) =>
   typeof value === "string" ? statusLabels[value] ?? value : String(value ?? "—");
 
+const formatDateTime = (value: unknown) => {
+  if (!value) return "—";
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime())
+    ? "—"
+    : date.toLocaleString("fr-FR", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+};
+
+const cashCategoryLabels: Record<string, string> = {
+  SALE_PAYMENT: "Paiement d'une vente",
+  SUPPLIER_DEPOSIT: "Acompte fournisseur",
+  SUPPLIER_PAYMENT: "Paiement fournisseur",
+  PAYMENT_REVERSAL: "Annulation de paiement",
+  OTHER: "Autre mouvement",
+};
+
 function Kpi({
   title,
   value,
@@ -183,16 +219,32 @@ export default function Analytics() {
   const [detail, setDetail] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
+  const [multiStoreMode, setMultiStoreMode] = useState(false);
+  const [multiStoreData, setMultiStoreData] = useState<Awaited<ReturnType<typeof getAnalyticsMultiStoreOverview>> | null>(null);
 
   const params = useMemo(() => ({ startDate, endDate, limit: 50 }), [startDate, endDate]);
   const dateError =
     dateFromInput(startDate).getTime() > dateFromInput(endDate).getTime()
       ? "La date de début doit être antérieure ou égale à la date de fin."
       : "";
+  const sectionLocked =
+    !subscription ||
+    planRank[subscription.plan.code] < planRank[minimumPlan[section]] ||
+    (section === "insights" && !hasFeature(subscription, "ADVANCED_REPORTS"));
 
   const load = async (
     requestedParams = params,
   ) => {
+    if (sectionLocked) {
+      setError(
+        section === "insights"
+          ? "Les insights automatiques nécessitent le plan PRO et les rapports avancés."
+          : `Cette analyse est disponible à partir du plan ${minimumPlan[section]}.`,
+      );
+      setLoading(false);
+      return;
+    }
     if (
       dateFromInput(requestedParams.startDate).getTime() >
       dateFromInput(requestedParams.endDate).getTime()
@@ -204,7 +256,12 @@ export default function Analytics() {
     setError("");
     try {
       if (section === "overview") {
-        setData(await getAnalyticsOverview({ ...requestedParams, compare: true }));
+        const compare = Boolean(subscription && planRank[subscription.plan.code] >= planRank.BASIC);
+        if (multiStoreMode) {
+          setMultiStoreData(await getAnalyticsMultiStoreOverview({ ...requestedParams, compare }));
+        } else {
+          setData(await getAnalyticsOverview({ ...requestedParams, compare }));
+        }
         setDetail(null);
       } else {
         const loaders: Record<Exclude<Section, "overview">, () => Promise<any>> = {
@@ -229,8 +286,14 @@ export default function Analytics() {
   };
 
   useEffect(() => {
-    load();
-  }, [section]);
+    getSubscription()
+      .then(setSubscription)
+      .catch(() => setError("Impossible de vérifier votre abonnement."));
+  }, []);
+
+  useEffect(() => {
+    if (subscription) void load();
+  }, [section, subscription, multiStoreMode]);
 
   const overviewChart = data
     ? {
@@ -288,6 +351,19 @@ export default function Analytics() {
           </label>
           <button type="button" onClick={() => { setStartDate(defaultStart); setEndDate(defaultEnd); void load({ startDate: defaultStart, endDate: defaultEnd, limit: 50 }); }} title="Réinitialiser la période" className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-100"><RotateCcw size={18} /></button>
           <button disabled={Boolean(dateError)} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">Actualiser</button>
+          {subscription && hasFeature(subscription, "MULTI_STORE") && subscription.plan.code === "PREMIUM" && (
+            <button
+              type="button"
+              onClick={() => setMultiStoreMode((enabled) => !enabled)}
+              className={`rounded-xl border px-3 py-2 text-sm font-semibold ${
+                multiStoreMode
+                  ? "border-emerald-600 bg-emerald-50 text-emerald-700"
+                  : "border-slate-200 text-slate-600"
+              }`}
+            >
+              {multiStoreMode ? "Vue boutique active" : "Vue consolidée"}
+            </button>
+          )}
         </form>
       </div>
 
@@ -296,13 +372,34 @@ export default function Analytics() {
           <button
             key={item.id}
             type="button"
-            onClick={() => setSection(item.id)}
+            onClick={() => {
+              const locked =
+                !subscription ||
+                planRank[subscription.plan.code] < planRank[minimumPlan[item.id]] ||
+                (item.id === "insights" &&
+                  !hasFeature(subscription, "ADVANCED_REPORTS"));
+              if (locked) {
+                setError(
+                  item.id === "insights"
+                    ? "Les insights automatiques nécessitent le plan PRO et les rapports avancés."
+                    : `Cette analyse est disponible à partir du plan ${minimumPlan[item.id]}.`,
+                );
+                return;
+              }
+              setError("");
+              setSection(item.id);
+            }}
             className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium ${
               section === item.id ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-100"
             }`}
           >
             {item.icon}
             {item.label}
+            {subscription &&
+              (planRank[subscription.plan.code] < planRank[minimumPlan[item.id]] ||
+                (item.id === "insights" &&
+                  !hasFeature(subscription, "ADVANCED_REPORTS"))) &&
+              " 🔒"}
           </button>
         ))}
       </div>
@@ -313,10 +410,25 @@ export default function Analytics() {
         <EmptyState message="Chargement de l'analyse..." />
       ) : section === "overview" ? (
         <div className="space-y-5">
+          {multiStoreMode && multiStoreData && (
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+              <p className="font-semibold text-emerald-900">Vue consolidée Premium</p>
+              <p className="mt-1 text-sm text-emerald-800">
+                Données agrégées uniquement pour les boutiques autorisées de votre compte.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {multiStoreData.shops.map(({ shop }) => (
+                  <span key={shop.id} className="rounded-full bg-white px-3 py-1 text-xs text-slate-600">
+                    {shop.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-            <Kpi title="CA de la période" value={formatMoney(data?.kpis.revenue ?? 0)} icon={<BarChart3 size={18} />} />
-            <Kpi title="Ventes" value={data?.kpis.salesCount ?? 0} icon={<CreditCard size={18} />} />
-            <Kpi title="Panier moyen" value={formatMoney(data?.kpis.averageBasket ?? 0)} icon={<Wallet size={18} />} />
+            <Kpi title="CA de la période" value={formatMoney((multiStoreMode ? multiStoreData?.consolidated.revenue : data?.kpis.revenue) ?? 0)} icon={<BarChart3 size={18} />} />
+            <Kpi title="Ventes" value={(multiStoreMode ? multiStoreData?.consolidated.salesCount : data?.kpis.salesCount) ?? 0} icon={<CreditCard size={18} />} />
+            <Kpi title="Panier moyen" value={formatMoney((multiStoreMode ? multiStoreData?.consolidated.averageBasket : data?.kpis.averageBasket) ?? 0)} icon={<Wallet size={18} />} />
             <Kpi title="Variation CA" value={data?.comparison?.revenueChange === null || data?.comparison?.revenueChange === undefined ? "N/D" : `${data.comparison.revenueChange >= 0 ? "+" : ""}${data.comparison.revenueChange}%`} icon={<BarChart3 size={18} />} />
           </div>
           <div className="grid gap-5 lg:grid-cols-[1.4fr_0.6fr]">
@@ -325,10 +437,10 @@ export default function Analytics() {
               {overviewChart ? <Line data={overviewChart} options={{ responsive: true, plugins: { legend: { display: false } } }} /> : <EmptyState message="Aucune donnée disponible." />}
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Kpi title="Encaissé" value={formatMoney(data?.kpis.collected ?? 0)} icon={<Wallet size={18} />} />
-              <Kpi title="Créances" value={formatMoney(data?.kpis.receivables ?? 0)} icon={<AlertTriangle size={18} />} />
-              <Kpi title="Valeur stock" value={formatMoney(data?.kpis.stockValue ?? 0)} icon={<Boxes size={18} />} />
-              <Kpi title="Alertes stock" value={(data?.kpis.outOfStockProducts ?? 0) + (data?.kpis.lowStockProducts ?? 0)} icon={<AlertTriangle size={18} />} />
+              <Kpi title="Encaissé" value={formatMoney((multiStoreMode ? multiStoreData?.consolidated.collected : data?.kpis.collected) ?? 0)} icon={<Wallet size={18} />} />
+              <Kpi title="Créances" value={formatMoney((multiStoreMode ? multiStoreData?.consolidated.receivables : data?.kpis.receivables) ?? 0)} icon={<AlertTriangle size={18} />} />
+              <Kpi title="Valeur stock" value={formatMoney((multiStoreMode ? multiStoreData?.consolidated.stockValue : data?.kpis.stockValue) ?? 0)} icon={<Boxes size={18} />} />
+              <Kpi title="Alertes stock" value={((multiStoreMode ? multiStoreData?.consolidated.outOfStockProducts : data?.kpis.outOfStockProducts) ?? 0) + ((multiStoreMode ? multiStoreData?.consolidated.lowStockProducts : data?.kpis.lowStockProducts) ?? 0)} icon={<AlertTriangle size={18} />} />
             </div>
           </div>
         </div>
@@ -400,6 +512,15 @@ function DetailSection({
               <p className="mt-1 text-xs text-slate-500">
                 {insightLabels[insight.type] ?? readableStatus(insight.type)} · {readableStatus(insight.severity)}
               </p>
+              {insight.type === "SALES_CONCENTRATION" &&
+                Array.isArray(insight.context?.products) && (
+                  <p className="mt-2 text-sm text-slate-600">
+                    Produits concernés :{" "}
+                    {insight.context.products
+                      .map((product: { productName: string }) => product.productName)
+                      .join(", ")}
+                  </p>
+                )}
             </div>
             {["OUT_OF_STOCK", "LOW_STOCK", "DORMANT_PRODUCTS"].includes(insight.type) && (
               <button type="button" onClick={() => onNavigate(insight.type === "DORMANT_PRODUCTS" ? "/products" : "/stock")} className="rounded-xl border border-emerald-200 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50">
@@ -431,8 +552,70 @@ function DetailSection({
   }
   if (section === "products") return <EntityTable rows={detail.products ?? []} columns={["productName", "soldQuantity", "revenue", "grossMargin", "status"]} money={["revenue", "grossMargin"]} />;
   if (section === "customers") return <EntityTable rows={detail.customers ?? []} columns={["customerName", "orderCount", "purchasedAmount", "receivable", "status"]} money={["purchasedAmount", "receivable"]} />;
-  if (section === "cash") return <EntityTable rows={detail.transactions ?? []} columns={["createdAt", "type", "paymentMethod", "amount", "label"]} money={["amount"]} />;
+  if (section === "cash") {
+    return (
+      <CashTable
+        rows={detail.transactions ?? []}
+        onNavigate={onNavigate}
+      />
+    );
+  }
   return <EntityTable rows={detail.byWeekday ?? []} columns={["day", "salesCount", "revenue", "quantitySold", "averageBasket"]} money={["revenue", "averageBasket"]} />;
+}
+
+function CashTable({
+  rows,
+  onNavigate,
+}: {
+  rows: Array<{
+    createdAt: string;
+    type: string;
+    paymentMethod: string;
+    amount: number;
+    label: string;
+    reference?: string | null;
+    category?: string;
+    target?: { path: string; reference: string | null } | null;
+  }>;
+  onNavigate: (path: string) => void;
+}) {
+  if (!rows.length) return <EmptyState message="Aucun mouvement de trésorerie pour cette période." />;
+  return (
+    <div className="overflow-x-auto rounded-2xl bg-white shadow-sm">
+      <table className="min-w-full text-left text-sm">
+        <thead className="border-b border-slate-100 text-xs uppercase text-slate-400">
+          <tr>
+            <th className="px-4 py-3">Date</th>
+            <th className="px-4 py-3">Nature</th>
+            <th className="px-4 py-3">Type</th>
+            <th className="px-4 py-3">Mode de paiement</th>
+            <th className="px-4 py-3">Montant</th>
+            <th className="px-4 py-3">Détail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, index) => (
+            <tr key={`${row.createdAt}-${row.reference ?? index}`} className="border-b border-slate-50 last:border-0">
+              <td className="px-4 py-3 text-slate-700">{formatDateTime(row.createdAt)}</td>
+              <td className="px-4 py-3 text-slate-700">{cashCategoryLabels[row.category ?? "OTHER"] ?? "Autre mouvement"}</td>
+              <td className="px-4 py-3 text-slate-700">{readableStatus(row.type)}</td>
+              <td className="px-4 py-3 text-slate-700">{readableStatus(row.paymentMethod)}</td>
+              <td className="px-4 py-3 font-medium text-slate-700">{formatMoney(row.amount)}</td>
+              <td className="px-4 py-3">
+                {row.target ? (
+                  <button type="button" onClick={() => onNavigate(row.target!.path)} className="text-left text-emerald-700 hover:underline">
+                    {row.label}
+                  </button>
+                ) : (
+                  <span className="text-slate-700">{row.label}</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 function EntityTable({ rows, columns, money = [] }: { rows: any[]; columns: string[]; money?: string[] }) {
@@ -444,7 +627,7 @@ function EntityTable({ rows, columns, money = [] }: { rows: any[]; columns: stri
           <tr>{columns.map((column) => <th key={column} className="px-4 py-3">{columnLabels[column] ?? column}</th>)}</tr>
         </thead>
         <tbody>{rows.map((row, index) => <tr key={row.id ?? row.productId ?? row.customerId ?? index} className="border-b border-slate-50 last:border-0">
-          {columns.map((column) => <td key={column} className="px-4 py-3 text-slate-700">{money.includes(column) ? formatMoney(Number(row[column] ?? 0)) : column.toLowerCase().includes("date") ? (row[column] ? new Date(row[column]).toLocaleDateString("fr-FR") : "—") : column === "status" || column === "type" || column === "severity" ? readableStatus(row[column]) : String(row[column] ?? "—")}</td>)}
+          {columns.map((column) => <td key={column} className="px-4 py-3 text-slate-700">{money.includes(column) ? formatMoney(Number(row[column] ?? 0)) : column.toLowerCase().includes("date") ? formatDateTime(row[column]) : column === "status" || column === "type" || column === "severity" ? readableStatus(row[column]) : String(row[column] ?? "—")}</td>)}
         </tr>)}</tbody>
       </table>
     </div>
