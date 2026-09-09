@@ -19,6 +19,7 @@ import {
   getSubscription,
   getSuggestedPrice,
 } from "../services/index";
+import PaymentMethodSelect from "../components/Paymentmethodselect";
 import { getStoredUser } from "../types/auth";
 import type {
   Category,
@@ -76,6 +77,9 @@ export default function Sales() {
   const [clientSearch, setClientSearch] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [note, setNote] = useState("");
+  const [paidAmount, setPaidAmount] = useState(0);
+  const [paidAmountTouched, setPaidAmountTouched] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [submitting, setSubmitting] = useState(false);
 
   // Modal "Ajouter au panier"
@@ -167,6 +171,26 @@ export default function Sales() {
     0,
   );
   const cartQty = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Le montant payé suit automatiquement le total du panier (paiement
+  // intégral par défaut) tant que l'utilisateur ne l'a pas modifié
+  // manuellement, pour permettre un règlement partiel ou à crédit.
+  useEffect(() => {
+    if (!paidAmountTouched) {
+      setPaidAmount(cartTotal);
+    } else if (paidAmount > cartTotal) {
+      // Le panier a diminué en dessous du montant payé saisi : on recadre.
+      setPaidAmount(cartTotal);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartTotal]);
+
+  useEffect(() => {
+    if (!cart.length) {
+      setPaidAmountTouched(false);
+      setPaymentMethod("CASH");
+    }
+  }, [cart.length]);
 
   const filteredProducts = products
     .filter((p) => p.quantity > 0)
@@ -278,6 +302,9 @@ export default function Sales() {
     setClientSearch("");
     setCustomerName("");
     setNote("");
+    setPaidAmount(0);
+    setPaidAmountTouched(false);
+    setPaymentMethod("CASH");
   };
 
   const handleCreateSale = async (e: React.FormEvent) => {
@@ -291,12 +318,16 @@ export default function Sales() {
     if (!cart.length) return toast.error("Le panier est vide");
     if (!clientId && !customerName.trim())
       return toast.error("Client ou nom du client requis");
+    if (paidAmount < 0 || paidAmount > cartTotal) {
+      return toast.error("Montant payé invalide");
+    }
     setSubmitting(true);
     try {
       await createSale({
         clientId: clientId ? Number(clientId) : null,
         customerName: customerName || undefined,
-        paidAmount: 0,
+        paidAmount,
+        paymentMethod,
         note: note || undefined,
         items: cart.map((c) => ({
           productId: c.productId,
@@ -600,6 +631,67 @@ export default function Sales() {
                 <span className="text-lg font-bold text-emerald-700">
                   {fmt(cartTotal)}
                 </span>
+              </div>
+
+              {/* Paiement */}
+              <div className="space-y-3 border-t border-gray-100 pt-3">
+                <div>
+                  <div className="mb-1 flex items-center justify-between">
+                    <label className="block text-xs font-medium text-gray-700">
+                      Montant payé
+                    </label>
+                    {paidAmountTouched && paidAmount !== cartTotal && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPaidAmountTouched(false);
+                          setPaidAmount(cartTotal);
+                        }}
+                        className="text-xs text-emerald-700 hover:underline"
+                      >
+                        Payer la totalité
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="number"
+                    min={0}
+                    max={cartTotal}
+                    value={paidAmount}
+                    onChange={(e) => {
+                      setPaidAmountTouched(true);
+                      setPaidAmount(Number(e.target.value));
+                    }}
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-400">
+                    {paidAmount >= cartTotal ? (
+                      <span className="text-emerald-600 font-medium">
+                        Vente payée intégralement
+                      </span>
+                    ) : paidAmount > 0 ? (
+                      <span className="text-yellow-600 font-medium">
+                        Paiement partiel — reste {fmt(cartTotal - paidAmount)}
+                      </span>
+                    ) : (
+                      <span className="text-red-500 font-medium">
+                        Vente à crédit — rien n'est encaissé maintenant
+                      </span>
+                    )}
+                  </p>
+                </div>
+                {paidAmount > 0 && (
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-700">
+                      Méthode de paiement
+                    </label>
+                    <PaymentMethodSelect
+                      value={paymentMethod}
+                      onChange={setPaymentMethod}
+                      className="w-full"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Client / note */}

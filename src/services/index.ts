@@ -222,6 +222,7 @@ export type CreateSalePayload = {
   clientId?: number | null;
   customerName?: string;
   paidAmount?: number;
+  paymentMethod?: string;
   note?: string;
   items: SaleItemPayload[];
 };
