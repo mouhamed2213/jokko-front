@@ -16,6 +16,7 @@ import Login from "./pages/Login";
 import Products from "./pages/Products";
 import Register from "./pages/Register";
 import Sales from "./pages/Sales";
+import SalesHistory from "./pages/SalesHistory";
 import Settings from "./pages/Settings";
 import Stock from "./pages/Stock";
 import SuperAdminLogin from "./pages/superAdmin/SuperAdminLogin";
@@ -82,6 +83,7 @@ export default function App() {
           />
           <Route path="/stock" element={<Stock />} />
           <Route path="/sales" element={<Sales />} />
+          <Route path="/sales/history" element={<SalesHistory />} />
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/cash" element={<Cash />} />
           <Route path="/users" element={<Users />} />

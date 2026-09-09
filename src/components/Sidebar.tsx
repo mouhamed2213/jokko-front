@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import logo from "../assets/jb_logo.jpg";
 
 import { api } from "../services/api";
@@ -57,6 +57,11 @@ const emptyShopForm: NewShopForm = {
 };
 
 // ── Nav links ────────────────────────────────────────────────
+type NavSubLink = {
+  name: string;
+  path: string;
+};
+
 type NavLinkItem = {
   name: string;
   path: string;
@@ -64,6 +69,7 @@ type NavLinkItem = {
   adminOnly: boolean;
   premium?: boolean;
   featureKey?: FeatureCode;
+  children?: NavSubLink[];
 };
 
 const allLinks: NavLinkItem[] = [
@@ -83,7 +89,15 @@ const allLinks: NavLinkItem[] = [
     adminOnly: false,
   },
   { name: "Stock", path: "/stock", icon: Boxes, adminOnly: false },
-  { name: "Ventes", path: "/sales", icon: ShoppingCart, adminOnly: false },
+  {
+    name: "Ventes",
+    path: "/sales",
+    icon: ShoppingCart,
+    adminOnly: false,
+    children: [
+      { name: "Historique des ventes", path: "/sales/history" },
+    ],
+  },
   { name: "Factures", path: "/invoices", icon: FileText, adminOnly: false },
   { name: "Utilisateurs", path: "/users", icon: UserCog, adminOnly: true },
   { name: "Paramètres", path: "/settings", icon: Settings, adminOnly: true },
@@ -535,6 +549,99 @@ function ShopSwitcher({
   );
 }
 
+// ── Nav group (item with sub-items) ─────────────────────────
+
+function NavGroup({
+  link,
+  Icon,
+  collapsed,
+  onClose,
+}: {
+  link: NavLinkItem;
+  Icon: typeof LayoutDashboard;
+  collapsed: boolean;
+  onClose?: () => void;
+}) {
+  const location = useLocation();
+  const childPaths = link.children?.map((c) => c.path) ?? [];
+  const isParentActive = location.pathname === link.path;
+  const isChildActive = childPaths.includes(location.pathname);
+  const [manualOverride, setManualOverride] = useState<boolean | null>(null);
+  const open = manualOverride ?? isChildActive;
+
+  if (collapsed) {
+    // En mode réduit, on garde uniquement le lien principal (pas de sous-menu affichable).
+    return (
+      <NavLink
+        to={link.path}
+        onClick={onClose}
+        title={link.name}
+        className={({ isActive }) =>
+          `group flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition ${
+            isActive
+              ? "bg-white text-slate-900"
+              : "text-white/70 hover:bg-white/10 hover:text-white"
+          }`
+        }
+      >
+        <Icon size={17} />
+      </NavLink>
+    );
+  }
+
+  return (
+    <div>
+      <div
+        className={`group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition ${
+          isParentActive
+            ? "bg-white text-slate-900"
+            : "text-white/70 hover:bg-white/10 hover:text-white"
+        }`}
+      >
+        <NavLink
+          to={link.path}
+          onClick={onClose}
+          className="flex flex-1 items-center gap-3"
+        >
+          <Icon size={17} />
+          <span>{link.name}</span>
+        </NavLink>
+        <button
+          type="button"
+          onClick={() => setManualOverride(!open)}
+          className="rounded-md p-1 opacity-60 hover:opacity-100"
+          title={open ? "Réduire" : "Développer"}
+        >
+          <ChevronDown
+            size={14}
+            className={`transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+      </div>
+      {open && (
+        <div className="mt-0.5 ml-4 space-y-0.5 border-l border-white/10 pl-3">
+          {link.children!.map((child) => (
+            <NavLink
+              key={child.path}
+              to={child.path}
+              onClick={onClose}
+              className={({ isActive }) =>
+                `block rounded-lg px-3 py-1.5 text-sm transition ${
+                  isActive
+                    ? "bg-white/10 text-white font-medium"
+                    : "text-white/50 hover:bg-white/5 hover:text-white/80"
+                }`
+              }
+            >
+              {child.name}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Sidebar Content ──────────────────────────────────────────
 
 function SidebarContent({
@@ -697,6 +804,18 @@ function SidebarContent({
                 </div>
                 {!collapsed && <Crown size={13} className="opacity-60" />}
               </button>
+            );
+          }
+
+          if (link.children?.length) {
+            return (
+              <NavGroup
+                key={link.path + link.name}
+                link={link}
+                Icon={Icon}
+                collapsed={collapsed}
+                onClose={onClose}
+              />
             );
           }
 
