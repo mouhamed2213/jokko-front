@@ -80,7 +80,7 @@ const allLinks: NavLinkItem[] = [
   },
   { name: "Caisse", path: "/cash", icon: Wallet, adminOnly: false },
   {
-    name: "Produits",
+    name: "Stocks & Produits",
     path: "/products",
     icon: Package,
     adminOnly: false,
