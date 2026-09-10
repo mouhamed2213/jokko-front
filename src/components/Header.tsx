@@ -24,8 +24,8 @@ const pageConfig: Record<string, { title: string; description: string }> = {
     description: "Gerez vos fournisseurs et dettes.",
   },
   "/stock": {
-    title: "Stock",
-    description: "Enregistrez les entrees et sorties de stock.",
+    title: "Mouvements de stock",
+    description: "Historique complet des entrees, sorties et ventes.",
   },
   "/sales": {
     title: "Ventes",

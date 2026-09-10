@@ -1,8 +1,7 @@
 import {
   AlertTriangle,
-  ChevronDown,
-  ChevronUp,
   Lock,
+  Minus,
   Plus,
   Search,
   Trash2,
@@ -10,13 +9,17 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
+  addStockEntry,
+  addStockOut,
   api,
   createCategory,
   createProduct,
   deleteProduct,
   getCategories,
+  getProductById,
   getProducts,
   getSubscription,
   getSuppliers,
@@ -30,6 +33,9 @@ import type {
   Supplier,
 } from "../types/index";
 import { showModal } from "../components/upgradeModal";
+import SupplierDebtSection, {
+  type SupplierDebtFormState,
+} from "../components/SupplierDebtSection";
 
 const emptyForm = {
   name: "",
@@ -83,6 +89,28 @@ const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [totalProducts, setTotalProducts] = useState(0);
 
+  // ── Mouvements de stock rapides (Entrée / Sortie) ──────────────
+  const [stockModal, setStockModal] = useState<{
+    product: Product;
+    mode: "ENTRY" | "OUT";
+  } | null>(null);
+  const [stockQty, setStockQty] = useState(1);
+  const [stockNote, setStockNote] = useState("");
+  const [stockSupplierForm, setStockSupplierForm] =
+    useState<SupplierDebtFormState>(emptySupplierForm);
+  const [stockSupplierSearch, setStockSupplierSearch] = useState("");
+  const [showStockSupplierSection, setShowStockSupplierSection] =
+    useState(false);
+  const [submittingStock, setSubmittingStock] = useState(false);
+
+  // ── Produit signalé depuis une alerte de stock ─────────────────
+  const [searchParams, setSearchParams] = useSearchParams();
+  const highlightId = searchParams.get("highlight");
+  const [highlightedProduct, setHighlightedProduct] = useState<Product | null>(
+    null,
+  );
+  const [loadingHighlight, setLoadingHighlight] = useState(false);
+
   const admin = isAdmin();
   const maxProducts = subscription?.limits.products;
   const warningThreshold =
@@ -124,6 +152,27 @@ const [selectedFile, setSelectedFile] = useState<File | null>(null);
   }, [search, categoryFilter, page]);
 
   useEffect(() => {
+    if (!highlightId) {
+      setHighlightedProduct(null);
+      return;
+    }
+    setLoadingHighlight(true);
+    getProductById(Number(highlightId))
+      .then(setHighlightedProduct)
+      .catch(() => {
+        toast.error("Produit introuvable");
+        setHighlightedProduct(null);
+      })
+      .finally(() => setLoadingHighlight(false));
+  }, [highlightId]);
+
+  const clearHighlight = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("highlight");
+    setSearchParams(next);
+  };
+
+  useEffect(() => {
     if (!showSupplierSection) return;
     getSuppliers({ page: 1, limit: 20, search: supplierSearch || undefined })
       .then((result) => setSuppliers(result.data))
@@ -134,7 +183,6 @@ const [selectedFile, setSelectedFile] = useState<File | null>(null);
     supplierForm.unitCost > 0 && form.quantity > 0
       ? supplierForm.unitCost * Number(form.quantity)
       : 0;
-  const reste = totalCost > 0 ? totalCost - supplierForm.paidAmount : 0;
 
 
   // ── Upload image ──────────────────────────────────────────
@@ -208,7 +256,9 @@ const handleSubmit = async (e: React.FormEvent) => {
     if (form.description) formDataToSend.append("description", form.description);
     if (form.reference) formDataToSend.append("reference", form.reference);
     if (form.categoryId) formDataToSend.append("categoryId", String(form.categoryId));
-    if (form.quantity) formDataToSend.append("quantity", String(form.quantity));
+    // La quantité ne peut être modifiée qu'à la création : toute variation
+    // ultérieure doit passer par une Entrée/Sortie de stock (traçabilité).
+    if (!editingId && form.quantity) formDataToSend.append("quantity", String(form.quantity));
     
     formDataToSend.append("purchasePrice", String(form.purchasePrice));
     formDataToSend.append("salePrice", String(form.salePrice));
@@ -287,6 +337,92 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
   };
 
+  // ── Mouvements de stock rapides ─────────────────────────────
+  const openStockModal = (product: Product, mode: "ENTRY" | "OUT") => {
+    setStockModal({ product, mode });
+    setStockQty(1);
+    setStockNote("");
+    setStockSupplierForm({
+      ...emptySupplierForm,
+      unitCost: product.purchasePrice,
+    });
+    setStockSupplierSearch("");
+    setShowStockSupplierSection(false);
+  };
+
+  const closeStockModal = () => setStockModal(null);
+
+  const handleStockSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stockModal || stockQty <= 0) {
+      return toast.error("Quantité invalide");
+    }
+    if (
+      stockModal.mode === "ENTRY" &&
+      showStockSupplierSection &&
+      stockSupplierForm.createDebt &&
+      !stockSupplierForm.supplierId
+    ) {
+      return toast.error("Sélectionnez un fournisseur");
+    }
+    if (
+      stockModal.mode === "ENTRY" &&
+      showStockSupplierSection &&
+      stockSupplierForm.createDebt &&
+      stockSupplierForm.unitCost <= 0
+    ) {
+      return toast.error("Entrez le coût unitaire");
+    }
+    setSubmittingStock(true);
+    try {
+      if (stockModal.mode === "ENTRY") {
+        await addStockEntry({
+          productId: stockModal.product.id,
+          quantity: stockQty,
+          note: stockNote || undefined,
+          supplierId:
+            showStockSupplierSection && stockSupplierForm.supplierId
+              ? stockSupplierForm.supplierId
+              : undefined,
+          unitCost:
+            showStockSupplierSection && stockSupplierForm.unitCost
+              ? stockSupplierForm.unitCost
+              : undefined,
+          paidAmount:
+            showStockSupplierSection && stockSupplierForm.paidAmount
+              ? stockSupplierForm.paidAmount
+              : undefined,
+          createDebt: showStockSupplierSection && stockSupplierForm.createDebt,
+        });
+        toast.success("Entrée de stock enregistrée");
+      } else {
+        if (stockQty > stockModal.product.quantity) {
+          setSubmittingStock(false);
+          return toast.error(
+            `Stock insuffisant (${stockModal.product.quantity} disponibles)`,
+          );
+        }
+        await addStockOut({
+          productId: stockModal.product.id,
+          quantity: stockQty,
+          note: stockNote || undefined,
+        });
+        toast.success("Sortie de stock enregistrée");
+      }
+      closeStockModal();
+      await fetchData();
+      if (highlightId && Number(highlightId) === stockModal.product.id) {
+        getProductById(Number(highlightId)).then(setHighlightedProduct);
+      }
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Erreur mouvement de stock",
+      );
+    } finally {
+      setSubmittingStock(false);
+    }
+  };
+
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) return;
     try {
@@ -335,6 +471,80 @@ const handleSubmit = async (e: React.FormEvent) => {
           </a>
         </div>
       )}
+
+      {/* Produit signalé depuis une alerte de stock */}
+      {highlightId && (
+        <div className="rounded-2xl border-2 border-emerald-400 bg-emerald-50/60 p-4 shadow-sm">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+              Produit signalé par une alerte de stock
+            </span>
+            <button
+              type="button"
+              onClick={clearHighlight}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X size={16} />
+            </button>
+          </div>
+          {loadingHighlight ? (
+            <p className="text-sm text-gray-500">Chargement...</p>
+          ) : !highlightedProduct ? (
+            <p className="text-sm text-gray-500">Produit introuvable.</p>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                  {highlightedProduct.imageUrl ? (
+                    <img
+                      src={highlightedProduct.imageUrl}
+                      alt={highlightedProduct.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-lg font-bold text-slate-300">
+                      {highlightedProduct.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900">
+                    {highlightedProduct.name}
+                  </p>
+                  <p
+                    className={`text-xs font-medium ${
+                      highlightedProduct.quantity === 0
+                        ? "text-red-600"
+                        : "text-yellow-600"
+                    }`}
+                  >
+                    {highlightedProduct.quantity === 0
+                      ? "Rupture de stock"
+                      : `Stock faible — ${highlightedProduct.quantity} restant(s)`}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => openStockModal(highlightedProduct, "ENTRY")}
+                  className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700"
+                >
+                  <Plus size={13} /> Entrée
+                </button>
+                {admin && (
+                  <button
+                    onClick={() => handleEdit(highlightedProduct)}
+                    className="rounded-xl border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Modifier
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Barre de recherche */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-50">
@@ -631,18 +841,33 @@ const handleSubmit = async (e: React.FormEvent) => {
               {/* Quantité */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Quantité initiale
+                  {editingId ? "Stock actuel" : "Quantité initiale"}
                 </label>
-                <input
-                  type="number"
-                  min={0}
-                  onFocus={(e) => e.target.select()} 
-                  value={form.quantity}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, quantity: Number(e.target.value) }))
-                  }
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                />
+                {editingId ? (
+                  <div>
+                    <input
+                      type="number"
+                      value={form.quantity}
+                      disabled
+                      className="w-full cursor-not-allowed rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-500 outline-none"
+                    />
+                    <p className="mt-1 text-xs text-gray-400">
+                      Utilisez les boutons Entrée / Sortie sur la fiche produit
+                      pour ajuster le stock.
+                    </p>
+                  </div>
+                ) : (
+                  <input
+                    type="number"
+                    min={0}
+                    onFocus={(e) => e.target.select()}
+                    value={form.quantity}
+                    onChange={(e) =>
+                      setForm((p) => ({ ...p, quantity: Number(e.target.value) }))
+                    }
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
+                  />
+                )}
               </div>
 
               {/* Seuil alerte */}
@@ -783,154 +1008,22 @@ const handleSubmit = async (e: React.FormEvent) => {
             {/* Section fournisseur (création uniquement) */}
             {!editingId && (
               <div className="border-t pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!subscription) {
-                      return;
-                    }
-                    setShowSupplierSection((v) => {
-                      if (!v && supplierForm.unitCost <= 0) {
-                        setSupplierForm((p) => ({
-                          ...p,
-                          unitCost: Number(form.purchasePrice) || 0,
-                        }));
-                      }
-                      return !v;
-                    });
+                <SupplierDebtSection
+                  title="Fournisseur pour le stock initial"
+                  open={showSupplierSection}
+                  onToggle={() => {
+                    if (!subscription) return;
+                    setShowSupplierSection((v) => !v);
                   }}
-                  className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 group transition-colors"
-                >
-                  <div className="flex items-center gap-1.5">
-                    {showSupplierSection ? (
-                      <ChevronUp size={16} />
-                    ) : (
-                      <ChevronDown size={16} />
-                    )}
-
-                    <span>
-                      {showSupplierSection
-                        ? "Masquer les infos fournisseur"
-                        : "Lier à un fournisseur "}
-                    </span>
-
-                  </div>
-                </button>
-
-                {showSupplierSection && (
-                  <div className="mt-4 rounded-xl bg-slate-50 p-4 space-y-4 border border-slate-200">
-                    <p className="text-sm font-semibold text-slate-700">
-                      Fournisseur pour le stock initial
-                    </p>
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-gray-700">
-                        Fournisseur
-                      </label>
-                      <input
-                        value={supplierSearch}
-                        onChange={(e) => {
-                          setSupplierSearch(e.target.value);
-                          setSupplierForm((p) => ({ ...p, supplierId: 0 }));
-                        }}
-                        placeholder="Rechercher un fournisseur..."
-                        className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                      />
-                      {supplierSearch && !supplierForm.supplierId && (
-                        <div className="mt-1 max-h-48 overflow-y-auto rounded-xl border bg-white shadow-sm">
-                          {suppliers.map((s) => (
-                            <button
-                              type="button"
-                              key={s.id}
-                              onClick={() => {
-                                setSupplierForm((p) => ({
-                                  ...p,
-                                  supplierId: s.id,
-                                  unitCost:
-                                    p.unitCost > 0
-                                      ? p.unitCost
-                                      : Number(form.purchasePrice) || 0,
-                                }));
-                                setSupplierSearch(s.name);
-                              }}
-                              className="block w-full px-4 py-2 text-left text-sm hover:bg-emerald-50"
-                            >
-                              {s.name}
-                              {s.phone ? ` — ${s.phone}` : ""}
-                            </button>
-                          ))}
-                          {!suppliers.length && (
-                            <p className="px-4 py-3 text-sm text-gray-500">
-                              Aucun fournisseur trouvé
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={supplierForm.createDebt}
-                        onChange={(e) =>
-                          setSupplierForm((p) => ({
-                            ...p,
-                            createDebt: e.target.checked,
-                          }))
-                        }
-                        className="h-4 w-4 accent-emerald-600"
-                      />
-                      <span className="text-sm text-gray-700">
-                        Créer une dette fournisseur
-                      </span>
-                    </label>
-                    {supplierForm.createDebt && (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="mb-1 block text-sm font-medium text-gray-700">
-                            Coût unitaire (FCFA)
-                          </label>
-                          <input
-                            type="number"
-                            min={0}
-                            value={supplierForm.unitCost}
-                            onChange={(e) =>
-                              setSupplierForm((p) => ({
-                                ...p,
-                                unitCost: Number(e.target.value),
-                              }))
-                            }
-                            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="mb-1 block text-sm font-medium text-gray-700">
-                            Acompte versé (FCFA)
-                          </label>
-                          <input
-                            type="number"
-                            min={0}
-                            value={supplierForm.paidAmount}
-                            onChange={(e) =>
-                              setSupplierForm((p) => ({
-                                ...p,
-                                paidAmount: Number(e.target.value),
-                              }))
-                            }
-                            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                          />
-                        </div>
-                        {totalCost > 0 && (
-                          <div
-                            className={`col-span-2 rounded-xl px-4 py-3 text-sm font-medium ${reste > 0 ? "bg-yellow-50 text-yellow-700" : "bg-emerald-50 text-emerald-700"}`}
-                          >
-                            {reste > 0
-                              ? `⚠️ Reste dû : ${fmt(reste)}`
-                              : "✅ Entièrement payé"}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
+                  disabled={!subscription}
+                  supplierSearch={supplierSearch}
+                  onSupplierSearchChange={setSupplierSearch}
+                  suppliers={suppliers}
+                  form={supplierForm}
+                  onFormChange={setSupplierForm}
+                  quantity={Number(form.quantity)}
+                  fallbackUnitCost={Number(form.purchasePrice) || 0}
+                />
               </div>
             )}
 
@@ -1096,6 +1189,21 @@ const handleSubmit = async (e: React.FormEvent) => {
                       </button>
                     </div>
                   )}
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={() => openStockModal(product, "ENTRY")}
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-50 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-100"
+                    >
+                      <Plus size={13} /> Entrée
+                    </button>
+                    <button
+                      onClick={() => openStockModal(product, "OUT")}
+                      disabled={product.quantity === 0}
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-red-50 py-2 text-xs font-medium text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Minus size={13} /> Sortie
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -1132,6 +1240,125 @@ const handleSubmit = async (e: React.FormEvent) => {
           () => setIsUpgradeModalOpen(false),
           "maxProductReached",
         )}
+
+      {/* Modal Entrée / Sortie de stock */}
+      {stockModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900">
+                {stockModal.mode === "ENTRY"
+                  ? "Entrée de stock"
+                  : "Sortie de stock"}
+              </h3>
+              <button type="button" onClick={closeStockModal}>
+                <X size={20} className="text-gray-400 hover:text-gray-600" />
+              </button>
+            </div>
+
+            <div className="mt-4 flex items-center gap-3">
+              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                {stockModal.product.imageUrl ? (
+                  <img
+                    src={stockModal.product.imageUrl}
+                    alt={stockModal.product.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-lg font-bold text-slate-300">
+                    {stockModal.product.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <div>
+                <p className="font-semibold text-slate-900">
+                  {stockModal.product.name}
+                </p>
+                <p className="text-xs text-gray-400">
+                  Stock actuel : {stockModal.product.quantity}
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleStockSubmit} className="mt-5 space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  {stockModal.mode === "ENTRY"
+                    ? "Quantité à ajouter *"
+                    : "Quantité à retirer *"}
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={stockModal.mode === "OUT" ? stockModal.product.quantity : undefined}
+                  onFocus={(e) => e.target.select()}
+                  value={stockQty}
+                  onChange={(e) => setStockQty(Number(e.target.value))}
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  {stockModal.mode === "ENTRY" ? "Note" : "Raison"}
+                </label>
+                <textarea
+                  value={stockNote}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => setStockNote(e.target.value)}
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 min-h-20"
+                  placeholder={
+                    stockModal.mode === "ENTRY"
+                      ? "Ex: Réapprovisionnement..."
+                      : "Ex: Casse, perte, retour client..."
+                  }
+                />
+              </div>
+
+              {stockModal.mode === "ENTRY" && (
+                <SupplierDebtSection
+                  title="Informations fournisseur"
+                  open={showStockSupplierSection}
+                  onToggle={() => setShowStockSupplierSection((v) => !v)}
+                  supplierSearch={stockSupplierSearch}
+                  onSupplierSearchChange={setStockSupplierSearch}
+                  suppliers={suppliers}
+                  form={stockSupplierForm}
+                  onFormChange={setStockSupplierForm}
+                  quantity={stockQty}
+                  fallbackUnitCost={stockModal.product.purchasePrice}
+                />
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={submittingStock}
+                  className={`flex-1 rounded-xl py-2.5 text-sm font-medium text-white transition disabled:opacity-60 ${
+                    stockModal.mode === "ENTRY"
+                      ? "bg-emerald-600 hover:bg-emerald-700"
+                      : "bg-red-500 hover:bg-red-600"
+                  }`}
+                >
+                  {submittingStock
+                    ? "Enregistrement..."
+                    : stockModal.mode === "ENTRY"
+                      ? "Ajouter au stock"
+                      : "Sortir du stock"}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeStockModal}
+                  className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </section>
   );

@@ -1,5 +1,4 @@
 import {
-  Boxes,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -80,7 +79,13 @@ const allLinks: NavLinkItem[] = [
     adminOnly: false,
   },
   { name: "Caisse", path: "/cash", icon: Wallet, adminOnly: false },
-  { name: "Produits", path: "/products", icon: Package, adminOnly: false },
+  {
+    name: "Produits",
+    path: "/products",
+    icon: Package,
+    adminOnly: false,
+    children: [{ name: "Mouvements de stock", path: "/stock" }],
+  },
   { name: "Clients", path: "/clients", icon: Users, adminOnly: false },
   {
     name: "Fournisseurs",
@@ -88,7 +93,6 @@ const allLinks: NavLinkItem[] = [
     icon: Truck,
     adminOnly: false,
   },
-  { name: "Stock", path: "/stock", icon: Boxes, adminOnly: false },
   {
     name: "Ventes",
     path: "/sales",

@@ -312,6 +312,8 @@ export type StockPayload = {
 export const getStockMovements = async (params?: {
   page?: number;
   limit?: number;
+  productId?: number;
+  type?: string;
 }) => (await api.get("/stock/movements", { params })).data;
 export const addStockEntry = async (payload: StockPayload) =>
   (await api.post("/stock/entry", payload)).data;

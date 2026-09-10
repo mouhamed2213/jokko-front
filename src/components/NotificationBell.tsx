@@ -122,7 +122,7 @@ export default function NotificationBell() {
                       <div
                         key={p.id}
                         onClick={() => {
-                          navigate("/stock");
+                          navigate(`/products?highlight=${p.id}`);
                           setOpen(false);
                         }}
                         className="flex items-center justify-between px-4 py-3 hover:bg-red-50 cursor-pointer transition"
@@ -156,7 +156,7 @@ export default function NotificationBell() {
                       <div
                         key={p.id}
                         onClick={() => {
-                          navigate("/stock");
+                          navigate(`/products?highlight=${p.id}`);
                           setOpen(false);
                         }}
                         className="flex items-center justify-between px-4 py-3 hover:bg-yellow-50 cursor-pointer transition"
@@ -185,7 +185,7 @@ export default function NotificationBell() {
             <div className="border-t border-gray-100 px-4 py-3 space-y-2">
               <button
                 onClick={() => {
-                  navigate("/stock");
+                  navigate("/products");
                   setOpen(false);
                 }}
                 className="w-full rounded-xl bg-slate-900 py-2 text-xs font-medium text-white hover:opacity-90 transition"
