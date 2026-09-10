@@ -36,8 +36,8 @@ import {
 import type { FeatureCode, NewShopForm, SubscriptionInfo } from "../types";
 import { hasFeature, hasFeatures } from "../utils/subscription.checker";
 
-// ── Types ────────────────────────────────────────────────────
 
+// ── Types ──────────────────────────────────────────────────
 type ShopItem = {
   id: number;
   name: string;
@@ -104,7 +104,6 @@ const allLinks: NavLinkItem[] = [
 ];
 
 // ── Add Shop Modal ───────────────────────────────────────────
-
 function AddShopModal({
   onClose,
   onCreated,
@@ -241,7 +240,6 @@ function AddShopModal({
 }
 
 // ── Shop Switcher ────────────────────────────────────────────
-
 function ShopSwitcher({
   shops,
   currentShopId,
@@ -550,7 +548,6 @@ function ShopSwitcher({
 }
 
 // ── Nav group (item with sub-items) ─────────────────────────
-
 function NavGroup({
   link,
   Icon,
@@ -643,7 +640,6 @@ function NavGroup({
 }
 
 // ── Sidebar Content ──────────────────────────────────────────
-
 function SidebarContent({
   onClose,
   onUpgradeClick,
@@ -877,8 +873,8 @@ function SidebarContent({
   );
 }
 
-// ── Export principal ─────────────────────────────────────────
 
+// ── Export principal ─────────────────────────────────────────
 export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);

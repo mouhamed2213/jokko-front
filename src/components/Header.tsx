@@ -46,6 +46,7 @@ const pageConfig: Record<string, { title: string; description: string }> = {
   },
 };
 
+
 // Interface pour typer le retour de l'alerte d'abonnement
 interface SubscriptionAlert {
   text: string;
@@ -93,7 +94,6 @@ function getSubscriptionAlert(
       type: "warning",
     };
   }
-
   return null;
 }
 
