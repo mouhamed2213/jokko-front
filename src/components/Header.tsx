@@ -134,12 +134,12 @@ export default function Header() {
   return (
     <header className="flex flex-col gap-4">
       {/* SECTION 1 : Infos de la page et profil utilisateur */}
-      <div className="rounded-2xl bg-white px-6 py-4 shadow-sm flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="rounded-2xl bg-slate-900 text-white px-6 py-4 shadow-sm flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-xl font-bold text-white">
             {currentPage.title}
           </h2>
-          <p className="mt-0.5 text-sm text-gray-500">
+          <p className="mt-0.5 text-sm text-gray-400">
             {currentPage.description}
           </p>
         </div>
