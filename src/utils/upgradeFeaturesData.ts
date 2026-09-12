@@ -128,6 +128,44 @@ export const upgradeFeatures = {
     redirect: "/settings",
   },
 
+  // Supplier analytics (ADVANCED_REPORTS)
+  supplierAnalytics: {
+    title: "Analyses fournisseurs",
+    description: `La comparaison des prix entre fournisseurs et le classement
+    des fournisseurs sont disponibles à partir du plan Pro.`,
+
+    requiredPlan: "Pro • Premium",
+
+    benefits: [
+      "Comparer le coût d'un produit entre vos fournisseurs",
+      "Classement des fournisseurs par volume ou dette",
+      "Relevé de compte fournisseur exportable en PDF",
+    ],
+
+    cta: "Découvrir les plans",
+
+    redirect: "/settings",
+  },
+
+  // Consolidated suppliers across shops (MULTI_STORE)
+  multiStoreSuppliers: {
+    title: "Vue consolidée multi-boutique",
+    description: `La vue consolidée des fournisseurs sur l'ensemble de vos
+    boutiques est disponible à partir du plan Pro.`,
+
+    requiredPlan: "Pro • Premium",
+
+    benefits: [
+      "Dette fournisseur totale sur toutes vos boutiques",
+      "Détail boutique par boutique",
+      "Chaque boutique garde sa propre comptabilité",
+    ],
+
+    cta: "Découvrir les plans",
+
+    redirect: "/settings",
+  },
+
 
 
 
