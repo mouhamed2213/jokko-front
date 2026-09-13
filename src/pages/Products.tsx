@@ -2,19 +2,24 @@ import {
   AlertTriangle,
   Lock,
   Minus,
+  Pen,
   Plus,
   Search,
+  Trash,
   Trash2,
   Upload,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useSearchParams } from "react-router-dom";
+import SupplierDebtSection, {
+  type SupplierDebtFormState,
+} from "../components/SupplierDebtSection";
+import { showModal } from "../components/upgradeModal";
 import {
   addStockEntry,
   addStockOut,
-  api,
   createCategory,
   createProduct,
   deleteProduct,
@@ -32,10 +37,6 @@ import type {
   SubscriptionInfo,
   Supplier,
 } from "../types/index";
-import { showModal } from "../components/upgradeModal";
-import SupplierDebtSection, {
-  type SupplierDebtFormState,
-} from "../components/SupplierDebtSection";
 
 const emptyForm = {
   name: "",
@@ -82,7 +83,7 @@ export default function Products() {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   // Upload image
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
@@ -130,7 +131,7 @@ const [selectedFile, setSelectedFile] = useState<File | null>(null);
       getSubscription().then(setSubscription);
 
       const [prodRes, cats, sups] = await Promise.all([
-        getProducts({ search, categoryId: categoryFilter, page, limit: 6 }),
+        getProducts({ search, categoryId: categoryFilter, page, limit: 25 }),
         getCategories(),
         getSuppliers({ page: 1, limit: 20 }),
       ]);
@@ -184,124 +185,137 @@ const [selectedFile, setSelectedFile] = useState<File | null>(null);
       ? supplierForm.unitCost * Number(form.quantity)
       : 0;
 
-
   // ── Upload image ──────────────────────────────────────────
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  // 1. Stocker le fichier
-  setSelectedFile(file);
+    // 1. Stocker le fichier
+    setSelectedFile(file);
 
-  // 2. Générer le preview local pour l'UI
-  const reader = new FileReader();
-  reader.onload = (ev) => setImagePreview(ev.target?.result as string);
-  reader.readAsDataURL(file);
-};
+    // 2. Générer le preview local pour l'UI
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
 
-const handleRemoveImage = () => {
-  setForm((p) => ({ ...p, imageUrl: "" }));
-  setImagePreview("");
-  setSelectedFile(null); // Clear le fichier sélectionné
-  if (fileInputRef.current) fileInputRef.current.value = "";
-};
+  const handleRemoveImage = () => {
+    setForm((p) => ({ ...p, imageUrl: "" }));
+    setImagePreview("");
+    setSelectedFile(null); // Clear le fichier sélectionné
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
-const resetForm = () => {
-  setForm(emptyForm);
-  setSupplierForm(emptySupplierForm);
-  setShowSupplierSection(false);
-  setEditingId(null);
-  setShowForm(false);
-  setSupplierSearch("");
-  setImagePreview("");
-  setSelectedFile(null); // Reset du fichier
-};
+  const resetForm = () => {
+    setForm(emptyForm);
+    setSupplierForm(emptySupplierForm);
+    setShowSupplierSection(false);
+    setEditingId(null);
+    setShowForm(false);
+    setSupplierSearch("");
+    setImagePreview("");
+    setSelectedFile(null); // Reset du fichier
+  };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!form.name || !form.purchasePrice || !form.salePrice) {
-    return toast.error("Nom, prix d'achat et prix de vente obligatoires");
-  }
-
-  
-  if (
-    showSupplierSection &&
-    supplierForm.createDebt &&
-    !supplierForm.supplierId
-  ) {
-    return toast.error("Sélectionnez un fournisseur");
-  }
-  if (
-    showSupplierSection &&
-    supplierForm.createDebt &&
-    supplierForm.unitCost <= 0
-  ) {
-    return toast.error("Entrez le coût unitaire");
-  }
-  if (
-    showSupplierSection &&
-    supplierForm.createDebt &&
-    supplierForm.paidAmount > totalCost
-  ) {
-    return toast.error("L'acompte ne peut pas dépasser le montant total");
-  }
-
-  setSubmitting(true);
-  try {
-    // 1. Instancier le FormData
-    const formDataToSend = new FormData();
-
-    // 2. Champs principaux du produit
-    formDataToSend.append("name", form.name);
-    if (form.description) formDataToSend.append("description", form.description);
-    if (form.reference) formDataToSend.append("reference", form.reference);
-    if (form.categoryId) formDataToSend.append("categoryId", String(form.categoryId));
-    // La quantité ne peut être modifiée qu'à la création : toute variation
-    // ultérieure doit passer par une Entrée/Sortie de stock (traçabilité).
-    if (!editingId && form.quantity) formDataToSend.append("quantity", String(form.quantity));
-    
-    formDataToSend.append("purchasePrice", String(form.purchasePrice));
-    formDataToSend.append("salePrice", String(form.salePrice));
-    formDataToSend.append("alertThreshold", String(form.alertThreshold));
-
-    // Niveaux tarifaires optionnels
-    if (form.semiWholesalePrice) formDataToSend.append("semiWholesalePrice", String(form.semiWholesalePrice));
-    if (form.semiWholesaleMinQty) formDataToSend.append("semiWholesaleMinQty", String(form.semiWholesaleMinQty));
-    if (form.wholesalePrice) formDataToSend.append("wholesalePrice", String(form.wholesalePrice));
-    if (form.wholesaleMinQty) formDataToSend.append("wholesaleMinQty", String(form.wholesaleMinQty));
-
-    // 3. Ajouter l'image sous la clé "image" (correspond à upload.single("image"))
-    if (selectedFile) {
-      formDataToSend.append("image", selectedFile);
-    } else if (form.imageUrl) {
-      // Fallback si l'utilisateur a renseigné une URL directe sans fichier
-      formDataToSend.append("imageUrl", form.imageUrl);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name || !form.purchasePrice || !form.salePrice) {
+      return toast.error("Nom, prix d'achat et prix de vente obligatoires");
     }
 
-    if (editingId) {
-      // Pour l'édition
-      await updateProduct(editingId, formDataToSend);
-      toast.success("Produit modifié");
-    } else {
-      if (showSupplierSection && supplierForm.supplierId) {
-        formDataToSend.append("supplierId", String(supplierForm.supplierId));
-        formDataToSend.append("unitCost", String(supplierForm.unitCost));
-        formDataToSend.append("paidAmount", String(supplierForm.paidAmount));
-        formDataToSend.append("createDebt", String(supplierForm.createDebt));
+    if (
+      showSupplierSection &&
+      supplierForm.createDebt &&
+      !supplierForm.supplierId
+    ) {
+      return toast.error("Sélectionnez un fournisseur");
+    }
+    if (
+      showSupplierSection &&
+      supplierForm.createDebt &&
+      supplierForm.unitCost <= 0
+    ) {
+      return toast.error("Entrez le coût unitaire");
+    }
+    if (
+      showSupplierSection &&
+      supplierForm.createDebt &&
+      supplierForm.paidAmount > totalCost
+    ) {
+      return toast.error("L'acompte ne peut pas dépasser le montant total");
+    }
+
+    setSubmitting(true);
+    try {
+      // 1. Instancier le FormData
+      const formDataToSend = new FormData();
+
+      // 2. Champs principaux du produit
+      formDataToSend.append("name", form.name);
+      if (form.description)
+        formDataToSend.append("description", form.description);
+      if (form.reference) formDataToSend.append("reference", form.reference);
+      if (form.categoryId)
+        formDataToSend.append("categoryId", String(form.categoryId));
+      // La quantité ne peut être modifiée qu'à la création : toute variation
+      // ultérieure doit passer par une Entrée/Sortie de stock (traçabilité).
+      if (!editingId && form.quantity)
+        formDataToSend.append("quantity", String(form.quantity));
+
+      formDataToSend.append("purchasePrice", String(form.purchasePrice));
+      formDataToSend.append("salePrice", String(form.salePrice));
+      formDataToSend.append("alertThreshold", String(form.alertThreshold));
+
+      // Niveaux tarifaires optionnels
+      if (form.semiWholesalePrice)
+        formDataToSend.append(
+          "semiWholesalePrice",
+          String(form.semiWholesalePrice),
+        );
+      if (form.semiWholesaleMinQty)
+        formDataToSend.append(
+          "semiWholesaleMinQty",
+          String(form.semiWholesaleMinQty),
+        );
+      if (form.wholesalePrice)
+        formDataToSend.append("wholesalePrice", String(form.wholesalePrice));
+      if (form.wholesaleMinQty)
+        formDataToSend.append("wholesaleMinQty", String(form.wholesaleMinQty));
+
+      // 3. Ajouter l'image sous la clé "image" (correspond à upload.single("image"))
+      if (selectedFile) {
+        formDataToSend.append("image", selectedFile);
+      } else if (form.imageUrl) {
+        // Fallback si l'utilisateur a renseigné une URL directe sans fichier
+        formDataToSend.append("imageUrl", form.imageUrl);
       }
-      await createProduct(formDataToSend);
 
-      toast.success("Produit créé");
+      if (editingId) {
+        // Pour l'édition
+        await updateProduct(editingId, formDataToSend);
+        toast.success("Produit modifié");
+      } else {
+        if (showSupplierSection && supplierForm.supplierId) {
+          formDataToSend.append("supplierId", String(supplierForm.supplierId));
+          formDataToSend.append("unitCost", String(supplierForm.unitCost));
+          formDataToSend.append("paidAmount", String(supplierForm.paidAmount));
+          formDataToSend.append("createDebt", String(supplierForm.createDebt));
+        }
+        await createProduct(formDataToSend);
+
+        toast.success("Produit créé");
+      }
+
+      resetForm();
+      await fetchData();
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Erreur lors de l'enregistrement",
+      );
+    } finally {
+      setSubmitting(false);
     }
-
-    resetForm();
-    await fetchData();
-  } catch (error: any) {
-    toast.error(error?.response?.data?.message || "Erreur lors de l'enregistrement");
-  } finally {
-    setSubmitting(false);
-  }
-};
+  };
 
   const handleEdit = (p: Product) => {
     setForm({
@@ -460,7 +474,9 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
 
           <a
-            onClick={ () => {setIsUpgradeModalOpen(true)}}
+            onClick={() => {
+              setIsUpgradeModalOpen(true);
+            }}
             className={
               limiteReached
                 ? "shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
@@ -591,7 +607,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             <button
               onClick={() => {
                 if (limiteReached) {
-                  setIsUpgradeModalOpen(true); 
+                  setIsUpgradeModalOpen(true);
                 }
                 resetForm();
                 setShowForm(true);
@@ -803,7 +819,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <input
                   type="number"
                   min={0}
-                  onFocus={(e) => e.target.select()} 
+                  onFocus={(e) => e.target.select()}
                   value={form.purchasePrice}
                   onChange={(e) =>
                     setForm((p) => ({
@@ -824,8 +840,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <input
                   type="number"
                   min={0}
-
-                  onFocus={(e)=> e.target.select()}
+                  onFocus={(e) => e.target.select()}
                   value={form.salePrice}
                   onChange={(e) =>
                     setForm((p) => ({
@@ -863,7 +878,10 @@ const handleSubmit = async (e: React.FormEvent) => {
                     onFocus={(e) => e.target.select()}
                     value={form.quantity}
                     onChange={(e) =>
-                      setForm((p) => ({ ...p, quantity: Number(e.target.value) }))
+                      setForm((p) => ({
+                        ...p,
+                        quantity: Number(e.target.value),
+                      }))
                     }
                     className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                   />
@@ -879,7 +897,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   type="number"
                   min={0}
                   value={form.alertThreshold}
-                  onFocus={(e)=> e.target.select()}
+                  onFocus={(e) => e.target.select()}
                   onChange={(e) =>
                     setForm((p) => ({
                       ...p,
@@ -1053,156 +1071,187 @@ const handleSubmit = async (e: React.FormEvent) => {
       )}
 
       <p className="text-sm text-gray-500">{total} produit(s)</p>
-
-      {/* Grille produits */}
+      {/* Grille produits - Version Optimisée Mobile & Image */}
       {loading ? (
-        <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
-          Chargement...
+        <div className="rounded-2xl bg-white p-12 text-center text-slate-400 font-medium">
+          Chargement des produits...
         </div>
       ) : !products.length ? (
-        <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
+        <div className="rounded-2xl bg-white p-12 text-center text-slate-400 font-medium">
           {search
             ? `Aucun résultat pour "${search}"`
             : "Aucun produit enregistré."}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((product) => {
             const isLow =
               product.quantity > 0 &&
               product.quantity <= product.alertThreshold;
             const isOut = product.quantity === 0;
+
             return (
               <div
                 key={product.id}
-                className="rounded-2xl bg-white shadow-sm hover:shadow-md transition overflow-hidden"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md transition-all"
               >
-                {/* Image */}
-                <div className="relative h-40 w-full bg-slate-100 overflow-hidden">
+                {/* Top Bar : Conteneur Image avec fond dynamique flouté */}
+                <div className="relative h-40 w-full overflow-hidden bg-slate-100 flex items-center justify-center p-3">
                   {product.imageUrl ? (
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      className="h-full w-full object-cover"
-                    />
+                    <>
+                      {/* 1. Image de fond floutée pour remplir les vides */}
+                      <img
+                        src={product.imageUrl}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 h-full w-full object-cover blur-md scale-125 opacity-30 pointer-events-none"
+                      />
+                      {/* 2. Image principale nette (Contain) */}
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="relative z-10 h-full w-full object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </>
                   ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <span className="text-5xl font-bold text-slate-200">
-                        {product.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
+                    <span className="text-4xl font-extrabold text-slate-300">
+                      {product.name.charAt(0).toUpperCase()}
+                    </span>
                   )}
-                  {/* Badge stock */}
-                  {(isLow || isOut)  && (
-                    <div
-                      className={`absolute top-2 right-2 flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${isOut ? "bg-red-500 text-white" : "bg-yellow-400 text-yellow-900"}`}
+
+                  {/* Badges de Statut (Stock) */}
+                  {(isLow || isOut) && (
+                    <span
+                      className={`absolute top-2 left-2 z-20 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                        isOut
+                          ? "bg-red-500 text-white shadow-sm"
+                          : "bg-amber-400 text-amber-950 shadow-sm"
+                      }`}
                     >
-                      <AlertTriangle size={11} />
-                      {isOut ? "Rupture" : "Faible"}
+                      <AlertTriangle size={10} />
+                      {isOut ? "Rupture" : "Alerte"}
+                    </span>
+                  )}
+
+                  {/* Admin Menu : Toujours visible sur mobile / Survol uniquement sur PC (sm:) */}
+                  {admin && (
+                    <div className="absolute top-2 right-2 z-20 flex gap-1 rounded-xl bg-white/90 p-1 shadow-sm backdrop-blur-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 active:bg-slate-200"
+                        title="Modifier"
+                      >
+                        <Pen size={15} color="green" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product.id)}
+                        className="rounded-lg p-1.5 text-red-600 hover:bg-red-50 active:bg-red-100"
+                        title="Supprimer"
+                      >
+                        <Trash size={15} />
+                      </button>
                     </div>
                   )}
                 </div>
 
-                <div className="p-4 space-y-3">
+                {/* Corps de la Carte */}
+                <div className="flex flex-1 flex-col justify-between p-3.5 space-y-3">
                   <div>
-                    <h4 className="font-semibold text-slate-900 leading-tight">
+                    {/* Categorie & Ref */}
+                    <div className="flex items-center justify-between gap-1 text-[11px] text-slate-400">
+                      <span className="truncate font-medium text-emerald-600">
+                        {product.category?.name || "Sans catégorie"}
+                      </span>
+                      {product.reference && (
+                        <span className="font-mono text-slate-400">
+                          #{product.reference}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Titre */}
+                    <h4 className="mt-0.5 font-bold text-slate-800 text-sm leading-snug line-clamp-1">
                       {product.name}
                     </h4>
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {product.category && (
-                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">
-                          {product.category.name}
-                        </span>
-                      )}
-                      {product.reference && (
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
-                          {product.reference}
-                        </span>
-                      )}
-                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="rounded-lg bg-slate-50 p-2">
-                      <p className="text-gray-400">Achat</p>
-                      <p className="font-semibold text-slate-700">
-                        {fmt(product.purchasePrice)}
-                      </p>
-                    </div>
-                    <div className="rounded-lg bg-emerald-50 p-2">
-                      <p className="text-emerald-600">Détail</p>
-                      <p className="font-semibold text-emerald-700">
+                  {/* Grille des Prix (Compact Box) */}
+                  <div className="rounded-xl bg-slate-50 p-2 space-y-1.5 border border-slate-100 text-xs">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 text-[11px]">
+                        Prix Détail
+                      </span>
+                      <span className="font-extrabold text-slate-900 text-sm">
                         {fmt(product.salePrice)}
-                      </p>
+                      </span>
                     </div>
-                    {product.semiWholesalePrice && (
-                      <div className="rounded-lg bg-blue-50 p-2">
-                        <p className="text-blue-600">
-                          Demi-gros (≥{product.semiWholesaleMinQty})
-                        </p>
-                        <p className="font-semibold text-blue-700">
-                          {fmt(product.semiWholesalePrice)}
-                        </p>
-                      </div>
-                    )}
-                    {product.wholesalePrice && (
-                      <div className="rounded-lg bg-purple-50 p-2">
-                        <p className="text-purple-600">
-                          Gros (≥{product.wholesaleMinQty})
-                        </p>
-                        <p className="font-semibold text-purple-700">
-                          {fmt(product.wholesalePrice)}
-                        </p>
+
+                    <div className="flex justify-between items-center text-[10px] text-slate-400 pt-1 border-t border-slate-200/60">
+                      <span>Prix Achat</span>
+                      <span className="font-medium">
+                        {fmt(product.purchasePrice)}
+                      </span>
+                    </div>
+
+                    {/* Tarifs Spéciaux Conditionnels */}
+                    {(product.semiWholesalePrice || product.wholesalePrice) && (
+                      <div className="pt-1 space-y-1 border-t border-slate-200/60 text-[10px]">
+                        {product.semiWholesalePrice && (
+                          <div className="flex justify-between text-blue-700">
+                            <span>
+                              Demi-gros (≥{product.semiWholesaleMinQty})
+                            </span>
+                            <span className="font-semibold">
+                              {fmt(product.semiWholesalePrice)}
+                            </span>
+                          </div>
+                        )}
+                        {product.wholesalePrice && (
+                          <div className="flex justify-between text-purple-700">
+                            <span>Gros (≥{product.wholesaleMinQty})</span>
+                            <span className="font-semibold">
+                              {fmt(product.wholesalePrice)}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
 
-                    <div
-                      className={`rounded-lg px-3 py-2 text-xs font-medium ${
-                        isOut
-                          ? "bg-red-100 text-red-700"
-                          : isLow
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {isOut
-                        ? "Rupture de stock"
-                        : isLow
-                          ? `⚠ Stock faible — ${product.quantity} restant(s)`
-                          : `Stock : ${product.quantity} unité(s)`}
+                  {/* Footer : Quantité + Actions Mouvement */}
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center justify-between text-xs px-1">
+                      <span className="text-slate-500 text-[11px]">
+                        En stock:
+                      </span>
+                      <span
+                        className={`font-bold ${
+                          isOut
+                            ? "text-red-600"
+                            : isLow
+                              ? "text-amber-600"
+                              : "text-slate-900"
+                        }`}
+                      >
+                        {product.quantity} unité(s)
+                      </span>
                     </div>
 
-                  {admin && (
-                    <div className="flex gap-2 pt-1">
+                    <div className="grid grid-cols-2 gap-1.5">
                       <button
-                        onClick={() => handleEdit(product)}
-                        className="flex-1 rounded-xl border border-gray-300 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                        onClick={() => openStockModal(product, "ENTRY")}
+                        className="flex items-center justify-center gap-1 rounded-lg bg-emerald-50 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 active:scale-95 transition"
                       >
-                        Modifier
+                        <Plus size={12} /> Entrée
                       </button>
                       <button
-                        onClick={() => handleDelete(product.id)}
-                        className="flex-1 rounded-xl border border-red-200 py-2 text-xs font-medium text-red-600 hover:bg-red-50"
+                        onClick={() => openStockModal(product, "OUT")}
+                        disabled={product.quantity === 0}
+                        className="flex items-center justify-center gap-1 rounded-lg bg-red-50 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 transition"
                       >
-                        Supprimer
+                        <Minus size={12} /> Sortie
                       </button>
                     </div>
-                  )}
-                  <div className="flex gap-2 pt-1">
-                    <button
-                      onClick={() => openStockModal(product, "ENTRY")}
-                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-50 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-100"
-                    >
-                      <Plus size={13} /> Entrée
-                    </button>
-                    <button
-                      onClick={() => openStockModal(product, "OUT")}
-                      disabled={product.quantity === 0}
-                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-red-50 py-2 text-xs font-medium text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      <Minus size={13} /> Sortie
-                    </button>
                   </div>
                 </div>
               </div>
@@ -1212,7 +1261,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       )}
 
       {/* Pagination */}
-      <div className="flex items-center justify-between rounded-2xl bg-white px-5 py-3 shadow-sm">
+      <div className="mt-4 flex items-center justify-between rounded-2xl bg-white px-5 py-3 shadow-sm border border-slate-100">
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page === 1}
@@ -1233,7 +1282,6 @@ const handleSubmit = async (e: React.FormEvent) => {
           Suivant →
         </button>
       </div>
-
       {isUpgradeModalOpen &&
         showModal(
           isUpgradeModalOpen,
@@ -1290,7 +1338,11 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <input
                   type="number"
                   min={1}
-                  max={stockModal.mode === "OUT" ? stockModal.product.quantity : undefined}
+                  max={
+                    stockModal.mode === "OUT"
+                      ? stockModal.product.quantity
+                      : undefined
+                  }
                   onFocus={(e) => e.target.select()}
                   value={stockQty}
                   onChange={(e) => setStockQty(Number(e.target.value))}
@@ -1359,7 +1411,6 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
         </div>
       )}
-
     </section>
   );
 }
