@@ -1,5 +1,6 @@
-import { ChevronDown, ChevronUp, Lock, Package } from "lucide-react";
+import { ArrowRight, Lock, Package, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   getSupplierProducts,
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) {
+  const navigate = useNavigate();
   const [ranking, setRanking] = useState<SupplierRankingEntry[]>([]);
   const [rankingSort, setRankingSort] = useState<
     "purchases" | "debt" | "deliveries"
@@ -24,10 +26,9 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
   const [rankingTotalPages, setRankingTotalPages] = useState(1);
   const [loadingRanking, setLoadingRanking] = useState(true);
 
-  // Fournisseur déplié pour voir ses produits
-  const [expandedSupplierId, setExpandedSupplierId] = useState<number | null>(
-    null,
-  );
+  // Modal "Produits du fournisseur"
+  const [productsModalSupplier, setProductsModalSupplier] =
+    useState<SupplierRankingEntry | null>(null);
   const [supplierProducts, setSupplierProducts] =
     useState<SupplierProducts | null>(null);
   const [loadingSupplierProducts, setLoadingSupplierProducts] =
@@ -50,22 +51,28 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
     fetchRanking();
   }, [locked, rankingSort, rankingPage]);
 
-  const toggleSupplier = async (supplierId: number) => {
-    if (expandedSupplierId === supplierId) {
-      setExpandedSupplierId(null);
-      return;
-    }
-    setExpandedSupplierId(supplierId);
+  const openProductsModal = async (supplier: SupplierRankingEntry) => {
+    setProductsModalSupplier(supplier);
     setSupplierProducts(null);
     setLoadingSupplierProducts(true);
     try {
-      const res = await getSupplierProducts(supplierId);
+      const res = await getSupplierProducts(supplier.id);
       setSupplierProducts(res);
     } catch {
       toast.error("Erreur chargement des produits du fournisseur");
     } finally {
       setLoadingSupplierProducts(false);
     }
+  };
+
+  const closeProductsModal = () => {
+    setProductsModalSupplier(null);
+    setSupplierProducts(null);
+  };
+
+  const goToProduct = (productId: number) => {
+    closeProductsModal();
+    navigate(`/products?highlight=${productId}`);
   };
 
   if (locked) {
@@ -101,8 +108,7 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
               Classement des fournisseurs
             </h3>
             <p className="mt-0.5 text-sm text-gray-500">
-              Cliquez sur un fournisseur pour voir les produits qu'il vous a
-              livrés.
+              Voyez quels produits chaque fournisseur vous a livrés.
             </p>
           </div>
           <select
@@ -110,7 +116,6 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
             onChange={(e) => {
               setRankingSort(e.target.value as typeof rankingSort);
               setRankingPage(1);
-              setExpandedSupplierId(null);
             }}
             className="rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
           >
@@ -129,106 +134,44 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
             {ranking.map((s, i) => (
               <div
                 key={s.id}
-                className="rounded-xl border border-gray-100 overflow-hidden"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-100 px-4 py-3"
               >
-                <button
-                  type="button"
-                  onClick={() => toggleSupplier(s.id)}
-                  className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-50"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
-                      {(rankingPage - 1) * 10 + i + 1}
-                    </span>
-                    <p className="font-medium text-slate-900">{s.name}</p>
+                <div className="flex items-center gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+                    {(rankingPage - 1) * 10 + i + 1}
+                  </span>
+                  <p className="font-medium text-slate-900">{s.name}</p>
+                </div>
+                <div className="flex items-center gap-6">
+                  <div className="text-right text-sm">
+                    <p className="text-xs text-gray-400">Acheté</p>
+                    <p className="font-semibold text-slate-700">
+                      {fmt(s.totalPurchases)}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-6">
-                    <div className="text-right text-sm">
-                      <p className="text-xs text-gray-400">Acheté</p>
-                      <p className="font-semibold text-slate-700">
-                        {fmt(s.totalPurchases)}
-                      </p>
-                    </div>
-                    <div className="text-right text-sm">
-                      <p className="text-xs text-gray-400">Dette</p>
-                      <p
-                        className={`font-semibold ${s.totalDebt > 0 ? "text-red-600" : "text-emerald-600"}`}
-                      >
-                        {fmt(s.totalDebt)}
-                      </p>
-                    </div>
-                    <div className="text-right text-sm">
-                      <p className="text-xs text-gray-400">Livraisons</p>
-                      <p className="font-semibold text-slate-700">
-                        {s.deliveries}
-                      </p>
-                    </div>
-                    {expandedSupplierId === s.id ? (
-                      <ChevronUp size={16} className="text-gray-400" />
-                    ) : (
-                      <ChevronDown size={16} className="text-gray-400" />
-                    )}
+                  <div className="text-right text-sm">
+                    <p className="text-xs text-gray-400">Dette</p>
+                    <p
+                      className={`font-semibold ${s.totalDebt > 0 ? "text-red-600" : "text-emerald-600"}`}
+                    >
+                      {fmt(s.totalDebt)}
+                    </p>
                   </div>
-                </button>
-
-                {expandedSupplierId === s.id && (
-                  <div className="border-t border-gray-100 bg-slate-50 px-4 py-3">
-                    <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      <Package size={13} />
-                      Produits livrés par {s.name}
-                    </div>
-                    {loadingSupplierProducts ? (
-                      <p className="text-sm text-gray-400">Chargement...</p>
-                    ) : !supplierProducts?.products.length ? (
-                      <p className="text-sm text-gray-400">
-                        Aucune livraison enregistrée pour ce fournisseur pour
-                        l'instant.
-                      </p>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                          <thead>
-                            <tr className="border-b border-gray-200 text-gray-500 text-xs uppercase">
-                              <th className="pb-2 pr-4">Produit</th>
-                              <th className="pb-2 pr-4">Dernier prix</th>
-                              <th className="pb-2 pr-4">Qté totale livrée</th>
-                              <th className="pb-2 pr-4">Livraisons</th>
-                              <th className="pb-2">Dernière livraison</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {supplierProducts.products.map((p) => (
-                              <tr
-                                key={p.productId}
-                                className="border-b border-gray-200 last:border-0"
-                              >
-                                <td className="py-2 pr-4 font-medium text-slate-900">
-                                  {p.productName}
-                                </td>
-                                <td className="py-2 pr-4">
-                                  {p.lastUnitCost !== null
-                                    ? fmt(p.lastUnitCost)
-                                    : "-"}
-                                </td>
-                                <td className="py-2 pr-4 text-gray-500">
-                                  {p.totalQuantity}
-                                </td>
-                                <td className="py-2 pr-4 text-gray-500">
-                                  {p.deliveries}
-                                </td>
-                                <td className="py-2 text-gray-500">
-                                  {new Date(p.lastDate).toLocaleDateString(
-                                    "fr-FR",
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+                  <div className="text-right text-sm">
+                    <p className="text-xs text-gray-400">Livraisons</p>
+                    <p className="font-semibold text-slate-700">
+                      {s.deliveries}
+                    </p>
                   </div>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => openProductsModal(s)}
+                    className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100"
+                  >
+                    <Package size={13} />
+                    Voir ses produits
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -238,10 +181,7 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
           <div className="mt-4 flex items-center justify-center gap-3">
             <button
               type="button"
-              onClick={() => {
-                setExpandedSupplierId(null);
-                setRankingPage((p) => Math.max(1, p - 1));
-              }}
+              onClick={() => setRankingPage((p) => Math.max(1, p - 1))}
               disabled={rankingPage === 1}
               className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40"
             >
@@ -252,10 +192,9 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
             </span>
             <button
               type="button"
-              onClick={() => {
-                setExpandedSupplierId(null);
-                setRankingPage((p) => Math.min(rankingTotalPages, p + 1));
-              }}
+              onClick={() =>
+                setRankingPage((p) => Math.min(rankingTotalPages, p + 1))
+              }
               disabled={rankingPage === rankingTotalPages}
               className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40"
             >
@@ -264,6 +203,78 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
           </div>
         )}
       </div>
+
+      {/* Modal Produits du fournisseur */}
+      {productsModalSupplier && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl">
+            <div className="flex items-start justify-between border-b px-5 py-4">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">
+                  Produits livrés — {productsModalSupplier.name}
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  Cliquez sur un produit pour ouvrir sa fiche.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeProductsModal}
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-5">
+              {loadingSupplierProducts ? (
+                <p className="py-8 text-center text-sm text-gray-400">
+                  Chargement...
+                </p>
+              ) : !supplierProducts?.products.length ? (
+                <p className="py-8 text-center text-sm text-gray-400">
+                  Aucune livraison enregistrée pour ce fournisseur pour
+                  l'instant.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {supplierProducts.products.map((p) => (
+                    <button
+                      key={p.productId}
+                      type="button"
+                      onClick={() => goToProduct(p.productId)}
+                      className="flex w-full items-center justify-between rounded-xl border border-gray-100 px-4 py-3 text-left transition hover:border-emerald-200 hover:bg-emerald-50"
+                    >
+                      <div>
+                        <p className="font-medium text-slate-900">
+                          {p.productName}
+                        </p>
+                        <p className="mt-0.5 text-xs text-gray-400">
+                          {p.deliveries} livraison(s) • Dernière le{" "}
+                          {new Date(p.lastDate).toLocaleDateString("fr-FR")}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right text-sm">
+                          <p className="text-xs text-gray-400">
+                            Dernier prix
+                          </p>
+                          <p className="font-semibold text-slate-700">
+                            {p.lastUnitCost !== null
+                              ? fmt(p.lastUnitCost)
+                              : "-"}
+                          </p>
+                        </div>
+                        <ArrowRight size={16} className="text-gray-400" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
