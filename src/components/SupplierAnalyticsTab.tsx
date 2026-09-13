@@ -1,14 +1,17 @@
-import { BarChart3, Lock, Search } from "lucide-react";
+import { BarChart3, Lock, Package, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
   getProducts,
   getSupplierPriceComparison,
+  getSupplierProducts,
   getSupplierRanking,
+  getSuppliers,
   type SupplierPriceComparison,
+  type SupplierProducts,
   type SupplierRankingEntry,
 } from "../services/index";
-import type { Product } from "../types/index";
+import type { Product, Supplier } from "../types/index";
 
 const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
@@ -33,6 +36,40 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
   const [rankingPage, setRankingPage] = useState(1);
   const [rankingTotalPages, setRankingTotalPages] = useState(1);
   const [loadingRanking, setLoadingRanking] = useState(true);
+
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [selectedSupplierId, setSelectedSupplierId] = useState<number | "">(
+    "",
+  );
+  const [supplierProducts, setSupplierProducts] =
+    useState<SupplierProducts | null>(null);
+  const [loadingSupplierProducts, setLoadingSupplierProducts] =
+    useState(false);
+
+  useEffect(() => {
+    if (locked) return;
+    getSuppliers({ limit: 200 })
+      .then((res) => setSuppliers(res.data))
+      .catch(() => toast.error("Erreur chargement fournisseurs"));
+  }, [locked]);
+
+  useEffect(() => {
+    if (locked || !selectedSupplierId) {
+      return;
+    }
+    const fetchSupplierProducts = async () => {
+      setLoadingSupplierProducts(true);
+      try {
+        const res = await getSupplierProducts(Number(selectedSupplierId));
+        setSupplierProducts(res);
+      } catch {
+        toast.error("Erreur chargement des produits du fournisseur");
+      } finally {
+        setLoadingSupplierProducts(false);
+      }
+    };
+    fetchSupplierProducts();
+  }, [locked, selectedSupplierId]);
 
   useEffect(() => {
     if (locked) return;
@@ -109,11 +146,6 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
         <p className="mt-0.5 text-sm text-gray-500">
           Choisissez un produit pour voir le prix pratiqué par chacun de vos
           fournisseurs.
-        </p>
-        <p className="mt-1 text-xs text-gray-400">
-          Calculé à partir de chaque entrée de stock liée à un fournisseur :
-          "Dernier prix" = la livraison la plus récente, "Min/Max/Moyenne"
-          couvrent tout l'historique des livraisons.
         </p>
 
         <div className="relative mt-4 max-w-sm">
@@ -293,6 +325,87 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
             >
               Suivant →
             </button>
+          </div>
+        )}
+      </div>
+
+      {/* Produits par fournisseur */}
+      <div className="rounded-2xl bg-white p-5 shadow-sm">
+        <h3 className="flex items-center gap-2 text-base font-bold text-slate-900">
+          <Package size={18} className="text-emerald-600" />
+          Produits par fournisseur
+        </h3>
+        <p className="mt-0.5 text-sm text-gray-500">
+          Choisissez un fournisseur pour voir quels produits il vous a déjà
+          livrés.
+        </p>
+
+        <select
+          value={selectedSupplierId}
+          onChange={(e) =>
+            setSelectedSupplierId(
+              e.target.value ? Number(e.target.value) : "",
+            )
+          }
+          className="mt-4 w-full max-w-sm rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+        >
+          <option value="">Sélectionner un fournisseur...</option>
+          {suppliers.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name}
+            </option>
+          ))}
+        </select>
+
+        {loadingSupplierProducts && (
+          <p className="mt-4 text-sm text-gray-400">Chargement...</p>
+        )}
+
+        {!loadingSupplierProducts && selectedSupplierId && supplierProducts && (
+          <div className="mt-4">
+            {!supplierProducts.products.length ? (
+              <p className="text-sm text-gray-400">
+                Aucune livraison enregistrée pour ce fournisseur pour
+                l'instant.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b text-gray-500 text-xs uppercase">
+                      <th className="pb-2 pr-4">Produit</th>
+                      <th className="pb-2 pr-4">Dernier prix</th>
+                      <th className="pb-2 pr-4">Qté totale livrée</th>
+                      <th className="pb-2 pr-4">Livraisons</th>
+                      <th className="pb-2">Dernière livraison</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {supplierProducts.products.map((p) => (
+                      <tr key={p.productId} className="border-b">
+                        <td className="py-2 pr-4 font-medium text-slate-900">
+                          {p.productName}
+                        </td>
+                        <td className="py-2 pr-4">
+                          {p.lastUnitCost !== null
+                            ? fmt(p.lastUnitCost)
+                            : "-"}
+                        </td>
+                        <td className="py-2 pr-4 text-gray-500">
+                          {p.totalQuantity}
+                        </td>
+                        <td className="py-2 pr-4 text-gray-500">
+                          {p.deliveries}
+                        </td>
+                        <td className="py-2 text-gray-500">
+                          {new Date(p.lastDate).toLocaleDateString("fr-FR")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
       </div>
