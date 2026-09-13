@@ -184,28 +184,6 @@ export const getSupplierQuota = async (): Promise<SupplierQuota> =>
   (await api.get("/suppliers/quota")).data;
 export const getSupplierDebtAging = async (): Promise<SupplierDebtAging> =>
   (await api.get("/suppliers/aging")).data;
-export type SupplierPriceComparison = {
-  product: { id: number; name: string };
-  suppliers: {
-    supplierId: number;
-    supplierName: string;
-    lastUnitCost: number;
-    lastDate: string;
-    minUnitCost: number;
-    maxUnitCost: number;
-    avgUnitCost: number;
-    totalQuantity: number;
-    deliveries: number;
-  }[];
-};
-export const getSupplierPriceComparison = async (
-  productId: number,
-): Promise<SupplierPriceComparison> =>
-  (
-    await api.get("/suppliers/analytics/price-comparison", {
-      params: { productId },
-    })
-  ).data;
 export type SupplierRankingEntry = {
   id: number;
   name: string;

@@ -130,16 +130,15 @@ export const upgradeFeatures = {
 
   // Supplier analytics (ADVANCED_REPORTS)
   supplierAnalytics: {
-    title: "Analyses fournisseurs",
-    description: `La comparaison des prix entre fournisseurs et le classement
-    des fournisseurs sont disponibles à partir du plan Pro.`,
+    title: "Performance fournisseurs",
+    description: `Le classement des fournisseurs et le detail des produits
+    livres par chacun sont disponibles à partir du plan Pro.`,
 
     requiredPlan: "Pro • Premium",
 
     benefits: [
-      "Comparer le coût d'un produit entre vos fournisseurs",
       "Classement des fournisseurs par volume ou dette",
-      "Relevé de compte fournisseur exportable en PDF",
+      "Détail des produits livrés par chaque fournisseur",
     ],
 
     cta: "Découvrir les plans",

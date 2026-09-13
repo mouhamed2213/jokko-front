@@ -214,7 +214,7 @@ export default function Suppliers() {
       {(
         [
           { key: "list", label: "Fournisseurs" },
-          { key: "analytics", label: "Analyses" },
+          { key: "analytics", label: "Performance" },
           { key: "consolidated", label: "Vue globale" },
         ] as const
       ).map((tab) => (
