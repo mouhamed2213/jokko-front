@@ -215,8 +215,17 @@ export type SupplierRankingEntry = {
 };
 export const getSupplierRanking = async (
   sortBy?: "purchases" | "debt" | "deliveries",
-): Promise<{ data: SupplierRankingEntry[] }> =>
-  (await api.get("/suppliers/analytics/ranking", { params: { sortBy } })).data;
+  page?: number,
+  limit?: number,
+): Promise<{
+  data: SupplierRankingEntry[];
+  pagination: { total: number; page: number; limit: number; totalPages: number };
+}> =>
+  (
+    await api.get("/suppliers/analytics/ranking", {
+      params: { sortBy, page, limit },
+    })
+  ).data;
 export type ConsolidatedSuppliers = {
   shops: {
     shopId: number;

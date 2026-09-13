@@ -30,15 +30,26 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
   const [rankingSort, setRankingSort] = useState<
     "purchases" | "debt" | "deliveries"
   >("purchases");
+  const [rankingPage, setRankingPage] = useState(1);
+  const [rankingTotalPages, setRankingTotalPages] = useState(1);
   const [loadingRanking, setLoadingRanking] = useState(true);
 
   useEffect(() => {
     if (locked) return;
-    getSupplierRanking(rankingSort)
-      .then((res) => setRanking(res.data))
-      .catch(() => toast.error("Erreur chargement classement fournisseurs"))
-      .finally(() => setLoadingRanking(false));
-  }, [locked, rankingSort]);
+    const fetchRanking = async () => {
+      setLoadingRanking(true);
+      try {
+        const res = await getSupplierRanking(rankingSort, rankingPage, 10);
+        setRanking(res.data);
+        setRankingTotalPages(res.pagination.totalPages);
+      } catch {
+        toast.error("Erreur chargement classement fournisseurs");
+      } finally {
+        setLoadingRanking(false);
+      }
+    };
+    fetchRanking();
+  }, [locked, rankingSort, rankingPage]);
 
   useEffect(() => {
     if (locked || !productSearch.trim()) {
@@ -98,6 +109,11 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
         <p className="mt-0.5 text-sm text-gray-500">
           Choisissez un produit pour voir le prix pratiqué par chacun de vos
           fournisseurs.
+        </p>
+        <p className="mt-1 text-xs text-gray-400">
+          Calculé à partir de chaque entrée de stock liée à un fournisseur :
+          "Dernier prix" = la livraison la plus récente, "Min/Max/Moyenne"
+          couvrent tout l'historique des livraisons.
         </p>
 
         <div className="relative mt-4 max-w-sm">
@@ -199,8 +215,8 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
           <select
             value={rankingSort}
             onChange={(e) => {
-              setLoadingRanking(true);
               setRankingSort(e.target.value as typeof rankingSort);
+              setRankingPage(1);
             }}
             className="rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
           >
@@ -223,7 +239,7 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
               >
                 <div className="flex items-center gap-3">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
-                    {i + 1}
+                    {(rankingPage - 1) * 10 + i + 1}
                   </span>
                   <p className="font-medium text-slate-900">{s.name}</p>
                 </div>
@@ -251,6 +267,32 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {!loadingRanking && rankingTotalPages > 1 && (
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => setRankingPage((p) => Math.max(1, p - 1))}
+              disabled={rankingPage === 1}
+              className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+            >
+              ← Précédent
+            </button>
+            <span className="text-sm text-gray-500">
+              Page {rankingPage} / {rankingTotalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                setRankingPage((p) => Math.min(rankingTotalPages, p + 1))
+              }
+              disabled={rankingPage === rankingTotalPages}
+              className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+            >
+              Suivant →
+            </button>
           </div>
         )}
       </div>
