@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, CreditCard, Plus, X } from "lucide-react";
+import { ChevronDown, ChevronUp, CreditCard, Lock, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import PaymentMethodSelect from "../components/Paymentmethodselect";
@@ -7,6 +7,7 @@ import {
   createSupplier,
   deleteSupplier,
   getCurrentCash,
+  getSubscription,
   getSupplierDebtAging,
   getSupplierById,
   getSupplierQuota,
@@ -19,7 +20,13 @@ import type {
   SupplierDebtAging,
   SupplierHistoryResponse,
   SupplierQuota,
+  SubscriptionInfo,
 } from "../types/index";
+import { hasFeature } from "../utils/subscription.checker";
+import { showModal } from "../components/upgradeModal";
+import type { UpgradeFeature } from "../utils/upgradeFeaturesData";
+import SupplierAnalyticsTab from "../components/SupplierAnalyticsTab";
+import ConsolidatedSuppliersTab from "../components/ConsolidatedSuppliersTab";
 
 const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 const emptyForm = { name: "", phone: "", email: "", address: "" };
@@ -44,6 +51,17 @@ export default function Suppliers() {
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+
+  // Onglets & abonnement (pour le verrouillage des fonctionnalités premium)
+  const [activeTab, setActiveTab] = useState<
+    "list" | "analytics" | "consolidated"
+  >("list");
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(
+    null,
+  );
+  const [upgradeReason, setUpgradeReason] = useState<UpgradeFeature | null>(
+    null,
+  );
 
   // Dette
   const [showDebtForm, setShowDebtForm] = useState<number | null>(null);
@@ -90,6 +108,12 @@ export default function Suppliers() {
     fetchSuppliers();
     checkCash();
   }, [selectedAgingBucket, supplierPage]);
+
+  useEffect(() => {
+    getSubscription()
+      .then(setSubscription)
+      .catch(() => toast.error("Erreur chargement abonnement"));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,6 +209,55 @@ export default function Suppliers() {
 
   return (
     <section className="space-y-6">
+    {/* Onglets */}
+    <div className="flex gap-2 border-b border-gray-200">
+      {(
+        [
+          { key: "list", label: "Fournisseurs" },
+          { key: "analytics", label: "Performance" },
+          { key: "consolidated", label: "Vue globale" },
+        ] as const
+      ).map((tab) => (
+        <button
+          key={tab.key}
+          type="button"
+          onClick={() => setActiveTab(tab.key)}
+          className={`flex items-center gap-1.5 border-b-2 px-4 py-2.5 text-sm font-medium transition ${
+            activeTab === tab.key
+              ? "border-emerald-600 text-emerald-700"
+              : "border-transparent text-gray-500 hover:text-slate-800"
+          }`}
+        >
+          {tab.label}
+          {tab.key !== "list" &&
+            subscription &&
+            !hasFeature(
+              subscription,
+              tab.key === "analytics" ? "ADVANCED_REPORTS" : "MULTI_STORE",
+            ) && <Lock size={12} className="text-amber-500" />}
+        </button>
+      ))}
+    </div>
+
+    {activeTab === "analytics" && (
+      <SupplierAnalyticsTab
+        locked={!!subscription && !hasFeature(subscription, "ADVANCED_REPORTS")}
+        onUpgradeClick={() => setUpgradeReason("supplierAnalytics")}
+      />
+    )}
+
+    {activeTab === "consolidated" && (
+      <ConsolidatedSuppliersTab
+        locked={!!subscription && !hasFeature(subscription, "MULTI_STORE")}
+        onUpgradeClick={() => setUpgradeReason("multiStoreSuppliers")}
+      />
+    )}
+
+    {upgradeReason &&
+      showModal(true, () => setUpgradeReason(null), upgradeReason)}
+
+    {activeTab === "list" && (
+    <>
     {quota && (
       <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
         <p className="text-sm font-semibold text-slate-800">
@@ -728,6 +801,8 @@ export default function Suppliers() {
           </div>
         </div>
       )}
+    </>
+    )}
     </section>
   );
 }

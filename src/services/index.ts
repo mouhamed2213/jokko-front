@@ -184,6 +184,60 @@ export const getSupplierQuota = async (): Promise<SupplierQuota> =>
   (await api.get("/suppliers/quota")).data;
 export const getSupplierDebtAging = async (): Promise<SupplierDebtAging> =>
   (await api.get("/suppliers/aging")).data;
+export type SupplierRankingEntry = {
+  id: number;
+  name: string;
+  totalPurchases: number;
+  totalDebt: number;
+  deliveries: number;
+};
+export const getSupplierRanking = async (
+  sortBy?: "purchases" | "debt" | "deliveries",
+  page?: number,
+  limit?: number,
+): Promise<{
+  data: SupplierRankingEntry[];
+  pagination: { total: number; page: number; limit: number; totalPages: number };
+}> =>
+  (
+    await api.get("/suppliers/analytics/ranking", {
+      params: { sortBy, page, limit },
+    })
+  ).data;
+export type SupplierProducts = {
+  supplier: { id: number; name: string };
+  products: {
+    productId: number;
+    productName: string;
+    productImageUrl: string | null;
+    lastUnitCost: number | null;
+    lastDate: string;
+    totalQuantity: number;
+    deliveries: number;
+  }[];
+};
+export const getSupplierProducts = async (
+  supplierId: number,
+): Promise<SupplierProducts> =>
+  (
+    await api.get("/suppliers/analytics/products", {
+      params: { supplierId },
+    })
+  ).data;
+export type ConsolidatedSuppliers = {
+  shops: {
+    shopId: number;
+    shopName: string;
+    supplierCount: number;
+    totalDebt: number;
+    totalPurchases: number;
+  }[];
+  grandTotalDebt: number;
+  grandTotalSuppliers: number;
+};
+export const getConsolidatedSuppliers =
+  async (): Promise<ConsolidatedSuppliers> =>
+    (await api.get("/suppliers/consolidated")).data;
 export const getSupplierById = async (
   id: number,
   params?: { page?: number; limit?: number },
