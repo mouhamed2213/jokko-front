@@ -1,8 +1,8 @@
 import axios from "axios";
-export const apiUrl = 
-  import.meta.env.VITE_API_URL || 
-  (import.meta.env.DEV 
-    ? "http://localhost:3000/api" 
+export const apiUrl =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV
+    ? "http://localhost:3001/api"
     : "https://api.jokko-business.com/api");
 
 export const api = axios.create({
@@ -27,10 +27,12 @@ api.interceptors.response.use(
     const isSuperAdminRequest = error.config?.url?.includes("/super-admin");
 
     // Ignore login request errors to avoid redirect loops
-        const isLoginRequest = error.config?.url?.includes("/auth/login");
+    const isLoginRequest = error.config?.url?.includes("/auth/login");
 
-
-    if (  !isLoginRequest &&  status === 401 || (status === 403 && code === "ACCOUNT_DISABLED")) {
+    if (
+      (!isLoginRequest && status === 401) ||
+      (status === 403 && code === "ACCOUNT_DISABLED")
+    ) {
       if (isSuperAdminRequest) {
         localStorage.removeItem("sa_user");
         window.location.href = "/super-admin/login";
@@ -41,5 +43,5 @@ api.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
