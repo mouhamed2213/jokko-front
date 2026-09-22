@@ -1,4 +1,6 @@
 import {
+  BarChart3,
+  Boxes,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -76,6 +78,12 @@ const allLinks: NavLinkItem[] = [
     name: "Tableau de bord",
     path: "/dashboard",
     icon: LayoutDashboard,
+    adminOnly: false,
+  },
+  {
+    name: "Analytics",
+    path: "/analytics",
+    icon: BarChart3,
     adminOnly: false,
   },
   { name: "Caisse", path: "/cash", icon: Wallet, adminOnly: false },

@@ -399,6 +399,50 @@ export const addCashTransaction = async (data: {
 export const getDashboardStats = async (): Promise<DashboardStats> =>
   (await api.get("/dashboard/stats")).data;
 
+// ── Analytics ──────────────────────────────────────────────────
+export type AnalyticsOverview = {
+  period: { startDate: string; endDate: string };
+  comparison: { revenueChange: number | null } | null;
+  kpis: {
+    revenue: number;
+    salesCount: number;
+    averageBasket: number;
+    collected: number;
+    receivables: number;
+    stockValue: number;
+    outOfStockProducts: number;
+    lowStockProducts: number;
+  };
+};
+
+export const getAnalyticsOverview = async (params?: {
+  startDate?: string;
+  endDate?: string;
+  compare?: boolean;
+}): Promise<AnalyticsOverview> =>
+  (await api.get("/analytics/overview", { params })).data;
+
+export type AnalyticsPeriodParams = {
+  startDate?: string;
+  endDate?: string;
+  limit?: number;
+};
+
+export const getAnalyticsSales = async (params?: AnalyticsPeriodParams) =>
+  (await api.get("/analytics/sales", { params })).data;
+export const getAnalyticsProducts = async (params?: AnalyticsPeriodParams) =>
+  (await api.get("/analytics/products", { params })).data;
+export const getAnalyticsStock = async (params?: AnalyticsPeriodParams) =>
+  (await api.get("/analytics/stock", { params })).data;
+export const getAnalyticsCustomers = async (params?: AnalyticsPeriodParams) =>
+  (await api.get("/analytics/customers", { params })).data;
+export const getAnalyticsCash = async (params?: AnalyticsPeriodParams) =>
+  (await api.get("/analytics/cash", { params })).data;
+export const getAnalyticsTrends = async (params?: AnalyticsPeriodParams) =>
+  (await api.get("/analytics/trends", { params })).data;
+export const getAnalyticsInsights = async (params?: AnalyticsPeriodParams) =>
+  (await api.get("/analytics/insights", { params })).data;
+
 // ── Super Admin ───────────────────────────────────────────────
 export const getShops = async (): Promise<Shop[]> =>
   (await api.get("/super-admin/shops")).data;
@@ -486,6 +530,22 @@ export const getSubscription = async (): Promise<SubscriptionInfo> => {
     });
 
   return subscriptionPromise;
+};
+
+export const getAnalyticsMultiStoreOverview = async (params: {
+  startDate?: string;
+  endDate?: string;
+  compare?: boolean;
+}) => {
+  const res = await api.get("/analytics/overview/multi-store", { params });
+  return res.data as {
+    period: { startDate: string; endDate: string } | null;
+    shops: Array<{
+      shop: { id: number; name: string };
+      overview: AnalyticsOverview;
+    }>;
+    consolidated: AnalyticsOverview["kpis"];
+  };
 };
 
 // create secondary shop

@@ -9,6 +9,7 @@ import PublicLayout from "./layouts/PublicLayout";
 import Cash from "./pages/Cash";
 import Clients from "./pages/Clients";
 import Dashboard from "./pages/Dashboard";
+import Analytics from "./pages/Analytics";
 import HelpPage from "./pages/HelpPage";
 import Invoices from "./pages/Invoices";
 import LandingPage from "./pages/LandingPage";
@@ -71,6 +72,7 @@ export default function App() {
           }
         >
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/analytics" element={<Analytics />} />
           <Route path="/products" element={<Products />} />
           <Route path="/clients" element={<Clients />} />
           <Route
@@ -93,4 +95,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-

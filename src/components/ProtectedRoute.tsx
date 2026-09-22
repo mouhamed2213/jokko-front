@@ -33,7 +33,6 @@ export function SuperAdminGuard({ children }: Props) {
 
 export function SubscriptionGuard({ children }: Props) {
   const user = getStoredUser();
-
   if (!user) {
     return <Navigate to="/login" replace />;
   }
