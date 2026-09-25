@@ -5,13 +5,16 @@ import {
   Crown,
   Package,
   Search,
+  Loader2,
+  CalendarPlus,
   ShoppingCart,
   Store,
   Users,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { getShopsWithPagination } from "../../services";
+import { extendTrialPeriod, getShopsWithPagination } from "../../services";
 
 type ShopRow = {
   id: number;
@@ -62,6 +65,9 @@ export default function SuperAdminShops() {
   const [statusFilter, setStatusFilter] = useState("");
   const [planFilter, setPlanFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [renewalShop, setRenewalShop] = useState<ShopRow | null>(null);
+  const [renewalDays, setRenewalDays] = useState(30);
+  const [renewing, setRenewing] = useState(false);
 
   const navigate = useNavigate();
 
@@ -94,6 +100,26 @@ export default function SuperAdminShops() {
   }, [fetchShops]);
 
   const shops = result?.data ?? [];
+
+  const handleRenewal = async () => {
+    if (!renewalShop || !Number.isInteger(renewalDays) || renewalDays <= 0) {
+      toast.error("Le nombre de jours doit être supérieur à 0");
+      return;
+    }
+
+    setRenewing(true);
+    try {
+      await extendTrialPeriod(renewalShop.id, renewalDays);
+      toast.success("Abonnement prolongé de " + renewalDays + " jour(s)");
+      setRenewalShop(null);
+      setRenewalDays(30);
+      fetchShops();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Erreur lors du prolongement de l'abonnement");
+    } finally {
+      setRenewing(false);
+    }
+  };
   const pagination = result?.pagination;
 
   return (
@@ -161,14 +187,14 @@ export default function SuperAdminShops() {
                 <th className="px-5 py-3">Abonnement</th>
                 <th className="px-5 py-3">Fin</th>
                 <th className="px-5 py-3">Activité</th>
-                <th className="px-5 py-3">Pronlogement</th>
+                <th className="px-5 py-3">Prolongement</th>
               </tr>
             </thead>
             <tbody>
               {loading && (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-5 py-8 text-center text-gray-400"
                   >
                     Chargement...
@@ -278,7 +304,19 @@ export default function SuperAdminShops() {
                     </td>
 
                     <td className="px-5 py-3">
-                      <button type="button">Prolonger</button>
+                      <button
+                        type="button"
+                        disabled={!shop.subscription?.endDate || shop.subscription.plan.code === "FREE"}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setRenewalShop(shop);
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-40"
+                        title={!shop.subscription?.endDate || shop.subscription.plan.code === "FREE" ? "Cette boutique ne peut pas être prolongée" : "Prolonger l'abonnement"}
+                      >
+                        <CalendarPlus size={13} />
+                        Prolonger
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -315,6 +353,25 @@ export default function SuperAdminShops() {
           </div>
         )}
       </div>
+      {renewalShop && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm" onClick={() => !renewing && setRenewalShop(null)}>
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" onClick={(event) => event.stopPropagation()}>
+            <h3 className="mb-1 text-lg font-bold text-slate-900">Prolonger l'abonnement</h3>
+            <p className="mb-5 text-sm text-gray-500">Boutique : <span className="font-medium text-slate-700">{renewalShop.name}</span></p>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">Nombre de jours</label>
+            <input type="number" min={1} step={1} value={renewalDays} onChange={(event) => setRenewalDays(Number(event.target.value))} className="mb-2 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" />
+            <p className="mb-5 text-xs text-gray-400">Fin actuelle : {renewalShop.subscription?.endDate ? new Date(renewalShop.subscription.endDate).toLocaleDateString("fr-FR") : "—"}</p>
+            <div className="flex gap-2">
+              <button type="button" disabled={renewing} onClick={() => setRenewalShop(null)} className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50">Annuler</button>
+              <button type="button" disabled={renewing || !Number.isInteger(renewalDays) || renewalDays <= 0} onClick={handleRenewal} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">
+                {renewing && <Loader2 size={14} className="animate-spin" />}
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
