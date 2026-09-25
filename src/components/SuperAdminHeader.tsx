@@ -18,14 +18,6 @@ const pageConfig: Record<
     title: "Détail boutique",
     description: "Consultez les informations détaillées d'une boutique.",
   },
-  "/admin/audit-log": {
-    title: "Journal d'audit",
-    description: "Consultez l'historique des actions effectuées.",
-  },
-  "/admin/settings": {
-    title: "Paramètres",
-    description: "Gérez les paramètres de la plateforme.",
-  },
 };
 
 export default function SuperAdminHeader() {
