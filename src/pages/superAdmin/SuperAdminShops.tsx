@@ -1,8 +1,17 @@
 // pages/superAdmin/SuperAdminShops.tsx
-import { useEffect, useState, useCallback } from "react";
-import { Search, Store, ChevronLeft, ChevronRight, Crown, Users, Package, ShoppingCart } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Crown,
+  Package,
+  Search,
+  ShoppingCart,
+  Store,
+  Users,
+} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getShopsWithPagination } from "../../services";
-import { Navigate, useNavigate } from "react-router-dom";
 
 type ShopRow = {
   id: number;
@@ -22,7 +31,12 @@ type ShopRow = {
 
 type ShopsResponse = {
   data: ShopRow[];
-  pagination: { total: number; page: number; limit: number; totalPages: number };
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 };
 
 const planBadge: Record<string, string> = {
@@ -49,7 +63,7 @@ export default function SuperAdminShops() {
   const [planFilter, setPlanFilter] = useState("");
   const [page, setPage] = useState(1);
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   // Debounce search input
   useEffect(() => {
@@ -89,7 +103,9 @@ export default function SuperAdminShops() {
         <div>
           <h2 className="text-xl font-bold text-slate-900">Boutiques</h2>
           <p className="mt-0.5 text-sm text-gray-500">
-            {pagination ? `${pagination.total} boutique(s) au total` : "Chargement..."}
+            {pagination
+              ? `${pagination.total} boutique(s) au total`
+              : "Chargement..."}
           </p>
         </div>
       </div>
@@ -97,7 +113,10 @@ export default function SuperAdminShops() {
       {/* Filters */}
       <div className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm sm:flex-row sm:items-center">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
           <input
             type="text"
             value={search}
@@ -142,13 +161,16 @@ export default function SuperAdminShops() {
                 <th className="px-5 py-3">Abonnement</th>
                 <th className="px-5 py-3">Fin</th>
                 <th className="px-5 py-3">Activité</th>
+                <th className="px-5 py-3">Pronlogement</th>
               </tr>
-
             </thead>
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-gray-400">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-8 text-center text-gray-400"
+                  >
                     Chargement...
                   </td>
                 </tr>
@@ -156,7 +178,10 @@ export default function SuperAdminShops() {
 
               {!loading && shops.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-gray-400">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-8 text-center text-gray-400"
+                  >
                     Aucune boutique trouvée.
                   </td>
                 </tr>
@@ -164,11 +189,9 @@ export default function SuperAdminShops() {
 
               {!loading &&
                 shops.map((shop) => (
-                    
                   <tr
                     key={shop.id}
-                        onClick={() => navigate(`/admin/shops/${shop.id}`)}
-
+                    onClick={() => navigate(`/admin/shops/${shop.id}`)}
                     className="border-b border-gray-50 transition hover:bg-slate-50/60 cursor-pointer"
                   >
                     <td className="px-5 py-3">
@@ -177,14 +200,20 @@ export default function SuperAdminShops() {
                           <Store size={15} />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-medium text-slate-900 truncate">{shop.name}</p>
-                          <p className="text-xs text-gray-400 truncate">{shop.ownerName}</p>
+                          <p className="font-medium text-slate-900 truncate">
+                            {shop.name}
+                          </p>
+                          <p className="text-xs text-gray-400 truncate">
+                            {shop.ownerName}
+                          </p>
                         </div>
                       </div>
                     </td>
 
                     <td className="px-5 py-3">
-                      <p className="text-slate-700 truncate max-w-48">{shop.email}</p>
+                      <p className="text-slate-700 truncate max-w-48">
+                        {shop.email}
+                      </p>
                       <p className="text-xs text-gray-400">{shop.phone}</p>
                     </td>
 
@@ -205,7 +234,8 @@ export default function SuperAdminShops() {
                         <div className="flex flex-col gap-1">
                           <span
                             className={`inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                              planBadge[shop.subscription.plan.code] ?? "bg-gray-100 text-gray-600"
+                              planBadge[shop.subscription.plan.code] ??
+                              "bg-gray-100 text-gray-600"
                             }`}
                           >
                             <Crown size={10} />
@@ -213,7 +243,8 @@ export default function SuperAdminShops() {
                           </span>
                           <span
                             className={`inline-flex w-fit rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                              subStatusBadge[shop.subscription.status] ?? "bg-gray-100 text-gray-500"
+                              subStatusBadge[shop.subscription.status] ??
+                              "bg-gray-100 text-gray-500"
                             }`}
                           >
                             {shop.subscription.status}
@@ -226,7 +257,9 @@ export default function SuperAdminShops() {
 
                     <td className="px-5 py-3 text-gray-500">
                       {shop.subscription?.endDate
-                        ? new Date(shop.subscription.endDate).toLocaleDateString("fr-FR")
+                        ? new Date(
+                            shop.subscription.endDate,
+                          ).toLocaleDateString("fr-FR")
                         : "—"}
                     </td>
 
@@ -242,6 +275,10 @@ export default function SuperAdminShops() {
                           <ShoppingCart size={12} /> {shop.counts.sales}
                         </span>
                       </div>
+                    </td>
+
+                    <td className="px-5 py-3">
+                      <button type="button">Prolonger</button>
                     </td>
                   </tr>
                 ))}
@@ -267,7 +304,9 @@ export default function SuperAdminShops() {
               <button
                 type="button"
                 disabled={page >= pagination.totalPages}
-                onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+                onClick={() =>
+                  setPage((p) => Math.min(pagination.totalPages, p + 1))
+                }
                 className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ChevronRight size={14} />
