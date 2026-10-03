@@ -1,9 +1,5 @@
 // SUBSCRIPTION
-export type PlanCode =
-  | "FREE"
-  | "BASIC"
-  | "PRO"
-  | "PREMIUM";
+export type PlanCode = "FREE" | "BASIC" | "PRO" | "PREMIUM";
 
 export type FeatureCode =
   | "EXPORT_PDF"
@@ -220,6 +216,7 @@ export type Sale = {
   shopId: number;
   userId?: number | null;
   clientId?: number | null;
+  shop?: { phone: string };
   invoiceNumber?: string | null;
   customerName?: string | null;
   totalAmount: number;
@@ -352,9 +349,6 @@ export type User = {
   isActive: boolean;
   createdAt: string;
 };
-
-
-
 
 export type NewShopForm = {
   shopName: string;

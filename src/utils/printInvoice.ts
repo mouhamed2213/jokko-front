@@ -1,8 +1,5 @@
-import toast from "react-hot-toast";
 import type { AuthUser } from "../types/auth";
 import type { Sale } from "../types/index";
-import logo from "../assets/jb_logo.jpg";
-
 
 // ============================================================
 //  Format A4 — facture professionnelle complète
@@ -109,8 +106,8 @@ function buildA4(invoice: Sale, shopName: string, logoUrl?: string): string {
       ${logoUrl ? `<img src="${logoUrl}" alt="${shopName}" style="height:52px;width:52px;object-fit:contain;background:white;border-radius:10px;padding:4px" />` : ""}
       <div>
         <div style="font-size:24px;font-weight:800;letter-spacing:-0.5px">${shopName}</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:5px;
-          text-transform:uppercase;letter-spacing:1.5px">Jokko Business — Gestion Commerciale</div>
+        <div style="font-size:11px;color:white ;margin-top:5px;
+          text-transform:uppercase;letter-spacing:1.5px ">Tel : ${invoice.shop?.phone}</div>
       </div>
     </div>
     <div style="text-align:right">
@@ -339,6 +336,8 @@ function buildThermal(invoice: Sale, shopName: string): string {
     invoice.note ? sep : null,
     invoice.note ? `Note: ${invoice.note}` : null,
     sep,
+
+    `Tel : ${invoice.shop?.phone} `,
     "Merci pour votre confiance !"
       .padStart(Math.floor((32 + 28) / 2))
       .slice(0, 32),
