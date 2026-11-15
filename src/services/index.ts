@@ -32,7 +32,7 @@ export const getSuperAdminMe = async (): Promise<{
   name: string;
   email: string;
   role: "SUPER_ADMIN";
-}> => (await api.get("/super-admin/me")).data;
+}> => (await adminApi.get("/super-admin/me")).data;
 
 // ── Products ──────────────────────────────────────────────────
 import type {
