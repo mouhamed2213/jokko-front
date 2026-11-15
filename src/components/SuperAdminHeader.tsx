@@ -1,6 +1,7 @@
 import { LogOut } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getStoredUser } from "../types/auth";
+import { logoutSuperAdmin } from "../utils/superAdminAuth";
 
 const pageConfig: Record<
   string,
@@ -37,11 +38,7 @@ export default function SuperAdminHeader() {
     year: "numeric",
   });
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
+  const logout = () => logoutSuperAdmin(navigate);
 
   return (
     <header className="rounded-2xl bg-white px-6 py-4 shadow-sm flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">

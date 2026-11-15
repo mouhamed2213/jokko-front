@@ -2,6 +2,7 @@ import { BarChart3, Building2, LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
+import { logoutSuperAdmin } from "../utils/superAdminAuth";
 
 const superAdminLinks = [
   { name: "Tableau de bord", path: "/admin/dash", icon: BarChart3 },
@@ -11,10 +12,7 @@ const superAdminLinks = [
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const navigate = useNavigate();
 
-  const logout = () => {
-    localStorage.removeItem("sa_user");
-    navigate("/super-admin/login");
-  };
+  const logout = () => logoutSuperAdmin(navigate);
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-slate-900 text-white">
