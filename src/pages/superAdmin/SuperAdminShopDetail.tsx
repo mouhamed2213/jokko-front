@@ -16,9 +16,16 @@ import {
   FileText,
   History,
   Loader2,
+  Archive,
+  ArchiveRestore,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { getShopDetail, changeSubscriptionPlan } from "../../services";
+import {
+  getShopDetail,
+  changeSubscriptionPlan,
+  archiveShop,
+  restoreShop,
+} from "../../services";
 
 type ShopDetail = {
   id: number;
@@ -146,6 +153,11 @@ export default function SuperAdminShopDetail() {
   const [selectedPlan, setSelectedPlan] = useState("");
   const [changingPlan, setChangingPlan] = useState(false);
 
+  // Archive / restore modal state
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
+  const [confirmName, setConfirmName] = useState("");
+  const [archiving, setArchiving] = useState(false);
+
   const loadShop = () => {
     if (!id) return;
     return getShopDetail(Number(id))
@@ -171,6 +183,29 @@ export default function SuperAdminShopDetail() {
       toast.error(error?.response?.data?.message || "Erreur lors du changement de plan");
     } finally {
       setChangingPlan(false);
+    }
+  };
+
+  const isArchived = shop?.status === "ARCHIVED";
+
+  const handleArchiveToggle = async () => {
+    if (!shop) return;
+    setArchiving(true);
+    try {
+      if (isArchived) {
+        await restoreShop(shop.id);
+        toast.success("Boutique restaurée");
+      } else {
+        await archiveShop(shop.id);
+        toast.success("Boutique archivée");
+      }
+      setArchiveModalOpen(false);
+      setConfirmName("");
+      await loadShop();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Erreur lors de l'opération");
+    } finally {
+      setArchiving(false);
     }
   };
 
@@ -211,12 +246,38 @@ export default function SuperAdminShopDetail() {
         </div>
         <span
           className={`ml-auto rounded-full px-3 py-1 text-xs font-medium ${
-            shop.status === "ACTIVE" ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"
+            shop.status === "ACTIVE"
+              ? "bg-emerald-50 text-emerald-600"
+              : isArchived
+                ? "bg-red-50 text-red-600"
+                : "bg-slate-100 text-slate-500"
           }`}
         >
-          {shop.status}
+          {isArchived ? "ARCHIVÉE" : shop.status}
         </span>
+        <button
+          type="button"
+          onClick={() => {
+            setConfirmName("");
+            setArchiveModalOpen(true);
+          }}
+          className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-medium transition ${
+            isArchived
+              ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              : "border-red-200 text-red-600 hover:bg-red-50"
+          }`}
+        >
+          {isArchived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
+          {isArchived ? "Restaurer" : "Archiver"}
+        </button>
       </div>
+
+      {isArchived && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-3 text-sm text-red-800">
+          Cette boutique est archivée : ses utilisateurs ne peuvent plus se connecter.
+          Aucune donnée n'a été supprimée, vous pouvez la restaurer à tout moment.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         {/* Left column: info + subscription */}
@@ -471,6 +532,59 @@ export default function SuperAdminShopDetail() {
           </div>
         </div>
       </div>
+
+      {/* Archive / restore modal */}
+      {archiveModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="mb-2 text-lg font-bold text-slate-900">
+              {isArchived ? "Restaurer la boutique" : "Archiver la boutique"}
+            </h3>
+            {isArchived ? (
+              <p className="mb-5 text-sm text-gray-500">
+                <span className="font-medium text-slate-700">{shop.name}</span> sera de nouveau
+                accessible : ses utilisateurs pourront se reconnecter.
+              </p>
+            ) : (
+              <>
+                <p className="mb-3 text-sm text-gray-500">
+                  Les utilisateurs de{" "}
+                  <span className="font-medium text-slate-700">{shop.name}</span> ne pourront plus
+                  se connecter et leurs sessions ouvertes seront coupées en moins de 30 secondes.
+                  Aucune donnée n'est supprimée et la boutique peut être restaurée.
+                </p>
+                <label className="mb-1 block text-xs font-medium text-gray-600">
+                  Pour confirmer, saisissez le nom de la boutique :
+                </label>
+                <input
+                  value={confirmName}
+                  onChange={(e) => setConfirmName(e.target.value)}
+                  placeholder={shop.name}
+                  className="mb-5 w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-red-400"
+                />
+              </>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setArchiveModalOpen(false)}
+                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleArchiveToggle}
+                disabled={archiving || (!isArchived && confirmName.trim() !== shop.name.trim())}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50 ${
+                  isArchived ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"
+                }`}
+              >
+                {archiving && <Loader2 size={14} className="animate-spin" />}
+                {isArchived ? "Restaurer" : "Archiver"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Plan change modal */}
       {planModalOpen && (

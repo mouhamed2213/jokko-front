@@ -475,6 +475,11 @@ export const resetShopPassword = async (id: number, newPassword: string) =>
 export const deleteShop = async (id: number): Promise<void> => {
   await adminApi.delete(`/super-admin/shops/${id}`);
 };
+// Archivage d'une boutique (réversible, aucune donnée supprimée)
+export const archiveShop = async (id: number) =>
+  (await adminApi.patch(`/super-admin/shops/${id}/archive`)).data;
+export const restoreShop = async (id: number) =>
+  (await adminApi.patch(`/super-admin/shops/${id}/restore`)).data;
 // Subscription management endpoints
 export const updateSubscriptionStatus = async (
   shopId: number,
