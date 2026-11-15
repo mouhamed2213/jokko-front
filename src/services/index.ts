@@ -26,6 +26,14 @@ export const loginSuperAdmin = async (data: {
   return res.data;
 };
 
+// Valide la session Super Admin et renvoie son identité (401/403 si token invalide)
+export const getSuperAdminMe = async (): Promise<{
+  id: number;
+  name: string;
+  email: string;
+  role: "SUPER_ADMIN";
+}> => (await api.get("/super-admin/me")).data;
+
 // ── Products ──────────────────────────────────────────────────
 import type {
   Category,
