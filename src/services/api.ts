@@ -5,16 +5,14 @@ export const apiUrl =
     ? "http://localhost:3001/api"
     : "https://api.jokko-business.com/api");
 
+// ── Espace boutique ───────────────────────────────────────────
+// Utilise UNIQUEMENT le token boutique ("token"), jamais celui du Super Admin.
 export const api = axios.create({
   baseURL: apiUrl,
 });
 
 api.interceptors.request.use((config) => {
-  const isSuperAdminRequest = config.url?.includes("/super-admin");
-  const token = isSuperAdminRequest
-    ? localStorage.getItem("sa_user") || localStorage.getItem("token")
-    : localStorage.getItem("token") || localStorage.getItem("sa_user");
-
+  const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -24,7 +22,6 @@ api.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
     const code = error.response?.data?.code;
-    const isSuperAdminRequest = error.config?.url?.includes("/super-admin");
 
     // Ignore login request errors to avoid redirect loops
     const isLoginRequest = error.config?.url?.includes("/auth/login");
@@ -33,14 +30,39 @@ api.interceptors.response.use(
       (!isLoginRequest && status === 401) ||
       (status === 403 && code === "ACCOUNT_DISABLED")
     ) {
-      if (isSuperAdminRequest) {
-        localStorage.removeItem("sa_user");
-        window.location.href = "/super-admin/login";
-      } else {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.location.href = "/login";
-      }
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  },
+);
+
+// ── Espace Super Admin ────────────────────────────────────────
+// Utilise UNIQUEMENT le token Super Admin ("sa_user"), jamais celui d'une boutique.
+export const adminApi = axios.create({
+  baseURL: apiUrl,
+});
+
+adminApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem("sa_user");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+adminApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+
+    // Un mauvais mot de passe au login ne doit pas recharger la page
+    const isLoginRequest = error.config?.url?.includes(
+      "/auth/super-admin/login",
+    );
+
+    if (!isLoginRequest && status === 401) {
+      localStorage.removeItem("sa_user");
+      window.location.href = "/super-admin/login";
     }
     return Promise.reject(error);
   },
