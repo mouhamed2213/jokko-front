@@ -1,4 +1,4 @@
-import { BarChart3, Building2, LogOut, Menu, UserRound, X } from "lucide-react";
+import { BarChart3, Building2, KeyRound, LogOut, Menu, UserRound, X } from "lucide-react";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
@@ -8,6 +8,7 @@ const superAdminLinks = [
   { name: "Tableau de bord", path: "/admin/dash", icon: BarChart3 },
   { name: "Boutiques", path: "/admin/shops", icon: Building2 },
   { name: "Propriétaires", path: "/admin/owners", icon: UserRound },
+  { name: "Sécurité du compte", path: "/admin/security", icon: KeyRound },
 ];
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
