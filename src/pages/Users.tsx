@@ -1,4 +1,4 @@
-import { AlertTriangle, Lock, Plus, UserCog, X } from "lucide-react";
+import { AlertTriangle, Lock, Plus, Power, UserCog, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { showModal, UpgradeModal } from "../components/upgradeModal";
@@ -99,6 +99,20 @@ export default function Users() {
       toast.error(error?.response?.data?.message || "Erreur");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleToggleActive = async (user: User) => {
+    const nextActive = !user.isActive;
+    const action = nextActive ? "réactiver" : "désactiver";
+    if (!confirm(`Voulez-vous vraiment ${action} le compte de ${user.name} ?`)) return;
+
+    try {
+      await updateUser(user.id, { isActive: nextActive });
+      toast.success(nextActive ? "Compte réactivé" : "Compte désactivé");
+      await fetchUsers();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Erreur de modification du statut");
     }
   };
 
@@ -314,15 +328,28 @@ export default function Users() {
                     <p className="text-sm text-gray-500 truncate">
                       {user.email}
                     </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      Membre depuis{" "}
-                      {new Date(user.createdAt).toLocaleDateString("fr-FR")}
-                    </p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <p className="text-xs text-gray-400">
+                        Membre depuis {new Date(user.createdAt).toLocaleDateString("fr-FR")}
+                      </p>
+                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${user.isActive ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                        {user.isActive ? "Accès actif" : "Accès désactivé"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  {user.id !== Number(JSON.parse(localStorage.getItem("user") || "{}").id) && (
+                    <button
+                      onClick={() => handleToggleActive(user)}
+                      className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs transition ${user.isActive ? "border-amber-200 text-amber-700 hover:bg-amber-50" : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"}`}
+                    >
+                      <Power size={13} />
+                      {user.isActive ? "Désactiver" : "Réactiver"}
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       setForm({
@@ -339,12 +366,14 @@ export default function Users() {
                   >
                     Modifier
                   </button>
-                  <button
-                    onClick={() => handleDelete(user.id)}
-                    className="rounded-xl border border-red-200 px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition"
-                  >
-                    Supprimer
-                  </button>
+                  {user.role !== "ADMIN" && (
+                    <button
+                      onClick={() => handleDelete(user.id)}
+                      className="rounded-xl border border-red-200 px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition"
+                    >
+                      Supprimer
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

@@ -54,7 +54,10 @@ const emptyShopForm: NewShopForm = {
   address: "",
   phone: "",
   email: "",
-  password: "",
+  managerEnabled: false,
+  managerName: "",
+  managerEmail: "",
+  managerPassword: "",
 };
 
 // ── Nav links ────────────────────────────────────────────────
@@ -126,14 +129,22 @@ function AddShopModal({
   const [form, setForm] = useState<NewShopForm>(emptyShopForm);
   const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (key: keyof NewShopForm, value: string) => {
+  type ShopTextField = Exclude<keyof NewShopForm, "managerEnabled">;
+  const handleChange = (key: ShopTextField, value: string) => {
     setForm((p) => ({ ...p, [key]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.shopName || !form.ownerName || !form.phone || !form.password) {
-      toast.error("Veuillez remplir les champs obligatoires");
+    if (!form.shopName.trim() || !form.ownerName.trim() || !form.phone.trim() || !form.email.trim()) {
+      toast.error("Veuillez remplir les informations obligatoires de la boutique");
+      return;
+    }
+    if (
+      form.managerEnabled &&
+      (!form.managerName.trim() || !form.managerEmail.trim() || form.managerPassword.length < 8)
+    ) {
+      toast.error("Veuillez renseigner les informations du responsable");
       return;
     }
     setSubmitting(true);
@@ -153,7 +164,7 @@ function AddShopModal({
 
   const fields: {
     label: string;
-    key: keyof NewShopForm;
+    key: ShopTextField;
     type: string;
     placeholder: string;
     span2?: boolean;
@@ -177,23 +188,16 @@ function AddShopModal({
       placeholder: "77 000 00 00",
     },
     {
-      label: "Email",
+      label: "Email de contact de la boutique *",
       key: "email",
       type: "email",
-      placeholder: "email@boutique.com",
+      placeholder: "contact@boutique.com",
     },
     {
       label: "Adresse",
       key: "address",
       type: "text",
       placeholder: "Quartier, Ville",
-      span2: true,
-    },
-    {
-      label: "Mot de passe *",
-      key: "password",
-      type: "password",
-      placeholder: "Mot de passe d'accès à la boutique",
       span2: true,
     },
   ];
@@ -221,6 +225,7 @@ function AddShopModal({
               </label>
               <input
                 type={type}
+                required={key === "email"}
                 value={form[key]}
                 onChange={(e) => handleChange(key, e.target.value)}
                 className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500"
@@ -228,6 +233,59 @@ function AddShopModal({
               />
             </div>
           ))}
+
+          <div className="sm:col-span-2 rounded-xl border border-slate-200 p-4">
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
+              <input
+                type="checkbox"
+                checked={form.managerEnabled}
+                onChange={(e) => setForm((p) => ({ ...p, managerEnabled: e.target.checked }))}
+                className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              Créer un compte responsable pour cette boutique
+            </label>
+            <p className="mt-1 text-xs text-slate-500">
+              Facultatif. Vous pourrez toujours accéder à cette boutique avec votre compte propriétaire.
+            </p>
+            {form.managerEnabled && (
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Nom du responsable *</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.managerName}
+                    onChange={(e) => handleChange("managerName", e.target.value)}
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500"
+                    placeholder="Prénom Nom"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Email de connexion *</label>
+                  <input
+                    type="email"
+                    required
+                    value={form.managerEmail}
+                    onChange={(e) => handleChange("managerEmail", e.target.value)}
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500"
+                    placeholder="responsable@boutique.com"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Mot de passe initial *</label>
+                  <input
+                    type="password"
+                    required
+                    minLength={8}
+                    value={form.managerPassword}
+                    onChange={(e) => handleChange("managerPassword", e.target.value)}
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500"
+                    placeholder="8 caractères minimum"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="flex gap-3 sm:col-span-2 pt-2">
             <button
@@ -531,7 +589,7 @@ function ShopSwitcher({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
-                  placeholder="Mot de passe de la boutique"
+                  placeholder="Mot de passe de votre compte propriétaire"
                   autoFocus
                   className="w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500 pr-10"
                 />
