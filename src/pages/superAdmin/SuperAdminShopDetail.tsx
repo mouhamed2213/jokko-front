@@ -538,7 +538,7 @@ export default function SuperAdminShopDetail() {
                           {new Date(p.createdAt).toLocaleDateString("fr-FR")}
                         </td>
                         <td className="py-2">
-                          {p.status === "PENDING" && (
+                          {p.status === "PENDING" && p.paymentType === "SUBSCRIPTION" && (
                             <button
                               type="button"
                               onClick={() => handleConfirmPayment(p.id)}
