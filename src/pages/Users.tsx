@@ -366,12 +366,14 @@ export default function Users() {
                   >
                     Modifier
                   </button>
-                  <button
-                    onClick={() => handleDelete(user.id)}
-                    className="rounded-xl border border-red-200 px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition"
-                  >
-                    Supprimer
-                  </button>
+                  {user.role !== "ADMIN" && (
+                    <button
+                      onClick={() => handleDelete(user.id)}
+                      className="rounded-xl border border-red-200 px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition"
+                    >
+                      Supprimer
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
