@@ -1,32 +1,44 @@
 import { LogOut } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { getStoredUser } from "../types/auth";
+import { matchPath, useLocation, useNavigate } from "react-router-dom";
+import { useSuperAdmin } from "../hooks/useSuperAdmin";
 import { logoutSuperAdmin } from "../utils/superAdminAuth";
 
-const pageConfig: Record<
-  string,
-  { title: string; description: string }
-> = {
-  "/admin": {
-    title: "Tableau de bord Super Admin",
-    description: "Vue d'ensemble de votre plateforme.",
+type PageInfo = { title: string; description: string };
+
+// Chemins alignés sur les vraies routes de App.tsx
+const pages: { path: string; end?: boolean; info: PageInfo }[] = [
+  {
+    path: "/admin/dash",
+    info: {
+      title: "Tableau de bord Super Admin",
+      description: "Vue d'ensemble de votre plateforme.",
+    },
   },
-  "/admin/shops": {
-    title: "Boutiques",
-    description: "Gérez toutes les boutiques de votre plateforme.",
+  {
+    path: "/admin/shops",
+    end: true,
+    info: {
+      title: "Boutiques",
+      description: "Gérez toutes les boutiques de votre plateforme.",
+    },
   },
-  "/admin/shops/:id": {
-    title: "Détail boutique",
-    description: "Consultez les informations détaillées d'une boutique.",
+  {
+    path: "/admin/shops/:id",
+    info: {
+      title: "Détail boutique",
+      description: "Consultez les informations détaillées d'une boutique.",
+    },
   },
-};
+];
 
 export default function SuperAdminHeader() {
   const location = useLocation();
   const navigate = useNavigate();
-  const user = getStoredUser();
+  const user = useSuperAdmin();
 
-  const currentPage = pageConfig[location.pathname] || {
+  const currentPage: PageInfo = pages.find((p) =>
+    matchPath({ path: p.path, end: p.end ?? true }, location.pathname),
+  )?.info || {
     title: "Jokko Business Super Admin",
     description: "Gestion de plateforme.",
   };
