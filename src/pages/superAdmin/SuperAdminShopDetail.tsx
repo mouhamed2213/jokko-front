@@ -706,7 +706,7 @@ export default function SuperAdminShopDetail() {
                   </select>
                 </label>
                 <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
-                  Montant reçu (FCFA)
+                  Montant déclaré (FCFA)
                   <input
                     type="number"
                     min="1"
