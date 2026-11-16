@@ -34,6 +34,9 @@ import SuperAdminShops from "./pages/superAdmin/SuperAdminShops";
 import SuperAdminOwners from "./pages/superAdmin/SuperAdminOwners";
 import SuperAdminOwnerDetail from "./pages/superAdmin/SuperAdminOwnerDetail";
 import SuperAdminShopDetail from "./pages/superAdmin/SuperAdminShopDetail";
+import SuperAdminSettings from "./pages/superAdmin/SuperAdminSettings";
+import SuperAdminMaintenanceSettings from "./pages/superAdmin/SuperAdminMaintenanceSettings";
+import SuperAdminUsers from "./pages/superAdmin/SuperAdminUsers";
 
 export default function App() {
   return (
@@ -76,6 +79,9 @@ export default function App() {
           <Route path="/admin/shops/:id" element={<SuperAdminShopDetail />} />
           <Route path="/admin/owners" element={<SuperAdminOwners />} />
           <Route path="/admin/owners/:id" element={<SuperAdminOwnerDetail />} />
+          <Route path="/admin/settings" element={<SuperAdminSettings />} />
+          <Route path="/admin/settings/maintenance" element={<SuperAdminMaintenanceSettings />} />
+          <Route path="/admin/settings/users" element={<SuperAdminUsers />} />
           <Route path="/admin/security" element={<AccountSecurity mode="superadmin" />} />
         </Route>
 
