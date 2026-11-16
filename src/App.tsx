@@ -37,6 +37,7 @@ import SuperAdminShopDetail from "./pages/superAdmin/SuperAdminShopDetail";
 import SuperAdminSettings from "./pages/superAdmin/SuperAdminSettings";
 import SuperAdminMaintenanceSettings from "./pages/superAdmin/SuperAdminMaintenanceSettings";
 import SuperAdminUsers from "./pages/superAdmin/SuperAdminUsers";
+import AcceptSuperAdminInvitation from "./pages/AcceptSuperAdminInvitation";
 import MaintenanceGate from "./components/MaintenanceGate";
 
 export default function App() {
@@ -53,6 +54,7 @@ export default function App() {
       <Routes>
         {/* Public routes */}
         <Route path="/super-admin/login" element={<SuperAdminLogin />} />
+        <Route path="/super-admin/accept-invitation" element={<AcceptSuperAdminInvitation />} />
 
         <Route element={<PublicLayout />}>
           <Route index element={<LandingPage />} />
