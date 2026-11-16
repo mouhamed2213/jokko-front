@@ -55,9 +55,11 @@ function Stat({ label, value, danger }: { label: string; value: string | number;
 
 function ShopCard({ shop, onOpen }: { shop: OwnerShop; onOpen: () => void }) {
   const archived = shop.status === "ARCHIVED";
+  const parentArchived = shop.primaryShop?.status === "ARCHIVED";
+  const unavailable = archived || parentArchived;
   const s = shop.stats;
   return (
-    <div className={`rounded-2xl bg-white p-5 shadow-sm ${archived ? "opacity-70" : ""}`}>
+    <div className={`rounded-2xl bg-white p-5 shadow-sm ${unavailable ? "opacity-70" : ""}`}>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <Store size={16} className="text-emerald-600" />
         <h3 className="font-bold text-slate-900">{shop.name}</h3>
@@ -66,10 +68,14 @@ function ShopCard({ shop, onOpen }: { shop: OwnerShop; onOpen: () => void }) {
         </span>
         <span
           className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-            archived ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"
+            archived
+              ? "bg-red-50 text-red-600"
+              : parentArchived
+                ? "bg-amber-50 text-amber-700"
+                : "bg-emerald-50 text-emerald-600"
           }`}
         >
-          {archived ? "ARCHIVÉE" : shop.status}
+          {archived ? "ARCHIVÉE" : parentArchived ? "BLOQUÉE PAR LA PRINCIPALE" : shop.status}
         </span>
         <button
           type="button"
@@ -102,7 +108,7 @@ function ShopCard({ shop, onOpen }: { shop: OwnerShop; onOpen: () => void }) {
         <Stat label="Stock bas" value={s.lowStockCount} danger={s.lowStockCount > 0} />
       </div>
 
-      {shop.usage.length > 0 && !archived && (
+      {shop.usage.length > 0 && !unavailable && (
         <div className="mb-3 grid gap-3 sm:grid-cols-2">
           {shop.usage.map((u) => (
             <UsageBar key={u.key} item={u} />
