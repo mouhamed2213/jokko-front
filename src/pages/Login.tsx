@@ -90,6 +90,8 @@ export default function Login() {
           </button>
         </form>
 
+        <p className="mt-4 text-center text-sm"><Link to="/forgot-password" className="font-medium text-emerald-600 hover:underline">Mot de passe oublié ?</Link></p>
+
         <p className="mt-6 text-center text-xs text-gray-400">
           Vous n'avez pas de compte ?{" "}
           <Link
