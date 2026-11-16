@@ -1,6 +1,7 @@
 // ============================================================
 //  services/index.ts
 // ============================================================
+import type { OwnerDetail, OwnersResponse } from "../types/owner";
 import { adminApi, api, apiUrl } from "./api";
 export { api, apiUrl };
 
@@ -465,6 +466,16 @@ export const getShopsWithPagination = async (params?: {
 }) => (await adminApi.get("/super-admin/shops", { params })).data;
 export const getShopDetail = async (id: number) =>
   (await adminApi.get(`/super-admin/shops/${id}`)).data;
+// Propriétaires : liste et vue globale du réseau (lecture seule)
+export const getOwners = async (params?: {
+  page?: number;
+  limit?: number;
+  q?: string;
+}): Promise<OwnersResponse> =>
+  (await adminApi.get("/super-admin/owners", { params })).data;
+export const getOwnerDetail = async (id: number): Promise<OwnerDetail> =>
+  (await adminApi.get(`/super-admin/owners/${id}`)).data;
+
 // Archivage d'une boutique (réversible, aucune donnée supprimée)
 export const archiveShop = async (id: number) =>
   (await adminApi.patch(`/super-admin/shops/${id}/archive`)).data;

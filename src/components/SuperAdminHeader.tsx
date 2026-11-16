@@ -23,6 +23,21 @@ const pages: { path: string; end?: boolean; info: PageInfo }[] = [
     },
   },
   {
+    path: "/admin/owners",
+    end: true,
+    info: {
+      title: "Propriétaires",
+      description: "Retrouvez chaque propriétaire et son réseau de boutiques.",
+    },
+  },
+  {
+    path: "/admin/owners/:id",
+    info: {
+      title: "Réseau du propriétaire",
+      description: "Vue globale de la boutique principale et de ses boutiques secondaires.",
+    },
+  },
+  {
     path: "/admin/shops/:id",
     info: {
       title: "Détail boutique",
