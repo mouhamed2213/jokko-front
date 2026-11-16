@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import toast from "react-hot-toast";
 import { Loader2, MailPlus, RefreshCw, ShieldCheck, ShieldOff, UserPlus, Users } from "lucide-react";
 import {
@@ -51,7 +52,7 @@ export default function SuperAdminUsers() {
 
   useEffect(() => { void loadAdmins(); }, [loadAdmins]);
 
-  const submitInvitation = async (event: React.FormEvent<HTMLFormElement>) => {
+  const submitInvitation = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitting(true);
     try {
