@@ -10,6 +10,7 @@ import {
   EyeOff,
   FileText,
   LayoutDashboard,
+  LockKeyhole,
   Menu,
   Package,
   Plus,
@@ -116,6 +117,7 @@ const allLinks: NavLinkItem[] = [
   { name: "Factures", path: "/invoices", icon: FileText, adminOnly: false },
   { name: "Utilisateurs", path: "/users", icon: UserCog, adminOnly: true },
   { name: "Paramètres", path: "/settings", icon: Settings, adminOnly: true },
+  { name: "Sécurité du compte", path: "/account/security", icon: LockKeyhole, adminOnly: false },
 ];
 
 // ── Add Shop Modal ───────────────────────────────────────────
