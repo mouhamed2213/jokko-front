@@ -71,6 +71,22 @@ export const confirmAccountEmailChange = async (token: string) =>
 
 export const getSuperAdminEmailStatus = async (): Promise<AccountEmailStatus> =>
   (await adminApi.get("/auth/super-admin/email/status")).data;
+
+export type MaintenanceStatus = {
+  enabled: boolean;
+  message: string;
+  updatedAt: string | null;
+};
+
+export const getMaintenanceStatus = async (): Promise<MaintenanceStatus> =>
+  (await adminApi.get("/maintenance/status")).data;
+
+export const updateMaintenanceSettings = async (payload: {
+  enabled: boolean;
+  message: string;
+}): Promise<MaintenanceStatus> =>
+  (await adminApi.patch("/maintenance", payload)).data;
+
 export const resendSuperAdminVerification = async () =>
   (await adminApi.post("/auth/super-admin/email/verification/resend")).data;
 export const requestSuperAdminEmailChange = async (data: {
