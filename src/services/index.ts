@@ -565,8 +565,22 @@ export const getAnalyticsMultiStoreOverview = async (params: {
 // create secondary shop
 
 
-export const createNewShop = async (shopData : NewShopForm) => {
-  const res = await api.post("/shop/create-second-shop", shopData);
+export const createNewShop = async (shopData: NewShopForm) => {
+  const payload = {
+    shopName: shopData.shopName,
+    ownerName: shopData.ownerName,
+    address: shopData.address,
+    phone: shopData.phone,
+    email: shopData.email,
+    manager: shopData.managerEnabled
+      ? {
+          name: shopData.managerName,
+          email: shopData.managerEmail,
+          password: shopData.managerPassword,
+        }
+      : null,
+  };
+  const res = await api.post("/shop/create-second-shop", payload);
   return res;
 };
 
