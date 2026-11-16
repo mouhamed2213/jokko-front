@@ -20,6 +20,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import ConfirmEmailChange from "./pages/ConfirmEmailChange";
+import AccountSecurity from "./pages/AccountSecurity";
 import Sales from "./pages/Sales";
 import SalesHistory from "./pages/SalesHistory";
 import Settings from "./pages/Settings";
@@ -73,6 +74,7 @@ export default function App() {
           <Route path="/admin/shops/:id" element={<SuperAdminShopDetail />} />
           <Route path="/admin/owners" element={<SuperAdminOwners />} />
           <Route path="/admin/owners/:id" element={<SuperAdminOwnerDetail />} />
+          <Route path="/admin/security" element={<AccountSecurity mode="superadmin" />} />
         </Route>
 
         {/* Protected dashboard routes */}
@@ -102,6 +104,7 @@ export default function App() {
           <Route path="/cash" element={<Cash />} />
           <Route path="/users" element={<Users />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/account/security" element={<AccountSecurity />} />
         </Route>
       </Routes>
     </BrowserRouter>
