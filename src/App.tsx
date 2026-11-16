@@ -21,6 +21,7 @@ import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import ConfirmEmailChange from "./pages/ConfirmEmailChange";
 import AccountSecurity from "./pages/AccountSecurity";
+import ContactPage from "./pages/ContactPage";
 import Sales from "./pages/Sales";
 import SalesHistory from "./pages/SalesHistory";
 import Settings from "./pages/Settings";
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
           <Route path="help" element={<HelpPage />} />
+          <Route path="/contact" element={<ContactPage />} />
         </Route>
 
         {/* Super Admin routes */}
