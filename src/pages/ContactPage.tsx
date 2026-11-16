@@ -1,11 +1,16 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { sendContactMessage } from "../services";
+import { sendContactMessage, SUPPORT_EMAIL } from "../services";
 
 const initialForm = { name: "", email: "", subject: "", message: "", website: "" };
 
 export default function ContactPage() {
-  const [form, setForm] = useState(initialForm);
+  const [searchParams] = useSearchParams();
+  const [form, setForm] = useState(() => ({
+    ...initialForm,
+    subject: searchParams.get("subject")?.slice(0, 120) ?? "",
+  }));
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -32,7 +37,7 @@ export default function ContactPage() {
       <div className="rounded-3xl bg-white p-6 shadow-sm sm:p-10">
         <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">Nous contacter</p>
         <h1 className="mt-2 text-3xl font-bold text-slate-900">Comment pouvons-nous vous aider ?</h1>
-        <p className="mt-3 text-slate-600">Envoyez-nous votre demande. Notre équipe vous répondra à l'adresse indiquée.</p>
+        <p className="mt-3 text-slate-600">Envoyez-nous votre demande via ce formulaire ou écrivez-nous directement à <a className="font-medium text-emerald-700 hover:underline" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. Notre équipe vous répondra à l'adresse indiquée.</p>
         {sent && (
           <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
             Votre message a bien été envoyé.
