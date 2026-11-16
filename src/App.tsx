@@ -37,6 +37,7 @@ import SuperAdminShopDetail from "./pages/superAdmin/SuperAdminShopDetail";
 import SuperAdminSettings from "./pages/superAdmin/SuperAdminSettings";
 import SuperAdminMaintenanceSettings from "./pages/superAdmin/SuperAdminMaintenanceSettings";
 import SuperAdminUsers from "./pages/superAdmin/SuperAdminUsers";
+import MaintenanceGate from "./components/MaintenanceGate";
 
 export default function App() {
   return (
@@ -48,6 +49,7 @@ export default function App() {
           style: { borderRadius: "12px", background: "#0f172a", color: "#fff" },
         }}
       />
+      <MaintenanceGate>
       <Routes>
         {/* Public routes */}
         <Route path="/super-admin/login" element={<SuperAdminLogin />} />
@@ -115,6 +117,7 @@ export default function App() {
           <Route path="/account/security" element={<AccountSecurity />} />
         </Route>
       </Routes>
+      </MaintenanceGate>
     </BrowserRouter>
   );
 }
