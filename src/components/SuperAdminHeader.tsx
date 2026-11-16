@@ -1,7 +1,10 @@
-import { LogOut } from "lucide-react";
+import { LogOut, Mail } from "lucide-react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { matchPath, useLocation, useNavigate } from "react-router-dom";
 import { useSuperAdmin } from "../hooks/useSuperAdmin";
 import { logoutSuperAdmin } from "../utils/superAdminAuth";
+import { getSuperAdminEmailStatus, resendSuperAdminVerification, type AccountEmailStatus } from "../services";
 
 type PageInfo = { title: string; description: string };
 
@@ -50,6 +53,24 @@ export default function SuperAdminHeader() {
   const location = useLocation();
   const navigate = useNavigate();
   const user = useSuperAdmin();
+  const [emailStatus, setEmailStatus] = useState<AccountEmailStatus | null>(null);
+  const [resendingVerification, setResendingVerification] = useState(false);
+
+  useEffect(() => {
+    getSuperAdminEmailStatus().then(setEmailStatus).catch(() => undefined);
+  }, []);
+
+  const handleResendVerification = async () => {
+    setResendingVerification(true);
+    try {
+      const result = await resendSuperAdminVerification();
+      toast.success(result.message);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Unable to send the link right now.");
+    } finally {
+      setResendingVerification(false);
+    }
+  };
 
   const currentPage: PageInfo = pages.find((p) =>
     matchPath({ path: p.path, end: p.end ?? true }, location.pathname),
@@ -68,7 +89,8 @@ export default function SuperAdminHeader() {
   const logout = () => logoutSuperAdmin(navigate);
 
   return (
-    <header className="rounded-2xl bg-white px-6 py-4 shadow-sm flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <header className="flex flex-col gap-4">
+      <div className="rounded-2xl bg-white px-6 py-4 shadow-sm flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <div>
         <h2 className="text-xl font-bold text-slate-900">
           {currentPage.title}
