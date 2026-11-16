@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import toast from "react-hot-toast";
+import { useSuperAdmin } from "../../hooks/useSuperAdmin";
 import { Loader2, MailPlus, RefreshCw, ShieldCheck, ShieldOff, UserPlus, Users } from "lucide-react";
 import {
   getSuperAdmins,
@@ -27,7 +28,8 @@ const statusClasses: Record<SuperAdminAccount["status"], string> = {
 const formatDate = (value: string | null) =>
   value ? new Date(value).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" }) : "—";
 
-export default function SuperAdminUsers() {\n  const currentAdmin = useSuperAdmin();
+export default function SuperAdminUsers() {
+  const currentAdmin = useSuperAdmin();
   const [admins, setAdmins] = useState<SuperAdminAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -176,6 +178,7 @@ export default function SuperAdminUsers() {\n  const currentAdmin = useSuperAdmi
                       {admin.isActive ? "Désactiver" : "Réactiver"}
                     </button>
                   )}
+                  {admin.id === currentAdmin?.id && <span className="self-center text-xs text-slate-400">Votre compte</span>}
                 </div>
               </article>
             ))}
