@@ -86,6 +86,9 @@ function ShopCard({ shop, onOpen }: { shop: OwnerShop; onOpen: () => void }) {
               shop.subscription.daysRemaining !== null ? ` (${shop.subscription.daysRemaining} j)` : ""
             }`
           : "Aucun abonnement"}
+        {shop.subscriptionInherited && shop.primaryShop
+          ? ` · Abonnement hérité de ${shop.primaryShop.name}`
+          : ""}
         {" · "}Dernière activité : {date(s.lastActivityAt)}
         {" · "}Caisse {s.cashOpen ? "ouverte" : "fermée"}
       </p>
