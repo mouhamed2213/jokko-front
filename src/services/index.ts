@@ -465,6 +465,11 @@ export const getShopsWithPagination = async (params?: {
 }) => (await adminApi.get("/super-admin/shops", { params })).data;
 export const getShopDetail = async (id: number) =>
   (await adminApi.get(`/super-admin/shops/${id}`)).data;
+// Archivage d'une boutique (réversible, aucune donnée supprimée)
+export const archiveShop = async (id: number) =>
+  (await adminApi.patch(`/super-admin/shops/${id}/archive`)).data;
+export const restoreShop = async (id: number) =>
+  (await adminApi.patch(`/super-admin/shops/${id}/restore`)).data;
 // Subscription management endpoints
 export const updateSubscriptionStatus = async (
   shopId: number,

@@ -160,6 +160,7 @@ export default function SuperAdminShops() {
           <option value="">Tous les statuts</option>
           <option value="ACTIVE">Actif</option>
           <option value="SUSPENDED">Suspendu</option>
+          <option value="ARCHIVED">Archivée</option>
         </select>
 
         <select
@@ -248,10 +249,12 @@ export default function SuperAdminShops() {
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                           shop.status === "ACTIVE"
                             ? "bg-emerald-50 text-emerald-600"
-                            : "bg-slate-100 text-slate-500"
+                            : shop.status === "ARCHIVED"
+                              ? "bg-red-50 text-red-600"
+                              : "bg-slate-100 text-slate-500"
                         }`}
                       >
-                        {shop.status}
+                        {shop.status === "ARCHIVED" ? "ARCHIVÉE" : shop.status}
                       </span>
                     </td>
 
