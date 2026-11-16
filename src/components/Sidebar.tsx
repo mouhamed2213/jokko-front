@@ -129,7 +129,8 @@ function AddShopModal({
   const [form, setForm] = useState<NewShopForm>(emptyShopForm);
   const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (key: keyof NewShopForm, value: string) => {
+  type ShopTextField = Exclude<keyof NewShopForm, "managerEnabled">;
+  const handleChange = (key: ShopTextField, value: string) => {
     setForm((p) => ({ ...p, [key]: value }));
   };
 
@@ -141,7 +142,7 @@ function AddShopModal({
     }
     if (
       form.managerEnabled &&
-      (!form.managerName.trim() || !form.managerEmail.trim() || !form.managerPassword)
+      (!form.managerName.trim() || !form.managerEmail.trim() || form.managerPassword.length < 8)
     ) {
       toast.error("Veuillez renseigner les informations du responsable");
       return;
@@ -163,7 +164,7 @@ function AddShopModal({
 
   const fields: {
     label: string;
-    key: keyof NewShopForm;
+    key: ShopTextField;
     type: string;
     placeholder: string;
     span2?: boolean;
