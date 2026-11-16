@@ -36,6 +36,9 @@ export const getSuperAdminMe = async (): Promise<{
 }> => (await adminApi.get("/super-admin/me")).data;
 
 
+export const sendContactMessage = async (data: { name: string; email: string; subject: string; message: string; website?: string }) =>
+  (await api.post("/contact", data)).data;
+
 // ── Sécurité du compte et emails transactionnels ─────────────
 export type AccountEmailStatus = {
   email: string;
