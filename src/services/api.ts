@@ -23,6 +23,12 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const code = error.response?.data?.code;
 
+    // Une réponse de maintenance renvoie l'utilisateur vers la racine :
+    // MaintenanceGate y affiche la page dédiée après lecture du statut public.
+    if (status === 503 && code === "MAINTENANCE_MODE" && window.location.pathname !== "/") {
+      window.location.href = "/";
+    }
+
     // Ignore login request errors to avoid redirect loops
     const isLoginRequest = error.config?.url?.includes("/auth/login");
 
