@@ -678,7 +678,11 @@ function NavGroup({
       >
         <NavLink
           to={link.path}
-          onClick={onClose}
+          onClick={() => {
+            setManualOverride(!open);
+            onClose?.();
+          }}
+          aria-expanded={open}
           className="flex flex-1 items-center gap-3"
         >
           <Icon size={17} />
