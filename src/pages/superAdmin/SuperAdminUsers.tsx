@@ -170,7 +170,7 @@ export default function SuperAdminUsers() {
                       {changingId === admin.id ? <Loader2 size={15} className="animate-spin" /> : <MailPlus size={15} />} Renvoyer l'invitation
                     </button>
                   )}
-                  {admin.emailVerifiedAt && (
+                  {admin.emailVerifiedAt && admin.id !== currentAdmin?.id && (
                     <button type="button" onClick={() => void toggleStatus(admin)} disabled={changingId === admin.id} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium disabled:opacity-50 ${admin.isActive ? "border-rose-200 text-rose-700 hover:bg-rose-50" : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"}`}>
                       {changingId === admin.id ? <Loader2 size={15} className="animate-spin" /> : admin.isActive ? <ShieldOff size={15} /> : <ShieldCheck size={15} />}
                       {admin.isActive ? "Désactiver" : "Réactiver"}
