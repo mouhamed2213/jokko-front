@@ -24,6 +24,7 @@ import {
   getShopDetail,
   changeSubscriptionPlan,
   confirmSubscriptionPayment,
+  cancelSubscriptionPayment,
   archiveShop,
   restoreShop,
 } from "../../services";
@@ -158,6 +159,7 @@ export default function SuperAdminShopDetail() {
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentReference, setPaymentReference] = useState("");
   const [confirmingPaymentId, setConfirmingPaymentId] = useState<number | null>(null);
+  const [cancellingPaymentId, setCancellingPaymentId] = useState<number | null>(null);
 
   // Archive / restore modal state
   const [archiveModalOpen, setArchiveModalOpen] = useState(false);
@@ -217,6 +219,20 @@ export default function SuperAdminShopDetail() {
       toast.error(error?.response?.data?.message || "Impossible de confirmer ce paiement");
     } finally {
       setConfirmingPaymentId(null);
+    }
+  };
+
+  const handleCancelPayment = async (paymentId: number) => {
+    if (!window.confirm("Annuler cette demande de paiement ? Le forfait actuel sera conservé.")) return;
+    setCancellingPaymentId(paymentId);
+    try {
+      await cancelSubscriptionPayment(paymentId);
+      toast.success("Demande de paiement annulée");
+      await loadShop();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Impossible d'annuler ce paiement");
+    } finally {
+      setCancellingPaymentId(null);
     }
   };
 
@@ -539,14 +555,24 @@ export default function SuperAdminShopDetail() {
                         </td>
                         <td className="py-2">
                           {p.status === "PENDING" && p.paymentType === "SUBSCRIPTION" && (
-                            <button
-                              type="button"
-                              onClick={() => handleConfirmPayment(p.id)}
-                              disabled={confirmingPaymentId === p.id}
-                              className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
-                            >
-                              {confirmingPaymentId === p.id ? "Confirmation..." : "Vérifier et activer"}
-                            </button>
+                            <div className="flex flex-wrap gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleConfirmPayment(p.id)}
+                                disabled={confirmingPaymentId === p.id || cancellingPaymentId === p.id}
+                                className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+                              >
+                                {confirmingPaymentId === p.id ? "Confirmation..." : "Vérifier et activer"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleCancelPayment(p.id)}
+                                disabled={confirmingPaymentId === p.id || cancellingPaymentId === p.id}
+                                className="rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+                              >
+                                {cancellingPaymentId === p.id ? "Annulation..." : "Annuler"}
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>
