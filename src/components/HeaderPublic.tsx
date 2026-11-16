@@ -16,6 +16,7 @@ export function HeaderPublic() {
     { href: "/#features", label: "Fonctionnalités" },
     { href: "/#pricing", label: "Tarifs" },
     { href: "/help", label: "Découvrir l'application" },
+    { href: "/contact", label: "Contact" },
     // { href: "/#faq", label: "FAQ" },
   ];
 
@@ -79,6 +80,17 @@ export function HeaderPublic() {
               Découvrir l'application
             </a>
             
+            <a
+              href="/contact"
+              className={`text-sm font-medium transition duration-200 ${
+                isActive("/contact")
+                  ? "text-emerald-600 font-semibold"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Contact
+            </a>
+
             {/* <a
               href="/#faq"
               className="text-sm font-medium text-slate-600 hover:text-slate-900 transition duration-200"
