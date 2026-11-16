@@ -35,6 +35,8 @@ export type OwnerShop = {
   status: string;
   address: string | null;
   isPrimary: boolean;
+  primaryShop: { id: number; name: string; status?: string } | null;
+  subscriptionInherited: boolean;
   createdAt: string;
   subscription: {
     status: string;
