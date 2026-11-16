@@ -153,6 +153,7 @@ export default function SuperAdminOwnerDetail() {
   }
 
   const { owner, totals, storesUsage, shops, diagnostics } = data;
+  const hasDiagnosticAnomaly = diagnostics.some((item) => item.level !== "info");
 
   return (
     <div className="space-y-5">
@@ -175,12 +176,13 @@ export default function SuperAdminOwnerDetail() {
       </div>
 
       {diagnostics.length > 0 && (
-        <div className="space-y-2 rounded-2xl border border-red-200 bg-red-50 p-4">
-          <p className="flex items-center gap-2 text-sm font-semibold text-red-800">
-            <AlertTriangle size={16} /> Anomalies de données détectées
+        <div className={`space-y-2 rounded-2xl border p-4 ${hasDiagnosticAnomaly ? "border-red-200 bg-red-50" : "border-slate-200 bg-slate-50"}`}>
+          <p className={`flex items-center gap-2 text-sm font-semibold ${hasDiagnosticAnomaly ? "text-red-800" : "text-slate-700"}`}>
+            {hasDiagnosticAnomaly ? <AlertTriangle size={16} /> : <Info size={16} />}
+            {hasDiagnosticAnomaly ? "Anomalies de données détectées" : "Informations sur les données historiques"}
           </p>
           {diagnostics.map((d) => (
-            <p key={d.code + d.message} className="text-sm text-red-700">• {d.message}</p>
+            <p key={d.code + d.message} className={`text-sm ${d.level === "info" ? "text-slate-600" : "text-red-700"}`}>• {d.message}</p>
           ))}
         </div>
       )}
