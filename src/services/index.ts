@@ -5,6 +5,9 @@ import type { OwnerDetail, OwnersResponse } from "../types/owner";
 import { adminApi, api, apiUrl } from "./api";
 export { api, apiUrl };
 
+// Adresse publique de contact de Jokko Business.
+export const SUPPORT_EMAIL = "contact@jokko-business.com";
+
 // ── Auth ──────────────────────────────────────────────────────
 export const login = async (data: { email: string; password: string }) => {
   const res = await api.post("/auth/login", data);
