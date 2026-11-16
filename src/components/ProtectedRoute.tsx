@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
 
 import { Navigate } from "react-router-dom";
+import { SuperAdminContext, type SuperAdminProfile } from "../hooks/useSuperAdmin";
 import { getSuperAdminMe } from "../services";
 import { getStoredUser } from "../types/auth";
 type Props = {
@@ -31,6 +32,7 @@ export function SuperAdminGuard({ children }: Props) {
     hasToken ? "checking" : "invalid",
   );
   const [attempt, setAttempt] = useState(0);
+  const [admin, setAdmin] = useState<SuperAdminProfile | null>(null);
 
   useEffect(() => {
     if (!hasToken) return;
@@ -39,8 +41,10 @@ export function SuperAdminGuard({ children }: Props) {
     setState("checking");
 
     getSuperAdminMe()
-      .then(() => {
-        if (!cancelled) setState("valid");
+      .then((profile) => {
+        if (cancelled) return;
+        setAdmin(profile);
+        setState("valid");
       })
       .catch((error) => {
         if (cancelled) return;
@@ -87,7 +91,9 @@ export function SuperAdminGuard({ children }: Props) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <SuperAdminContext.Provider value={admin}>{children}</SuperAdminContext.Provider>
+  );
 }
 
 export function SubscriptionGuard({ children }: Props) {
