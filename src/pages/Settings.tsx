@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   Upload,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { api } from "../services/api";
 import { getStoredUser } from "../types/auth";
+import { SUPPORT_EMAIL } from "../services";
 
 type Plan = {
   id: number;
@@ -127,6 +129,7 @@ function getDaysRemaining(endDate: string | null): number | null {
 }
 
 export default function Settings() {
+  const navigate = useNavigate();
   const user = getStoredUser();
   const isAdmin = user?.role === "ADMIN";
 
@@ -446,12 +449,7 @@ export default function Settings() {
                           : "border-purple-200 bg-purple-50"
                     }`}
                     onClick={() =>
-                      toast(
-                        "Contactez-nous au +221 78 333 38 38 pour activer ce plan",
-                        {
-                          icon: "📞",
-                        },
-                      )
+                      navigate(`/contact?subject=${encodeURIComponent(`Demande d'activation du plan ${plan.name}`)}`)
                     }
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -517,14 +515,15 @@ export default function Settings() {
                 ))}
               </div>
               <p className="mt-3 text-xs text-gray-400 text-center">
-                📞 Contactez-nous au{" "}
+                Pour activer votre plan, contactez-nous par téléphone ou par email :{" "}
                 <a
                   href="tel:+221783333838"
                   className="text-emerald-600 font-medium hover:underline"
                 >
                   +221 78 333 38 38
                 </a>{" "}
-                pour activer votre plan
+                · <a href={`mailto:${SUPPORT_EMAIL}`} className="text-emerald-600 font-medium hover:underline">{SUPPORT_EMAIL}</a>{" "}
+                · <a href="/contact?subject=Demande%20d%27activation%20d%27un%20abonnement" className="text-emerald-600 font-medium hover:underline">Formulaire de contact</a>
               </p>
             </div>
           )}

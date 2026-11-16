@@ -16,6 +16,12 @@ import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Products from "./pages/Products";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
+import ConfirmEmailChange from "./pages/ConfirmEmailChange";
+import AccountSecurity from "./pages/AccountSecurity";
+import ContactPage from "./pages/ContactPage";
 import Sales from "./pages/Sales";
 import SalesHistory from "./pages/SalesHistory";
 import Settings from "./pages/Settings";
@@ -48,7 +54,12 @@ export default function App() {
           <Route path="/home" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
           <Route path="help" element={<HelpPage />} />
+          <Route path="/contact" element={<ContactPage />} />
         </Route>
 
         {/* Super Admin routes */}
@@ -65,6 +76,7 @@ export default function App() {
           <Route path="/admin/shops/:id" element={<SuperAdminShopDetail />} />
           <Route path="/admin/owners" element={<SuperAdminOwners />} />
           <Route path="/admin/owners/:id" element={<SuperAdminOwnerDetail />} />
+          <Route path="/admin/security" element={<AccountSecurity mode="superadmin" />} />
         </Route>
 
         {/* Protected dashboard routes */}
@@ -94,6 +106,7 @@ export default function App() {
           <Route path="/cash" element={<Cash />} />
           <Route path="/users" element={<Users />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/account/security" element={<AccountSecurity />} />
         </Route>
       </Routes>
     </BrowserRouter>

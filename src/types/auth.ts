@@ -10,6 +10,7 @@ export type AuthUser = {
   shopId: number;
   plan:  PlanCode;
   shopName: string;
+  emailVerifiedAt?: string | null;
 };
 
 export const getStoredUser = (): AuthUser | null => {
