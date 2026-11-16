@@ -117,9 +117,16 @@ const allLinks: NavLinkItem[] = [
   },
   { name: "Factures", path: "/invoices", icon: FileText, adminOnly: false },
   { name: "Utilisateurs", path: "/users", icon: UserCog, adminOnly: true },
-  { name: "Paramètres", path: "/settings", icon: Settings, adminOnly: true },
-  { name: "Sécurité du compte", path: "/account/security", icon: LockKeyhole, adminOnly: false },
-  { name: "Contacter le support", path: "/contact", icon: Mail, adminOnly: false },
+  {
+    name: "Paramètres",
+    path: "/settings",
+    icon: Settings,
+    adminOnly: false,
+    children: [
+      { name: "Sécurité du compte", path: "/account/security" },
+      { name: "Contacter le support", path: "/contact" },
+    ],
+  },
 ];
 
 // ── Add Shop Modal ───────────────────────────────────────────
