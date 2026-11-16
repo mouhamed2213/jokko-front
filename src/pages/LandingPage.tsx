@@ -577,6 +577,13 @@ export default function LandingPage() {
             >
               Démarrer gratuitement <ArrowRight size={17} />
             </button>
+            <button
+              type="button"
+              onClick={() => navigate("/contact")}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/30 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/10 transition text-sm"
+            >
+              <Mail size={15} /> Nous contacter
+            </button>
             <a
               href="tel:+221783333838"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/30 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/10 transition text-sm"
