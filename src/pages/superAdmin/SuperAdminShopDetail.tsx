@@ -42,6 +42,8 @@ type ShopDetail = {
   createdAt: string;
   primaryShop: { id: number; name: string } | null;
   secondaryShops: { id: number; name: string; status: string }[];
+  subscriptionInherited: boolean;
+  billingShopId: number;
   subscription: {
     id: number;
     status: string;
@@ -385,16 +387,29 @@ export default function SuperAdminShopDetail() {
                   Changer le statut
                 </button>
                 <button
+                  disabled={shop.subscriptionInherited}
+                  title={
+                    shop.subscriptionInherited
+                      ? "Le forfait est hérité de la boutique principale"
+                      : "Changer le plan"
+                  }
                   onClick={() => {
                     setSelectedPlan(shop.subscription?.plan.code ?? "");
                     setPlanModalOpen(true);
                   }}
-                  className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-100"
+                  className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Changer le plan
                 </button>
               </div>
             </div>
+
+            {shop.subscriptionInherited && shop.primaryShop && (
+              <p className="mb-3 rounded-lg bg-sky-50 px-3 py-2 text-xs text-sky-700">
+                Cet abonnement est hérité de la boutique principale « {shop.primaryShop.name} ».
+                Les changements de forfait doivent être effectués depuis cette boutique.
+              </p>
+            )}
 
             {shop.subscription ? (
               <div className="flex flex-col gap-3">
