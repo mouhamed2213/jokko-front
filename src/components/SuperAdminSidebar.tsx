@@ -1,6 +1,6 @@
-import { BarChart3, Building2, KeyRound, LogOut, Menu, UserRound, X } from "lucide-react";
+import { BarChart3, Building2, ChevronDown, KeyRound, LogOut, Menu, Settings, UserRound, X, Users, Wrench } from "lucide-react";
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import { logoutSuperAdmin } from "../utils/superAdminAuth";
 
@@ -8,12 +8,23 @@ const superAdminLinks = [
   { name: "Tableau de bord", path: "/admin/dash", icon: BarChart3 },
   { name: "Boutiques", path: "/admin/shops", icon: Building2 },
   { name: "Propriétaires", path: "/admin/owners", icon: UserRound },
+];
+
+const settingsLinks = [
+  { name: "Vue générale", path: "/admin/settings" },
+  { name: "Maintenance", path: "/admin/settings/maintenance", icon: Wrench },
+  { name: "Utilisateurs", path: "/admin/settings/users", icon: Users },
   { name: "Sécurité du compte", path: "/admin/security", icon: KeyRound },
 ];
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const navigate = useNavigate();
-
+  const location = useLocation();
+  const [manualSettingsOpen, setManualSettingsOpen] = useState<boolean | null>(null);
+  const childIsActive = settingsLinks.some(
+    (item) => item.path !== "/admin/settings" && location.pathname.startsWith(item.path),
+  );
+  const settingsOpen = manualSettingsOpen ?? (childIsActive || location.pathname === "/admin/settings");
   const logout = () => logoutSuperAdmin(navigate);
 
   return (
@@ -25,11 +36,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
           <p className="text-xs text-white/50">Super Admin</p>
         </div>
         {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="ml-auto rounded-lg p-2 text-white/80 hover:bg-white/10 md:hidden"
-          >
+          <button type="button" onClick={onClose} className="ml-auto rounded-lg p-2 text-white/80 hover:bg-white/10 md:hidden">
             <X size={18} />
           </button>
         )}
@@ -46,9 +53,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
               end={link.path === "/admin/dash"}
               className={({ isActive }) =>
                 `group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition ${
-                  isActive
-                    ? "bg-white text-slate-900"
-                    : "text-white/70 hover:bg-white/10 hover:text-white"
+                  isActive ? "bg-white text-slate-900" : "text-white/70 hover:bg-white/10 hover:text-white"
                 }`
               }
             >
@@ -57,14 +62,70 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
             </NavLink>
           );
         })}
+
+        <div className="pt-1">
+          <div className="flex items-center rounded-xl transition">
+            <NavLink
+              to="/admin/settings"
+              onClick={() => {
+                setManualSettingsOpen(!settingsOpen);
+                onClose?.();
+              }}
+              aria-expanded={settingsOpen}
+              className={({ isActive }) =>
+                `group flex flex-1 items-center gap-3 rounded-l-xl px-3 py-2 text-sm font-medium transition ${
+                  isActive || childIsActive
+                    ? "bg-white text-slate-900"
+                    : "text-white/70 hover:bg-white/10 hover:text-white"
+                }`
+              }
+            >
+              <Settings size={17} />
+              <span>Paramètres</span>
+            </NavLink>
+            <button
+              type="button"
+              onClick={() => setManualSettingsOpen(!settingsOpen)}
+              aria-label={settingsOpen ? "Fermer les paramètres" : "Ouvrir les paramètres"}
+              aria-expanded={settingsOpen}
+              className={`rounded-r-xl px-3 py-2 transition ${
+                childIsActive || location.pathname === "/admin/settings"
+                  ? "bg-white text-slate-900"
+                  : "text-white/70 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              <ChevronDown size={15} className={`transition-transform ${settingsOpen ? "rotate-180" : ""}`} />
+            </button>
+          </div>
+
+          {settingsOpen && (
+            <div className="ml-5 mt-1 space-y-0.5 border-l border-white/15 pl-3">
+              {settingsLinks.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    end={item.path === "/admin/settings"}
+                    onClick={onClose}
+                    className={({ isActive }) =>
+                      `flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition ${
+                        isActive ? "bg-white/15 text-white" : "text-white/55 hover:bg-white/10 hover:text-white"
+                      }`
+                    }
+                  >
+                    {Icon && <Icon size={14} />}
+                    <span>{item.name}</span>
+                  </NavLink>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </nav>
 
       <div className="shrink-0 border-t border-white/10 p-3">
-        <button
-          type="button"
-          onClick={logout}
-          className="flex w-full items-center gap-3 rounded-xl bg-red-500/90 px-3 py-2.5 text-sm font-medium text-white transition hover:bg-red-600"
-        >
+        <button type="button" onClick={logout} className="flex w-full items-center gap-3 rounded-xl bg-red-500/90 px-3 py-2.5 text-sm font-medium text-white transition hover:bg-red-600">
           <LogOut size={16} />
           <span>Déconnexion</span>
         </button>
@@ -78,15 +139,10 @@ export default function SuperAdminSidebar() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setMobileOpen(true)}
-        className="fixed left-4 top-4 z-40 rounded-xl bg-slate-900 p-3 text-white shadow-lg md:hidden"
-      >
+      <button type="button" onClick={() => setMobileOpen(true)} className="fixed left-4 top-4 z-40 rounded-xl bg-slate-900 p-3 text-white shadow-lg md:hidden">
         <Menu size={20} />
       </button>
 
-      {/* Sticky on desktop — pinned regardless of page content height */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 overflow-hidden md:flex">
         <SidebarContent />
       </aside>
