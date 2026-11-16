@@ -38,6 +38,32 @@ export const getSuperAdminMe = async (): Promise<{
   role: "SUPER_ADMIN";
 }> => (await adminApi.get("/super-admin/me")).data;
 
+export type SuperAdminAccount = {
+  id: number;
+  name: string;
+  email: string;
+  isActive: boolean;
+  emailVerifiedAt: string | null;
+  createdAt: string;
+  lastLoginAt: string | null;
+  status: "ACTIVE" | "PENDING" | "DISABLED" | "INVITATION_EXPIRED";
+};
+
+export const getSuperAdmins = async (): Promise<SuperAdminAccount[]> =>
+  (await adminApi.get("/super-admin/admins")).data.admins;
+
+export const inviteSuperAdmin = async (data: { name: string; email: string }) =>
+  (await adminApi.post("/super-admin/admins/invitations", data)).data;
+
+export const resendSuperAdminInvitation = async (id: number) =>
+  (await adminApi.post(`/super-admin/admins/${id}/invitation/resend`)).data;
+
+export const setSuperAdminStatus = async (id: number, enabled: boolean) =>
+  (await adminApi.patch(`/super-admin/admins/${id}/status`, { enabled })).data;
+
+export const acceptSuperAdminInvitation = async (data: { token: string; password: string }) =>
+  (await api.post("/auth/super-admin/invitation/accept", data)).data;
+
 
 export const sendContactMessage = async (data: { name: string; email: string; subject: string; message: string; website?: string }) =>
   (await api.post("/contact", data)).data;
