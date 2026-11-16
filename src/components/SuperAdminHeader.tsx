@@ -122,6 +122,20 @@ export default function SuperAdminHeader() {
           <span className="hidden sm:inline">Déconnexion</span>
         </button>
       </div>
+      {emailStatus && !emailStatus.emailVerifiedAt && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <Mail size={19} className="mt-0.5 shrink-0 text-amber-700" />
+            <div>
+              <p className="font-semibold">L adresse email du Super Admin n est pas vérifiée.</p>
+              <p className="mt-1 text-amber-800">Confirmez {emailStatus.email} pour sécuriser ce compte.</p>
+            </div>
+          </div>
+          <button type="button" onClick={handleResendVerification} disabled={resendingVerification} className="shrink-0 rounded-lg bg-amber-900 px-4 py-2 font-semibold text-white hover:bg-amber-800 disabled:opacity-60">
+            {resendingVerification ? "Envoi..." : "Renvoyer le lien"}
+          </button>
+        </div>
+      )}
     </header>
   );
 }
