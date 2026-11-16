@@ -465,16 +465,6 @@ export const getShopsWithPagination = async (params?: {
 }) => (await adminApi.get("/super-admin/shops", { params })).data;
 export const getShopDetail = async (id: number) =>
   (await adminApi.get(`/super-admin/shops/${id}`)).data;
-export const createShop = async (data: any) =>
-  (await adminApi.post("/super-admin/shops", data)).data;
-export const updateShopStatus = async (id: number, status: string) =>
-  (await adminApi.patch(`/super-admin/shops/${id}/status`, { status })).data;
-export const resetShopPassword = async (id: number, newPassword: string) =>
-  (await adminApi.patch(`/super-admin/shops/${id}/reset-password`, { newPassword }))
-    .data;
-export const deleteShop = async (id: number): Promise<void> => {
-  await adminApi.delete(`/super-admin/shops/${id}`);
-};
 // Subscription management endpoints
 export const updateSubscriptionStatus = async (
   shopId: number,
