@@ -538,6 +538,11 @@ export default function SuperAdminShopDetail() {
             <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-900">
               <FileText size={15} /> Historique des paiements
             </h3>
+            {shop.subscriptionInherited && shop.primaryShop && (
+              <p className="mb-3 text-xs text-sky-700">
+                Les paiements de cet abonnement sont gérés depuis la boutique principale « {shop.primaryShop.name} ».
+              </p>
+            )}
             {shop.payments.length === 0 ? (
               <p className="text-sm text-gray-400">Aucun paiement enregistré.</p>
             ) : (
@@ -576,7 +581,7 @@ export default function SuperAdminShopDetail() {
                           {new Date(p.createdAt).toLocaleDateString("fr-FR")}
                         </td>
                         <td className="py-2">
-                          {p.status === "PENDING" && p.paymentType === "SUBSCRIPTION" && (
+                          {p.status === "PENDING" && p.paymentType === "SUBSCRIPTION" && !shop.subscriptionInherited && (
                             <div className="flex flex-wrap gap-1.5">
                               <button
                                 type="button"
