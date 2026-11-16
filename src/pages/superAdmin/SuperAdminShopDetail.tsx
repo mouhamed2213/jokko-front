@@ -23,6 +23,7 @@ import toast from "react-hot-toast";
 import {
   getShopDetail,
   changeSubscriptionPlan,
+  confirmSubscriptionPayment,
   archiveShop,
   restoreShop,
 } from "../../services";
@@ -83,6 +84,7 @@ type ShopDetail = {
     planCode: string | null;
     planName: string | null;
     paymentType: string;
+    transactionReference: string | null;
     createdAt: string;
     paidAt: string | null;
   }[];
@@ -152,6 +154,10 @@ export default function SuperAdminShopDetail() {
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("");
   const [changingPlan, setChangingPlan] = useState(false);
+  const [paymentProvider, setPaymentProvider] = useState<"WAVE" | "ORANGE_MONEY" | "OTHER">("WAVE");
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentReference, setPaymentReference] = useState("");
+  const [confirmingPaymentId, setConfirmingPaymentId] = useState<number | null>(null);
 
   // Archive / restore modal state
   const [archiveModalOpen, setArchiveModalOpen] = useState(false);
@@ -175,14 +181,42 @@ export default function SuperAdminShopDetail() {
     if (!selectedPlan || !shop) return;
     setChangingPlan(true);
     try {
-      await changeSubscriptionPlan(shop.id, selectedPlan);
-      toast.success("Plan mis à jour avec succès");
+      const result = await changeSubscriptionPlan({
+        shopId: shop.id,
+        planType: selectedPlan,
+        ...(selectedPlan !== "FREE" ? {
+          provider: paymentProvider,
+          ...(paymentAmount.trim() ? { amount: Number(paymentAmount) } : {}),
+          ...(paymentReference.trim() ? { transactionReference: paymentReference.trim() } : {}),
+        } : {}),
+      });
+      if (result.payment) {
+        toast.success("Demande de paiement enregistrée. Le forfait sera activé après vérification.");
+      } else {
+        toast.success("Passage au forfait gratuit effectué");
+      }
       setPlanModalOpen(false);
+      setPaymentAmount("");
+      setPaymentReference("");
       await loadShop();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Erreur lors du changement de plan");
     } finally {
       setChangingPlan(false);
+    }
+  };
+
+  const handleConfirmPayment = async (paymentId: number) => {
+    if (!window.confirm("Confirmez-vous avoir vérifié la réception réelle de ce paiement sur le compte de l'entreprise ? Cette action activera le forfait.")) return;
+    setConfirmingPaymentId(paymentId);
+    try {
+      await confirmSubscriptionPayment(paymentId);
+      toast.success("Paiement confirmé. Le forfait est maintenant activé.");
+      await loadShop();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Impossible de confirmer ce paiement");
+    } finally {
+      setConfirmingPaymentId(null);
     }
   };
 
@@ -477,7 +511,9 @@ export default function SuperAdminShopDetail() {
                       <th className="pb-2">Montant</th>
                       <th className="pb-2">Provider</th>
                       <th className="pb-2">Statut</th>
+                      <th className="pb-2">Référence</th>
                       <th className="pb-2">Date</th>
+                      <th className="pb-2">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -497,8 +533,21 @@ export default function SuperAdminShopDetail() {
                             {p.status}
                           </span>
                         </td>
+                        <td className="py-2 text-gray-500">{p.transactionReference || "—"}</td>
                         <td className="py-2 text-gray-400">
                           {new Date(p.createdAt).toLocaleDateString("fr-FR")}
+                        </td>
+                        <td className="py-2">
+                          {p.status === "PENDING" && (
+                            <button
+                              type="button"
+                              onClick={() => handleConfirmPayment(p.id)}
+                              disabled={confirmingPaymentId === p.id}
+                              className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+                            >
+                              {confirmingPaymentId === p.id ? "Confirmation..." : "Vérifier et activer"}
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -613,6 +662,48 @@ export default function SuperAdminShopDetail() {
                 </button>
               ))}
             </div>
+            {selectedPlan && selectedPlan !== "FREE" && (
+              <div className="mb-5 flex flex-col gap-3 border-t border-gray-100 pt-4">
+                <p className="text-xs text-gray-500">
+                  Le paiement sera enregistré en attente. Le forfait actuel ne changera qu'après vérification de la réception.
+                </p>
+                <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                  Moyen de paiement
+                  <select
+                    value={paymentProvider}
+                    onChange={(e) => setPaymentProvider(e.target.value as "WAVE" | "ORANGE_MONEY" | "OTHER")}
+                    className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm font-normal text-slate-700"
+                  >
+                    <option value="WAVE">Wave</option>
+                    <option value="ORANGE_MONEY">Orange Money</option>
+                    <option value="OTHER">Autre</option>
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                  Montant reçu (FCFA)
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    placeholder="Prix du forfait si non renseigné"
+                    className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm font-normal text-slate-700"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                  Référence de transaction (facultatif)
+                  <input
+                    type="text"
+                    maxLength={120}
+                    value={paymentReference}
+                    onChange={(e) => setPaymentReference(e.target.value)}
+                    placeholder="Ex. référence Wave ou Orange Money"
+                    className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm font-normal text-slate-700"
+                  />
+                </label>
+              </div>
+            )}
 
             <div className="flex gap-2">
               <button
