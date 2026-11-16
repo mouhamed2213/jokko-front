@@ -188,7 +188,7 @@ function AddShopModal({
       placeholder: "77 000 00 00",
     },
     {
-      label: "Email",
+      label: "Email de contact de la boutique *",
       key: "email",
       type: "email",
       placeholder: "contact@boutique.com",
@@ -225,6 +225,7 @@ function AddShopModal({
               </label>
               <input
                 type={type}
+                required={key === "email"}
                 value={form[key]}
                 onChange={(e) => handleChange(key, e.target.value)}
                 className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500"
