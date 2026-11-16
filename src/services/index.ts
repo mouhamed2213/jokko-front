@@ -584,26 +584,26 @@ export const switchShop = async (data: {
 };
 
 
-// New: matches SubscriptionManagementService.changePlan via flat POST route
-export const changeSubscriptionPlan = async (shopId: number, planType: string) => {
+// Manual subscription payment workflow (provider integration is not enabled yet).
+export type ManualSubscriptionPaymentInput = {
+  shopId: number;
+  planType: string;
+  provider?: "WAVE" | "ORANGE_MONEY" | "OTHER";
+  amount?: number;
+  transactionReference?: string;
+};
+
+export const changeSubscriptionPlan = async (payload: ManualSubscriptionPaymentInput) => {
   const res = await adminApi.post("/super-admin/subscription", {
-    shop_id: shopId,
-    planType,
+    shop_id: payload.shopId,
+    planType: payload.planType,
+    provider: payload.provider,
+    amount: payload.amount,
+    transactionReference: payload.transactionReference,
   });
   return res.data as {
-    subscription: {
-      id: number;
-      status: string;
-      startDate: string;
-      endDate: string | null;
-      plan: {
-        code: string;
-        name: string;
-        price: number;
-        maxStores: number | null;
-        planFeature: { feature: { code: string; name: string } }[];
-      };
-    };
+    requiresPayment: boolean;
+    subscription: { id: number; status: string; startDate: string; endDate: string | null };
     payment: {
       id: number;
       amount: number;
@@ -612,7 +612,11 @@ export const changeSubscriptionPlan = async (shopId: number, planType: string) =
       status: string;
       planCode: string;
       planName: string;
+      transactionReference: string | null;
       createdAt: string;
     } | null;
   };
 };
+
+export const confirmSubscriptionPayment = async (paymentId: number) =>
+  (await adminApi.patch(`/super-admin/subscription/payments/${paymentId}/confirm`)).data;
