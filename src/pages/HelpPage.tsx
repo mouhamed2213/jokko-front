@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from "react-router-dom";
 import {
   LayoutDashboard,
   Wallet,
@@ -328,6 +329,11 @@ export default function HelpPage() {
             })}
           </div>
 
+        </div>
+        <div className="mt-10 rounded-2xl border border-emerald-100 bg-emerald-50 p-6 text-center">
+          <h2 className="text-lg font-bold text-slate-900">Besoin d'un accompagnement ?</h2>
+          <p className="mt-2 text-sm text-slate-600">Si vous ne trouvez pas la réponse à votre question, notre équipe peut vous aider.</p>
+          <Link to="/contact" className="mt-4 inline-flex rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">Contacter le support</Link>
         </div>
       </div>
     </div>
