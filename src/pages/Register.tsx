@@ -169,8 +169,8 @@ export default function Register() {
       if (!created.success) {
         toast.error("Inscription échouée veuillez reéssayer");
       } else {
-        toast.success("Compte créé avec succès, vous pouvez vous connectez");
-        navigate("/dashboard", { replace: true });
+        toast.success("Compte créé. Connectez-vous puis confirmez votre adresse email.");
+        navigate("/login", { replace: true });
       }
 
     } catch (error: any) {
