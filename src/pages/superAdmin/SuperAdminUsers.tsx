@@ -27,7 +27,7 @@ const statusClasses: Record<SuperAdminAccount["status"], string> = {
 const formatDate = (value: string | null) =>
   value ? new Date(value).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" }) : "—";
 
-export default function SuperAdminUsers() {
+export default function SuperAdminUsers() {\n  const currentAdmin = useSuperAdmin();
   const [admins, setAdmins] = useState<SuperAdminAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
