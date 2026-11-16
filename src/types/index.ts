@@ -356,7 +356,10 @@ export type NewShopForm = {
   address: string;
   phone: string;
   email: string;
-  password: string;
+  managerEnabled: boolean;
+  managerName: string;
+  managerEmail: string;
+  managerPassword: string;
 };
 
 // ============================================================
