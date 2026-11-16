@@ -22,7 +22,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const location = useLocation();
   const [manualSettingsOpen, setManualSettingsOpen] = useState<boolean | null>(null);
   const childIsActive = settingsLinks.some(
-    (item) => item.path !== "/admin/settings" && location.pathname.startsWith(item.path),
+    (item) => item.path !== "/admin/settings" && (location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)),
   );
   const settingsOpen = manualSettingsOpen ?? (childIsActive || location.pathname === "/admin/settings");
   const logout = () => logoutSuperAdmin(navigate);
