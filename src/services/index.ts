@@ -620,3 +620,6 @@ export const changeSubscriptionPlan = async (payload: ManualSubscriptionPaymentI
 
 export const confirmSubscriptionPayment = async (paymentId: number) =>
   (await adminApi.patch(`/super-admin/subscription/payments/${paymentId}/confirm`)).data;
+
+export const cancelSubscriptionPayment = async (paymentId: number) =>
+  (await adminApi.patch(`/super-admin/subscription/payments/${paymentId}/cancel`)).data;
