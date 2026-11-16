@@ -76,6 +76,7 @@ export default function SuperAdminLogin() {
             {loginLoading ? "Connexion..." : "Accéder au panneau"}
           </button>
         </form>
+        <p className="mt-4 text-center text-sm"><a href="/forgot-password" className="font-medium text-emerald-600 hover:underline">Mot de passe oublié ?</a></p>
         <p className="mt-4 text-center text-xs text-gray-400">
           <a href="/login" className="text-emerald-600 hover:underline">
             ← Retour connexion boutique
