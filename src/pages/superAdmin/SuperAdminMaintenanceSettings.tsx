@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { AlertTriangle, Loader2, Save, ShieldCheck, Wrench } from "lucide-react";
+import { AlertTriangle, Loader2, Save, ShieldCheck } from "lucide-react";
 import { getMaintenanceStatus, updateMaintenanceSettings, type MaintenanceStatus } from "../../services";
 
 export default function SuperAdminMaintenanceSettings() {
