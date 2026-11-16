@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { SUPPORT_EMAIL } from "../services";
 
 type Plan = {
   id: string;
@@ -512,12 +513,21 @@ export default function LandingPage() {
                 discutons-en directement.
               </p>
             </div>
-            <a
-              href="tel:+221783333838"
-              className="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition text-xs shadow-sm"
-            >
-              <Phone size={14} /> +221 78 333 38 38
-            </a>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              <button
+                type="button"
+                onClick={() => navigate("/contact?subject=Demande%20de%20solution%20sur%20mesure")}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto"
+              >
+                <Mail size={14} /> Nous contacter
+              </button>
+              <a
+                href="tel:+221783333838"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-5 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-white sm:w-auto"
+              >
+                <Phone size={14} /> +221 78 333 38 38
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -631,7 +641,7 @@ export default function LandingPage() {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition">
+                  <a href="/contact" className="hover:text-white transition">
                     Contactez-nous
                   </a>
                 </li>
@@ -654,10 +664,10 @@ export default function LandingPage() {
                 <li className="flex items-center gap-2">
                   <Mail size={13} className="text-emerald-400 shrink-0" />
                   <a
-                    href="mailto:contact@jokko.sn"
+                    href={`mailto:${SUPPORT_EMAIL}`}
                     className="hover:text-white transition"
                   >
-                    contact@jokko.sn
+                    {SUPPORT_EMAIL}
                   </a>
                 </li>
                 <li className="flex items-center gap-2">
