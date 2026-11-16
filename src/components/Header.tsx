@@ -1,7 +1,8 @@
-import { AlertTriangle, Clock, LogOut } from "lucide-react";
+import { AlertTriangle, Clock, LogOut, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getSubscription } from "../services";
+import { getAccountEmailStatus, getSubscription, resendAccountVerification, type AccountEmailStatus } from "../services";
 import type { SubscriptionInfo } from "../types";
 import { getStoredUser } from "../types/auth";
 import NotificationBell from "./NotificationBell";
@@ -101,14 +102,29 @@ export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const user = getStoredUser();
-   const [subscription  , setSubscription ] = useState<SubscriptionInfo>();
+   const [subscription, setSubscription] = useState<SubscriptionInfo>();
+   const [emailStatus, setEmailStatus] = useState<AccountEmailStatus | null>(null);
+   const [resendingVerification, setResendingVerification] = useState(false);
 
   
     useEffect(() => {
-      getSubscription().then(data => {
-        setSubscription(data)
-      });
+      getSubscription().then(setSubscription).catch(() => undefined);
+      getAccountEmailStatus().then(setEmailStatus).catch(() => undefined);
     }, []);
+
+    const emailVerifiedAt = emailStatus ? emailStatus.emailVerifiedAt : user?.emailVerifiedAt ?? null;
+
+    const handleResendVerification = async () => {
+      setResendingVerification(true);
+      try {
+        const result = await resendAccountVerification();
+        toast.success(result.message);
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || "Impossible d'envoyer le lien pour le moment.");
+      } finally {
+        setResendingVerification(false);
+      }
+    };
   
 
   const currentPage = pageConfig[location.pathname] || {
@@ -170,6 +186,21 @@ export default function Header() {
           </button>
         </div>
       </div>
+
+      {!emailVerifiedAt && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <Mail size={19} className="mt-0.5 shrink-0 text-amber-700" />
+            <div>
+              <p className="font-semibold">Votre adresse email n'est pas encore vérifiée.</p>
+              <p className="mt-1 text-amber-800">Confirmez {emailStatus?.email || user?.email || "votre adresse"} pour sécuriser votre compte.</p>
+            </div>
+          </div>
+          <button type="button" onClick={handleResendVerification} disabled={resendingVerification} className="shrink-0 rounded-lg bg-amber-900 px-4 py-2 font-semibold text-white hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-60">
+            {resendingVerification ? "Envoi..." : "Renvoyer le lien"}
+          </button>
+        </div>
+      )}
 
       {/* SECTION 2 : Bandeau d'alerte d'abonnement conditionnel */}
       {alertConfig && (
