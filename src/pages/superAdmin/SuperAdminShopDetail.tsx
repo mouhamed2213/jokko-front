@@ -40,7 +40,7 @@ type ShopDetail = {
   status: string;
   currentShop: "PRIMARY" | "SECONDARY";
   createdAt: string;
-  primaryShop: { id: number; name: string } | null;
+  primaryShop: { id: number; name: string; status?: string } | null;
   secondaryShops: { id: number; name: string; status: string }[];
   subscriptionInherited: boolean;
   billingShopId: number;
@@ -328,6 +328,13 @@ export default function SuperAdminShopDetail() {
         <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-3 text-sm text-red-800">
           Cette boutique est archivée : ses utilisateurs ne peuvent plus se connecter.
           Aucune donnée n'a été supprimée, vous pouvez la restaurer à tout moment.
+        </div>
+      )}
+
+      {shop.primaryShop?.status === "ARCHIVED" && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">
+          Cette boutique secondaire est inaccessible car sa boutique principale « {shop.primaryShop.name} » est archivée.
+          Son statut individuel est conservé.
         </div>
       )}
 
