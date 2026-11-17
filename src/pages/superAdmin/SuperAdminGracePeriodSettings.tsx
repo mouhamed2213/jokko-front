@@ -27,6 +27,10 @@ export default function SuperAdminGracePeriodSettings() {
   }, []);
 
   const handleSave = async () => {
+    if (days.trim() === "") {
+      toast.error("Saisissez une durée en jours.");
+      return;
+    }
     const value = Number(days);
     if (!Number.isInteger(value) || value < 0 || value > maxDays) {
       toast.error(`Saisissez un nombre entier entre 0 et ${maxDays}.`);
