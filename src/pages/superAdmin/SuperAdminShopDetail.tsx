@@ -1,32 +1,32 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import {
+  Archive,
+  ArchiveRestore,
   ArrowLeft,
-  Store,
-  Crown,
-  Users,
-  Package,
-  ShoppingCart,
-  Truck,
-  Wallet,
   Calendar,
-  Mail,
+  Crown,
   ExternalLink,
-  Phone,
-  MapPin,
   FileText,
   History,
   Loader2,
-  Archive,
-  ArchiveRestore,
+  Mail,
+  MapPin,
+  Package,
+  Phone,
+  ShoppingCart,
+  Store,
+  Truck,
+  Users,
+  Wallet,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-  getShopDetail,
+  archiveShop,
+  cancelSubscriptionPayment,
   changeSubscriptionPlan,
   confirmSubscriptionPayment,
-  cancelSubscriptionPayment,
-  archiveShop,
+  getShopDetail,
   restoreShop,
 } from "../../services";
 
@@ -129,7 +129,15 @@ const paymentStatusBadge: Record<string, string> = {
 
 const plans = ["FREE", "BASIC", "PRO", "PREMIUM"];
 
-function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+function InfoRow({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: any;
+  label: string;
+  value: string;
+}) {
   return (
     <div className="flex items-center gap-3 text-sm">
       <Icon size={14} className="text-gray-400 shrink-0" />
@@ -139,7 +147,15 @@ function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value
   );
 }
 
-function StatBlock({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) {
+function StatBlock({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: any;
+  label: string;
+  value: string | number;
+}) {
   return (
     <div className="rounded-xl bg-slate-50 p-3 text-center">
       <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-white text-emerald-600 shadow-sm">
@@ -162,11 +178,17 @@ export default function SuperAdminShopDetail() {
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("");
   const [changingPlan, setChangingPlan] = useState(false);
-  const [paymentProvider, setPaymentProvider] = useState<"WAVE" | "ORANGE_MONEY" | "OTHER">("WAVE");
+  const [paymentProvider, setPaymentProvider] = useState<
+    "WAVE" | "ORANGE_MONEY" | "OTHER"
+  >("WAVE");
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentReference, setPaymentReference] = useState("");
-  const [confirmingPaymentId, setConfirmingPaymentId] = useState<number | null>(null);
-  const [cancellingPaymentId, setCancellingPaymentId] = useState<number | null>(null);
+  const [confirmingPaymentId, setConfirmingPaymentId] = useState<number | null>(
+    null,
+  );
+  const [cancellingPaymentId, setCancellingPaymentId] = useState<number | null>(
+    null,
+  );
 
   // Archive / restore modal state
   const [archiveModalOpen, setArchiveModalOpen] = useState(false);
@@ -193,14 +215,22 @@ export default function SuperAdminShopDetail() {
       const result = await changeSubscriptionPlan({
         shopId: shop.id,
         planType: selectedPlan,
-        ...(selectedPlan !== "FREE" ? {
-          provider: paymentProvider,
-          ...(paymentAmount.trim() ? { amount: Number(paymentAmount) } : {}),
-          ...(paymentReference.trim() ? { transactionReference: paymentReference.trim() } : {}),
-        } : {}),
+        ...(selectedPlan !== "FREE"
+          ? {
+              provider: paymentProvider,
+              ...(paymentAmount.trim()
+                ? { amount: Number(paymentAmount) }
+                : {}),
+              ...(paymentReference.trim()
+                ? { transactionReference: paymentReference.trim() }
+                : {}),
+            }
+          : {}),
       });
       if (result.payment) {
-        toast.success("Demande de paiement enregistrée. Le forfait sera activé après vérification.");
+        toast.success(
+          "Demande de paiement enregistrée. Le forfait sera activé après vérification.",
+        );
       } else {
         toast.success("Passage au forfait gratuit effectué");
       }
@@ -209,35 +239,51 @@ export default function SuperAdminShopDetail() {
       setPaymentReference("");
       await loadShop();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Erreur lors du changement de plan");
+      toast.error(
+        error?.response?.data?.message || "Erreur lors du changement de plan",
+      );
     } finally {
       setChangingPlan(false);
     }
   };
 
   const handleConfirmPayment = async (paymentId: number) => {
-    if (!window.confirm("Confirmez-vous avoir vérifié la réception réelle de ce paiement sur le compte de l'entreprise ? Cette action activera le forfait.")) return;
+    if (
+      !window.confirm(
+        "Confirmez-vous avoir vérifié la réception réelle de ce paiement sur le compte de l'entreprise ? Cette action activera le forfait.",
+      )
+    )
+      return;
     setConfirmingPaymentId(paymentId);
     try {
       await confirmSubscriptionPayment(paymentId);
       toast.success("Paiement confirmé. Le forfait est maintenant activé.");
       await loadShop();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Impossible de confirmer ce paiement");
+      toast.error(
+        error?.response?.data?.message || "Impossible de confirmer ce paiement",
+      );
     } finally {
       setConfirmingPaymentId(null);
     }
   };
 
   const handleCancelPayment = async (paymentId: number) => {
-    if (!window.confirm("Annuler cette demande de paiement ? Le forfait actuel sera conservé.")) return;
+    if (
+      !window.confirm(
+        "Annuler cette demande de paiement ? Le forfait actuel sera conservé.",
+      )
+    )
+      return;
     setCancellingPaymentId(paymentId);
     try {
       await cancelSubscriptionPayment(paymentId);
       toast.success("Demande de paiement annulée");
       await loadShop();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Impossible d'annuler ce paiement");
+      toast.error(
+        error?.response?.data?.message || "Impossible d'annuler ce paiement",
+      );
     } finally {
       setCancellingPaymentId(null);
     }
@@ -261,14 +307,20 @@ export default function SuperAdminShopDetail() {
       setConfirmName("");
       await loadShop();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Erreur lors de l'opération");
+      toast.error(
+        error?.response?.data?.message || "Erreur lors de l'opération",
+      );
     } finally {
       setArchiving(false);
     }
   };
 
   if (loading) {
-    return <div className="flex h-64 items-center justify-center text-sm text-gray-400">Chargement...</div>;
+    return (
+      <div className="flex h-64 items-center justify-center text-sm text-gray-400">
+        Chargement...
+      </div>
+    );
   }
 
   if (error || !shop) {
@@ -298,7 +350,9 @@ export default function SuperAdminShopDetail() {
         <div>
           <h2 className="text-xl font-bold text-slate-900">{shop.name}</h2>
           <p className="text-sm text-gray-500">
-            {shop.currentShop === "PRIMARY" ? "Boutique principale" : "Boutique secondaire"}
+            {shop.currentShop === "PRIMARY"
+              ? "Boutique principale"
+              : "Boutique secondaire"}
             {shop.primaryShop && ` · rattachée à ${shop.primaryShop.name}`}
           </p>
         </div>
@@ -332,15 +386,17 @@ export default function SuperAdminShopDetail() {
 
       {isArchived && (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-3 text-sm text-red-800">
-          Cette boutique est archivée : ses utilisateurs ne peuvent plus se connecter.
-          Aucune donnée n'a été supprimée, vous pouvez la restaurer à tout moment.
+          Cette boutique est archivée : ses utilisateurs ne peuvent plus se
+          connecter. Aucune donnée n'a été supprimée, vous pouvez la restaurer à
+          tout moment.
         </div>
       )}
 
       {shop.primaryShop?.status === "ARCHIVED" && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">
-          Cette boutique secondaire est inaccessible car sa boutique principale « {shop.primaryShop.name} » est archivée.
-          Son statut individuel est conservé.
+          Cette boutique secondaire est inaccessible car sa boutique principale
+          « {shop.primaryShop.name} » est archivée. Son statut individuel est
+          conservé.
         </div>
       )}
 
@@ -354,7 +410,11 @@ export default function SuperAdminShopDetail() {
             </h3>
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between gap-3">
-                <InfoRow icon={Users} label="Propriétaire" value={shop.ownerName} />
+                <InfoRow
+                  icon={Users}
+                  label="Propriétaire"
+                  value={shop.ownerName}
+                />
                 {shop.ownerId !== null && (
                   <button
                     type="button"
@@ -369,7 +429,11 @@ export default function SuperAdminShopDetail() {
               </div>
               <InfoRow icon={Mail} label="Email" value={shop.email} />
               <InfoRow icon={Phone} label="Téléphone" value={shop.phone} />
-              <InfoRow icon={MapPin} label="Adresse" value={shop.address || "—"} />
+              <InfoRow
+                icon={MapPin}
+                label="Adresse"
+                value={shop.address || "—"}
+              />
               <InfoRow
                 icon={Calendar}
                 label="Créée le"
@@ -432,8 +496,9 @@ export default function SuperAdminShopDetail() {
 
             {shop.subscriptionInherited && shop.primaryShop && (
               <p className="mb-3 rounded-lg bg-sky-50 px-3 py-2 text-xs text-sky-700">
-                Cet abonnement est hérité de la boutique principale « {shop.primaryShop.name} ».
-                Les changements de forfait doivent être effectués depuis cette boutique.
+                Cet abonnement est hérité de la boutique principale «{" "}
+                {shop.primaryShop.name} ». Les changements de forfait doivent
+                être effectués depuis cette boutique.
               </p>
             )}
 
@@ -442,36 +507,52 @@ export default function SuperAdminShopDetail() {
                 <div className="flex items-center gap-2">
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      planBadge[shop.subscription.plan.code] ?? "bg-gray-100 text-gray-600"
+                      planBadge[shop.subscription.plan.code] ??
+                      "bg-gray-100 text-gray-600"
                     }`}
                   >
                     {shop.subscription.plan.name}
                   </span>
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      subStatusBadge[shop.subscription.status] ?? "bg-gray-100 text-gray-500"
+                      subStatusBadge[shop.subscription.status] ??
+                      "bg-gray-100 text-gray-500"
                     }`}
                   >
-                    {shop.subscription.status === "GRACE_PERIOD" ? "Période de grâce" : shop.subscription.status}
+                    {shop.subscription.status === "GRACE_PERIOD"
+                      ? "Période de grâce"
+                      : shop.subscription.status}
                   </span>
                 </div>
                 {shop.subscription.status === "GRACE_PERIOD" && (
                   <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                    La boutique conserve toutes les fonctionnalités de ce forfait pendant encore {shop.subscription.gracePeriodDaysRemaining ?? 0} jour(s). Fin de grâce : {shop.subscription.gracePeriodEndsAt ? new Date(shop.subscription.gracePeriodEndsAt).toLocaleString("fr-FR") : "—"}.
+                    La boutique conserve toutes les fonctionnalités de ce
+                    forfait pendant encore{" "}
+                    {shop.subscription.gracePeriodDaysRemaining ?? 0} jour(s).
+                    Fin de grâce :{" "}
+                    {shop.subscription.gracePeriodEndsAt
+                      ? new Date(
+                          shop.subscription.gracePeriodEndsAt,
+                        ).toLocaleString("fr-FR")
+                      : "—"}
+                    .
                   </p>
                 )}
                 <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
                   <div>
                     <p className="text-gray-400">Prix</p>
                     <p className="font-medium text-slate-700">
-                      {shop.subscription.plan.price.toLocaleString("fr-FR")} FCFA
+                      {shop.subscription.plan.price.toLocaleString("fr-FR")}{" "}
+                      FCFA
                     </p>
                   </div>
                   <div>
                     <p className="text-gray-400">Fin</p>
                     <p className="font-medium text-slate-700">
                       {shop.subscription.endDate
-                        ? new Date(shop.subscription.endDate).toLocaleDateString("fr-FR")
+                        ? new Date(
+                            shop.subscription.endDate,
+                          ).toLocaleDateString("fr-FR")
                         : "—"}
                     </p>
                   </div>
@@ -518,13 +599,31 @@ export default function SuperAdminShopDetail() {
         <div className="flex flex-col gap-5 lg:col-span-2">
           {/* Stats */}
           <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <h3 className="mb-4 text-sm font-semibold text-slate-900">Activité</h3>
+            <h3 className="mb-4 text-sm font-semibold text-slate-900">
+              Activité
+            </h3>
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
               <StatBlock icon={Users} label="Users" value={shop.counts.users} />
-              <StatBlock icon={Package} label="Produits" value={shop.counts.products} />
-              <StatBlock icon={Users} label="Clients" value={shop.counts.clients} />
-              <StatBlock icon={Truck} label="Fourn." value={shop.counts.suppliers} />
-              <StatBlock icon={ShoppingCart} label="Ventes" value={shop.counts.sales} />
+              <StatBlock
+                icon={Package}
+                label="Produits"
+                value={shop.counts.products}
+              />
+              <StatBlock
+                icon={Users}
+                label="Clients"
+                value={shop.counts.clients}
+              />
+              <StatBlock
+                icon={Truck}
+                label="Fourn."
+                value={shop.counts.suppliers}
+              />
+              <StatBlock
+                icon={ShoppingCart}
+                label="Ventes"
+                value={shop.counts.sales}
+              />
               <StatBlock
                 icon={Wallet}
                 label="CA total"
@@ -540,9 +639,14 @@ export default function SuperAdminShopDetail() {
             </h3>
             <div className="flex flex-col gap-2">
               {shop.users.map((u) => (
-                <div key={u.id} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-2.5">
+                <div
+                  key={u.id}
+                  className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-2.5"
+                >
                   <div>
-                    <p className="text-sm font-medium text-slate-800">{u.name}</p>
+                    <p className="text-sm font-medium text-slate-800">
+                      {u.name}
+                    </p>
                     <p className="text-xs text-gray-400">{u.email}</p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -564,11 +668,14 @@ export default function SuperAdminShopDetail() {
             </h3>
             {shop.subscriptionInherited && shop.primaryShop && (
               <p className="mb-3 text-xs text-sky-700">
-                Les paiements de cet abonnement sont gérés depuis la boutique principale « {shop.primaryShop.name} ».
+                Les paiements de cet abonnement sont gérés depuis la boutique
+                principale « {shop.primaryShop.name} ».
               </p>
             )}
             {shop.payments.length === 0 ? (
-              <p className="text-sm text-gray-400">Aucun paiement enregistré.</p>
+              <p className="text-sm text-gray-400">
+                Aucun paiement enregistré.
+              </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -586,7 +693,9 @@ export default function SuperAdminShopDetail() {
                   <tbody>
                     {shop.payments.map((p) => (
                       <tr key={p.id} className="border-t border-gray-50">
-                        <td className="py-2 font-medium text-slate-700">{p.planName ?? p.planCode ?? "—"}</td>
+                        <td className="py-2 font-medium text-slate-700">
+                          {p.planName ?? p.planCode ?? "—"}
+                        </td>
                         <td className="py-2 text-gray-600">
                           {p.amount.toLocaleString("fr-FR")} {p.currency}
                         </td>
@@ -594,37 +703,52 @@ export default function SuperAdminShopDetail() {
                         <td className="py-2">
                           <span
                             className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                              paymentStatusBadge[p.status] ?? "bg-gray-100 text-gray-500"
+                              paymentStatusBadge[p.status] ??
+                              "bg-gray-100 text-gray-500"
                             }`}
                           >
                             {p.status}
                           </span>
                         </td>
-                        <td className="py-2 text-gray-500">{p.transactionReference || "—"}</td>
+                        <td className="py-2 text-gray-500">
+                          {p.transactionReference || "—"}
+                        </td>
                         <td className="py-2 text-gray-400">
                           {new Date(p.createdAt).toLocaleDateString("fr-FR")}
                         </td>
                         <td className="py-2">
-                          {p.status === "PENDING" && p.paymentType === "SUBSCRIPTION" && !shop.subscriptionInherited && (
-                            <div className="flex flex-wrap gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => handleConfirmPayment(p.id)}
-                                disabled={confirmingPaymentId === p.id || cancellingPaymentId === p.id}
-                                className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
-                              >
-                                {confirmingPaymentId === p.id ? "Confirmation..." : "Vérifier et activer"}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleCancelPayment(p.id)}
-                                disabled={confirmingPaymentId === p.id || cancellingPaymentId === p.id}
-                                className="rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
-                              >
-                                {cancellingPaymentId === p.id ? "Annulation..." : "Annuler"}
-                              </button>
-                            </div>
-                          )}
+                          {p.status === "PENDING" &&
+                            p.paymentType === "SUBSCRIPTION" &&
+                            !shop.subscriptionInherited && (
+                              <div className="flex flex-wrap gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleConfirmPayment(p.id)}
+                                  disabled={
+                                    confirmingPaymentId === p.id ||
+                                    cancellingPaymentId === p.id
+                                  }
+                                  className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+                                >
+                                  {confirmingPaymentId === p.id
+                                    ? "Confirmation..."
+                                    : "Vérifier et activer"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCancelPayment(p.id)}
+                                  disabled={
+                                    confirmingPaymentId === p.id ||
+                                    cancellingPaymentId === p.id
+                                  }
+                                  className="rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+                                >
+                                  {cancellingPaymentId === p.id
+                                    ? "Annulation..."
+                                    : "Annuler"}
+                                </button>
+                              </div>
+                            )}
                         </td>
                       </tr>
                     ))}
@@ -640,13 +764,19 @@ export default function SuperAdminShopDetail() {
               <History size={15} /> Journal d'audit
             </h3>
             {shop.auditLogs.length === 0 ? (
-              <p className="text-sm text-gray-400">Aucune action enregistrée.</p>
+              <p className="text-sm text-gray-400">
+                Aucune action enregistrée.
+              </p>
             ) : (
               <div className="flex flex-col gap-2">
                 {shop.auditLogs.map((log) => (
-                  <div key={log.id} className="flex items-center justify-between text-sm">
+                  <div
+                    key={log.id}
+                    className="flex items-center justify-between text-sm"
+                  >
                     <span className="text-slate-600">
-                      <span className="font-medium">{log.actorName}</span> — {log.action}
+                      <span className="font-medium">{log.actorName}</span> —{" "}
+                      {log.action}
                     </span>
                     <span className="text-xs text-gray-400">
                       {new Date(log.createdAt).toLocaleDateString("fr-FR")}
@@ -668,16 +798,20 @@ export default function SuperAdminShopDetail() {
             </h3>
             {isArchived ? (
               <p className="mb-5 text-sm text-gray-500">
-                <span className="font-medium text-slate-700">{shop.name}</span> sera de nouveau
-                accessible : ses utilisateurs pourront se reconnecter.
+                <span className="font-medium text-slate-700">{shop.name}</span>{" "}
+                sera de nouveau accessible : ses utilisateurs pourront se
+                reconnecter.
               </p>
             ) : (
               <>
                 <p className="mb-3 text-sm text-gray-500">
                   Les utilisateurs de{" "}
-                  <span className="font-medium text-slate-700">{shop.name}</span> ne pourront plus
-                  se connecter et leurs sessions ouvertes seront coupées en moins de 30 secondes.
-                  Aucune donnée n'est supprimée et la boutique peut être restaurée.
+                  <span className="font-medium text-slate-700">
+                    {shop.name}
+                  </span>{" "}
+                  ne pourront plus se connecter et leurs sessions ouvertes
+                  seront coupées en moins de 30 secondes. Aucune donnée n'est
+                  supprimée et la boutique peut être restaurée.
                 </p>
                 <label className="mb-1 block text-xs font-medium text-gray-600">
                   Pour confirmer, saisissez le nom de la boutique :
@@ -699,9 +833,14 @@ export default function SuperAdminShopDetail() {
               </button>
               <button
                 onClick={handleArchiveToggle}
-                disabled={archiving || (!isArchived && confirmName.trim() !== shop.name.trim())}
+                disabled={
+                  archiving ||
+                  (!isArchived && confirmName.trim() !== shop.name.trim())
+                }
                 className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50 ${
-                  isArchived ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"
+                  isArchived
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-red-600 hover:bg-red-700"
                 }`}
               >
                 {archiving && <Loader2 size={14} className="animate-spin" />}
@@ -716,9 +855,12 @@ export default function SuperAdminShopDetail() {
       {planModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-1 text-lg font-bold text-slate-900">Changer le plan</h3>
+            <h3 className="mb-1 text-lg font-bold text-slate-900">
+              Changer le plan
+            </h3>
             <p className="mb-4 text-sm text-gray-500">
-              Boutique : <span className="font-medium text-slate-700">{shop.name}</span>
+              Boutique :{" "}
+              <span className="font-medium text-slate-700">{shop.name}</span>
             </p>
 
             <div className="flex flex-col gap-2 mb-5">
@@ -742,13 +884,18 @@ export default function SuperAdminShopDetail() {
             {selectedPlan && selectedPlan !== "FREE" && (
               <div className="mb-5 flex flex-col gap-3 border-t border-gray-100 pt-4">
                 <p className="text-xs text-gray-500">
-                  Le paiement sera enregistré en attente. Le forfait actuel ne changera qu'après vérification de la réception.
+                  Le paiement sera enregistré en attente. Le forfait actuel ne
+                  changera qu'après vérification de la réception.
                 </p>
                 <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
                   Moyen de paiement
                   <select
                     value={paymentProvider}
-                    onChange={(e) => setPaymentProvider(e.target.value as "WAVE" | "ORANGE_MONEY" | "OTHER")}
+                    onChange={(e) =>
+                      setPaymentProvider(
+                        e.target.value as "WAVE" | "ORANGE_MONEY" | "OTHER",
+                      )
+                    }
                     className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm font-normal text-slate-700"
                   >
                     <option value="WAVE">Wave</option>
@@ -791,11 +938,19 @@ export default function SuperAdminShopDetail() {
               </button>
               <button
                 onClick={handleChangePlan}
-                disabled={changingPlan || !selectedPlan || (selectedPlan === shop.subscription?.plan.code && !canRenewCurrentPlan)}
+                disabled={
+                  changingPlan ||
+                  !selectedPlan ||
+                  (selectedPlan === shop.subscription?.plan.code &&
+                    !canRenewCurrentPlan)
+                }
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
               >
                 {changingPlan && <Loader2 size={14} className="animate-spin" />}
-                {selectedPlan === shop.subscription?.plan.code && canRenewCurrentPlan ? "Enregistrer le renouvellement" : "Confirmer"}
+                {selectedPlan === shop.subscription?.plan.code &&
+                canRenewCurrentPlan
+                  ? "Enregistrer le renouvellement"
+                  : "Confirmer"}
               </button>
             </div>
           </div>
