@@ -6,7 +6,7 @@ import logo from "../assets/jb_logo.jpg";
 const links = [
   { to: "/", label: "Accueil" },
   { to: "/#features", label: "Fonctionnalités" },
-  { to: "/#pricing", label: "Tarifs" },
+  { to: "/tarifs", label: "Tarifs" },
   { to: "/help", label: "Guide d'utilisation" },
   { to: "/contact", label: "Contact" },
 ];
