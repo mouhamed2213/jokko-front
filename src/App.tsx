@@ -22,6 +22,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import ConfirmEmailChange from "./pages/ConfirmEmailChange";
 import AccountSecurity from "./pages/AccountSecurity";
 import ContactPage from "./pages/ContactPage";
+import PricingPage from "./pages/PricingPage";
 import Sales from "./pages/Sales";
 import SalesHistory from "./pages/SalesHistory";
 import Settings from "./pages/Settings";
@@ -70,6 +71,7 @@ export default function App() {
             <Route path="/help" element={<HelpPage />} />
             <Route path="/help/:moduleId" element={<HelpArticlePage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/tarifs" element={<PricingPage />} />
           </Route>
 
           {/* Super Admin routes */}
