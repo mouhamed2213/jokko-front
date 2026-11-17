@@ -66,7 +66,7 @@ export default function SuperAdminGracePeriodSettings() {
           <div>
             <h2 className="font-semibold text-slate-900">Durée supplémentaire</h2>
             <p className="mt-1 text-sm leading-6 text-slate-500">
-              À l'expiration d'un abonnement payant ou d'une période d'essai, le propriétaire et les responsables des boutiques secondaires conservent les droits du forfait pendant cette durée. À son terme, la boutique principale passe au forfait Essentielle.
+              À l'expiration d'un abonnement payant ou d'une période d'essai, le propriétaire et les responsables des boutiques secondaires conservent les droits du forfait pendant cette durée. À son terme, la boutique principale passe au forfait Essentielle. Une durée déjà attribuée à une période de grâce en cours reste inchangée ; ce réglage s'applique aux prochaines expirations.
             </p>
           </div>
         </div>
