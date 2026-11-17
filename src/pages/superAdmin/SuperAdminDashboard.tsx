@@ -69,6 +69,15 @@ const planColors: Record<string, string> = {
   PREMIUM: "bg-amber-500",
 };
 
+const subscriptionStatusLabels: Record<string, string> = {
+  ACTIVE: "Actif",
+  TRIAL: "Essai",
+  GRACE_PERIOD: "Période de grâce",
+  EXPIRED: "Expiré",
+  TRIAL_EXPIRED: "Essai terminé",
+  SUSPENDED: "Suspendu",
+};
+
 export default function SuperAdminDashboard() {
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [subscriptionOverview, setSubscriptionOverview] = useState<SubscriptionOverviewStats | null>(null);
@@ -260,7 +269,7 @@ export default function SuperAdminDashboard() {
                               : "bg-emerald-50 text-emerald-600"
                       }`}
                     >
-                      {sub.status}
+                      {subscriptionStatusLabels[sub.status] ?? sub.status}
                     </span>
                   </td>
                   <td className="py-2 text-gray-500">
