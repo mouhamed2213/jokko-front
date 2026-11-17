@@ -1,62 +1,151 @@
-import { ArrowRight, BookOpen, Headphones } from "lucide-react";
+import { ArrowRight, BookOpen, Headphones, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { helpModules } from "../data/helpModules";
 
 export default function HelpPage() {
+  const [query, setQuery] = useState("");
+  const filteredModules = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase("fr");
+    if (!normalizedQuery) return helpModules;
+
+    return helpModules.filter((module) =>
+      [module.title, module.shortDescription, module.description]
+        .join(" ")
+        .toLocaleLowerCase("fr")
+        .includes(normalizedQuery),
+    );
+  }, [query]);
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <section className="bg-emerald-700 text-white">
-        <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-16">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-medium text-emerald-50">
-            <BookOpen size={16} /> Documentation Jokko Business
+    <div className="min-h-screen bg-white">
+      <section className="border-b border-slate-200 bg-slate-50">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-end lg:gap-16 lg:py-20">
+          <div>
+            <div className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700">
+              <BookOpen size={17} aria-hidden="true" />
+              Centre d'aide Jokko Business
+            </div>
+            <h1 className="mt-5 max-w-3xl text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
+              Les bons repères pour gérer votre boutique.
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-slate-600">
+              Retrouvez les explications des principales rubriques de Jokko Business.
+              Choisissez un sujet pour consulter son guide étape par étape.
+            </p>
+
+            <label htmlFor="help-search" className="mt-8 block max-w-xl">
+              <span className="mb-2 block text-sm font-semibold text-slate-800">
+                Que recherchez-vous ?
+              </span>
+              <span className="flex items-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3.5 transition focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-600/15">
+                <Search size={19} className="shrink-0 text-slate-400" aria-hidden="true" />
+                <input
+                  id="help-search"
+                  type="search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Ex. : caisse, produits, factures…"
+                  className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                />
+              </span>
+            </label>
           </div>
-          <h1 className="mt-5 max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl">Comment utiliser Jokko Business ?</h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-emerald-50">
-            Retrouvez les guides des différentes fonctionnalités de votre espace de gestion et consultez directement la rubrique qui vous intéresse.
-          </p>
+
+          <aside className="border-l-2 border-emerald-600 pl-5 lg:mb-1">
+            <p className="text-sm font-semibold text-slate-900">Besoin d'un échange direct ?</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Si un guide ne répond pas à votre question, notre équipe reste joignable.
+            </p>
+            <Link
+              to="/contact"
+              className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-emerald-700 transition hover:text-emerald-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-4"
+            >
+              Contacter l'équipe <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          </aside>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
-        <div className="mb-7 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16">
+        <div className="flex flex-col gap-2 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-emerald-700">Centre d'aide</p>
-            <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-950">Parcourir les rubriques</h2>
+            <p className="text-sm font-semibold text-emerald-700">Documentation</p>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-950">
+              Parcourir les rubriques
+            </h2>
           </div>
-          <p className="text-sm text-slate-500">{helpModules.length} guides disponibles</p>
+          <p className="text-sm text-slate-500" aria-live="polite">
+            {filteredModules.length} {filteredModules.length > 1 ? "rubriques" : "rubrique"}
+            {query.trim() ? " trouvée(s)" : " disponibles"}
+          </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {helpModules.map((module) => {
-            const Icon = module.icon;
-            return (
-              <Link key={module.id} to={`/help/${module.id}`}
-                className="group flex min-h-48 flex-col rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
-                  <Icon size={22} />
-                </div>
-                <h3 className="mt-4 text-lg font-bold text-slate-900">{module.title}</h3>
-                <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">{module.shortDescription}</p>
-                <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-emerald-700">
-                  Consulter le guide <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
-                </span>
-              </Link>
-            );
-          })}
-        </div>
+        {filteredModules.length > 0 ? (
+          <div className="mt-7 grid gap-x-8 gap-y-0 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredModules.map((module, index) => {
+              const Icon = module.icon;
+              return (
+                <Link
+                  key={module.id}
+                  to={`/help/${module.id}`}
+                  className={`group flex min-h-48 flex-col border-b border-slate-200 py-6 transition-colors hover:bg-slate-50/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-600 ${index % 3 === 0 ? "lg:pl-0" : ""}`}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+                      <Icon size={20} aria-hidden="true" />
+                    </span>
+                    <ArrowRight
+                      size={18}
+                      className="text-slate-400 transition group-hover:translate-x-1 group-hover:text-emerald-700"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <h3 className="mt-5 text-lg font-bold text-slate-950">{module.title}</h3>
+                  <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">
+                    {module.shortDescription}
+                  </p>
+                  <span className="mt-4 text-xs font-bold uppercase tracking-wide text-emerald-700">
+                    Lire le guide
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="mt-8 rounded-xl border border-dashed border-slate-300 px-6 py-12 text-center">
+            <Search size={24} className="mx-auto text-slate-400" aria-hidden="true" />
+            <h3 className="mt-4 font-bold text-slate-900">Aucune rubrique trouvée</h3>
+            <p className="mt-2 text-sm text-slate-600">
+              Essayez un autre mot-clé ou parcourez toutes les rubriques.
+            </p>
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              className="mt-5 text-sm font-bold text-emerald-700 underline underline-offset-4 hover:text-emerald-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+            >
+              Effacer la recherche
+            </button>
+          </div>
+        )}
 
-        <div className="mt-10 flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-              <Headphones size={20} />
+        <div className="mt-14 flex flex-col gap-5 border-t border-slate-200 pt-8 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
+              <Headphones size={21} aria-hidden="true" />
             </div>
             <div>
-              <h2 className="font-bold text-slate-900">Vous avez besoin d'aide ?</h2>
-              <p className="mt-1 text-sm leading-6 text-slate-600">Si vous ne trouvez pas la réponse à votre question, contactez notre équipe.</p>
+              <h2 className="font-bold text-slate-950">Vous n'avez pas trouvé votre réponse ?</h2>
+              <p className="mt-1 max-w-xl text-sm leading-6 text-slate-600">
+                Décrivez-nous votre besoin depuis la page de contact.
+              </p>
             </div>
           </div>
-          <Link to="/contact" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700">
-            Contacter le support <ArrowRight size={16} />
+          <Link
+            to="/contact"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+          >
+            Contacter le support <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </div>
       </section>
