@@ -1,4 +1,4 @@
-import { BarChart3, Building2, ChevronDown, KeyRound, LogOut, Menu, Settings, UserRound, X, Users, Wrench } from "lucide-react";
+import { BarChart3, Building2, ChevronDown, CreditCard, KeyRound, LogOut, Menu, Settings, UserRound, X, Users, Wrench } from "lucide-react";
 import { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
@@ -8,6 +8,7 @@ const superAdminLinks = [
   { name: "Tableau de bord", path: "/admin/dash", icon: BarChart3 },
   { name: "Boutiques", path: "/admin/shops", icon: Building2 },
   { name: "Propriétaires", path: "/admin/owners", icon: UserRound },
+  { name: "Abonnements", path: "/admin/subscriptions", icon: CreditCard },
 ];
 
 const settingsLinks = [
