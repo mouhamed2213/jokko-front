@@ -11,6 +11,7 @@ import {
   Wallet,
   Calendar,
   Mail,
+  ExternalLink,
   Phone,
   MapPin,
   FileText,
@@ -32,6 +33,7 @@ import {
 type ShopDetail = {
   id: number;
   name: string;
+  ownerId: number | null;
   ownerName: string;
   email: string;
   phone: string;
@@ -351,7 +353,20 @@ export default function SuperAdminShopDetail() {
               <Store size={15} /> Informations
             </h3>
             <div className="flex flex-col gap-3">
-              <InfoRow icon={Users} label="Propriétaire" value={shop.ownerName} />
+              <div className="flex items-center justify-between gap-3">
+                <InfoRow icon={Users} label="Propriétaire" value={shop.ownerName} />
+                {shop.ownerId !== null && (
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/admin/owners/${shop.ownerId}`)}
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50"
+                    title="Consulter la fiche du propriétaire"
+                  >
+                    Voir le propriétaire
+                    <ExternalLink size={13} />
+                  </button>
+                )}
+              </div>
               <InfoRow icon={Mail} label="Email" value={shop.email} />
               <InfoRow icon={Phone} label="Téléphone" value={shop.phone} />
               <InfoRow icon={MapPin} label="Adresse" value={shop.address || "—"} />
