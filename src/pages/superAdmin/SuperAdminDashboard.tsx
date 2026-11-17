@@ -89,8 +89,10 @@ export default function SuperAdminDashboard() {
   }
 
   const totalShops = stats.totalShops;
-  const freeCount = stats.subscriptionsByPlan.FREE ?? 0;
-  const payingShops = totalShops - freeCount;
+  const subscriptionsByPlan = subscriptionOverview?.subscriptionsByPlan ?? stats.subscriptionsByPlan;
+  const freeCount = subscriptionsByPlan.FREE ?? 0;
+  const billingShops = Object.values(subscriptionsByPlan).reduce((total, count) => total + count, 0);
+  const payingShops = Math.max(0, billingShops - freeCount);
   const mrr = subscriptionOverview?.mrr ?? stats.mrr;
   const arpu = payingShops > 0 ? Math.round(mrr / payingShops) : 0;
   const trialCount = subscriptionOverview?.subscriptionsByStatus.TRIAL ?? stats.subscriptionsByStatus.TRIAL ?? 0;
@@ -98,7 +100,7 @@ export default function SuperAdminDashboard() {
   const gracePeriodCount = subscriptionOverview?.gracePeriodCount ?? stats.subscriptionsByStatus.GRACE_PERIOD ?? 0;
   const expiredCount = subscriptionOverview?.expiredCount ?? 0;
   const pendingPaymentsCount = subscriptionOverview?.pendingSubscriptionPayments ?? 0;
-  const trialShare = totalShops > 0 ? Math.round((trialCount / totalShops) * 100) : 0;
+  const trialShare = billingShops > 0 ? Math.round((trialCount / billingShops) * 100) : 0;
 
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -106,7 +108,7 @@ export default function SuperAdminDashboard() {
     (s) => new Date(s.createdAt) >= sevenDaysAgo,
   ).length;
 
-  const planEntries = Object.entries(stats.subscriptionsByPlan);
+  const planEntries = Object.entries(subscriptionsByPlan);
   const maxPlanCount = Math.max(...planEntries.map(([, c]) => c), 1);
 
   return (
