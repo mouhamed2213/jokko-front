@@ -69,10 +69,15 @@ function getSubscriptionAlert(
     };
   }
 
-  if (
-    subscription.status === "EXPIRED" ||
-    subscription.status === "TRIAL_EXPIRED"
-  ) {
+  if (subscription.status === "TRIAL_EXPIRED") {
+    return {
+      title: "Votre période d'essai est terminée :",
+      text: "Votre boutique fonctionne désormais avec le forfait Essentielle. Choisissez un forfait payant pour retrouver les fonctionnalités correspondantes.",
+      type: "danger",
+    };
+  }
+
+  if (subscription.status === "EXPIRED") {
     return {
       title: "Votre abonnement payant est terminé :",
       text: "Votre boutique fonctionne désormais avec le forfait Essentielle. Choisissez un forfait payant pour retrouver les fonctionnalités correspondantes.",
