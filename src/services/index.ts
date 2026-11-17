@@ -766,6 +766,16 @@ export type SubscriptionOverviewStats = {
   pendingSubscriptionPayments: number;
   gracePeriodDays: number;
   mrr: number;
+  recentSubscriptions: Array<{
+    id: number;
+    shopId: number;
+    status: string;
+    startDate: string;
+    endDate: string | null;
+    plan: { code: string; name: string; price: number };
+    shop: { id: number; name: string; email: string };
+    createdAt: string;
+  }>;
 };
 
 export const getSuperAdminSubscriptions = async (params?: {
