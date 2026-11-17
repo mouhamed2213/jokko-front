@@ -1,4 +1,4 @@
-import { BarChart3, Building2, ChevronDown, CreditCard, KeyRound, LogOut, Menu, Settings, UserRound, X, Users, Wrench } from "lucide-react";
+import { BarChart3, Building2, ChevronDown, Clock, CreditCard, KeyRound, LogOut, Menu, Settings, UserRound, X, Users, Wrench } from "lucide-react";
 import { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
@@ -14,6 +14,7 @@ const superAdminLinks = [
 const settingsLinks = [
   { name: "Vue générale", path: "/admin/settings" },
   { name: "Maintenance", path: "/admin/settings/maintenance", icon: Wrench },
+  { name: "Période de grâce", path: "/admin/settings/subscription-grace-period", icon: Clock },
   { name: "Utilisateurs", path: "/admin/settings/users", icon: Users },
   { name: "Sécurité du compte", path: "/admin/security", icon: KeyRound },
 ];
