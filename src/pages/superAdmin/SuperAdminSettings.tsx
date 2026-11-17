@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { KeyRound, Users, Wrench, ChevronRight } from "lucide-react";
+import { Clock, KeyRound, Users, Wrench, ChevronRight } from "lucide-react";
 
 const sections = [
   {
@@ -7,6 +7,12 @@ const sections = [
     description: "Gérer l'indisponibilité temporaire de la plateforme et le message affiché aux visiteurs.",
     path: "/admin/settings/maintenance",
     icon: Wrench,
+  },
+  {
+    title: "Période de grâce",
+    description: "Définir le nombre de jours pendant lesquels une boutique conserve son forfait après expiration.",
+    path: "/admin/settings/subscription-grace-period",
+    icon: Clock,
   },
   {
     title: "Utilisateurs",
