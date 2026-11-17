@@ -760,6 +760,7 @@ export type SuperAdminSubscriptionsResponse = {
 
 export type SubscriptionOverviewStats = {
   subscriptionsByStatus: Record<string, number>;
+  subscriptionsByPlan: Record<string, number>;
   gracePeriodCount: number;
   expiredCount: number;
   pendingSubscriptionPayments: number;
