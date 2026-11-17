@@ -134,7 +134,7 @@ export default function PricingPage() {
           </div>
 
           <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {plans.map((plan) => ()
+            {plans.map((plan) => (
               <article
                 key={plan.id}
                 className={`relative flex min-w-0 flex-col border p-6 transition-colors ${plan.highlighted
