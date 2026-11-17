@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { verifyAccountEmail } from "../services";
+import AuthShell from "../components/public/AuthShell";
 
 type VerificationState = "idle" | "loading" | "success" | "error";
 
@@ -39,7 +40,7 @@ export default function VerifyEmail() {
   };
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center px-4 py-12">
+    <AuthShell>
       <div className="w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-lg">
         <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full ${
           state === "success"
@@ -74,6 +75,6 @@ export default function VerifyEmail() {
           Aller à la connexion
         </Link>
       </div>
-    </div>
+    </AuthShell>
   );
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { requestPasswordReset } from "../services";
+import AuthShell from "../components/public/AuthShell";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -23,7 +24,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center px-4 py-12">
+    <AuthShell>
       <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-lg">
         <h1 className="text-2xl font-bold text-slate-900">Mot de passe oublié</h1>
         <p className="mt-2 text-sm text-slate-500">
@@ -56,6 +57,6 @@ export default function ForgotPassword() {
           <Link to="/login" className="font-medium text-emerald-700 hover:underline">Retour à la connexion</Link>
         </p>
       </div>
-    </div>
+    </AuthShell>
   );
 }

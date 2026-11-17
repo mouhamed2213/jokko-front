@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logooo.svg";
 import { api } from "../services/api";
 import { login } from "../services/index";
+import AuthShell from "../components/public/AuthShell";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ export default function Login() {
       toast.success("Connexion réussie");
       navigate("/dashboard", { replace: true });
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Une erreur est survenu");
+      toast.error(error?.response?.data?.message || "Une erreur est survenue");
     } finally {
       setLoading(false);
     }
@@ -46,7 +47,7 @@ export default function Login() {
 
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
+    <AuthShell>
       <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-lg">
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-50 p-2">
@@ -98,10 +99,10 @@ export default function Login() {
             to="/register"
             className="font-semibold text-emerald-600 hover:underline"
           >
-            S'inscrir gratuitement
+            S'inscrire gratuitement
           </Link>
         </p>
       </div>
-    </div>
+    </AuthShell>
   );
 }

@@ -5,6 +5,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import logo from "../assets/logooo.svg";
 import { registerShop } from "../services/index";
 import type { PlanCode } from "../types";
+import AuthShell from "../components/public/AuthShell";
 
 const SENEGAL_REGIONS = [
   "Dakar",
@@ -181,7 +182,7 @@ export default function Register() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
+    <AuthShell>
       <div className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-lg">
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-50 p-2">
@@ -404,6 +405,6 @@ export default function Register() {
           </Link>
         </p>
       </div>
-    </div>
+    </AuthShell>
   );
 }
