@@ -1,73 +1,8 @@
 import { ArrowRight, Check, HelpCircle, MessageCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-
-const plans = [
-  {
-    id: "free",
-    name: "Gratuit",
-    eyebrow: "Pour commencer",
-    price: "0",
-    period: "FCFA",
-    summary: "Découvrez Jokko Business et organisez les opérations essentielles de votre boutique.",
-    features: [
-      "Gestion des produits et des ventes",
-      "Suivi des clients et de leurs dettes",
-      "Caisse journalière",
-      "Tickets de caisse",
-    ],
-    action: "Créer mon compte",
-    highlighted: false,
-  },
-  {
-    id: "starter",
-    name: "Starter",
-    eyebrow: "Pour structurer son activité",
-    price: "6 500",
-    period: "FCFA / mois",
-    summary: "Structurez la gestion quotidienne de votre boutique et gagnez en visibilité.",
-    features: [
-      "Tout le nécessaire pour gérer les ventes et les produits",
-      "Alertes de stock faible et de rupture",
-      "Factures et exports PDF / Excel",
-      "Suivi des fournisseurs",
-      "Gestion d'une équipe",
-    ],
-    action: "Choisir Starter",
-    highlighted: true,
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    eyebrow: "Pour accompagner la croissance",
-    price: "14 000",
-    period: "FCFA / mois",
-    summary: "Accompagnez le développement de votre commerce et de vos points de vente.",
-    features: [
-      "Les fonctionnalités de Starter",
-      "Rapports et statistiques avancés",
-      "Gestion de plusieurs boutiques",
-      "Équipe élargie",
-      "Gestion des fournisseurs",
-    ],
-    action: "Choisir Pro",
-    highlighted: false,
-  },
-  {
-    id: "premium",
-    name: "Premium",
-    eyebrow: "Pour les organisations établies",
-    price: "22 000",
-    period: "FCFA / mois",
-    summary: "Une formule destinée aux structures qui pilotent plusieurs boutiques et des équipes plus larges.",
-    features: [
-      "Les fonctionnalités de Pro",
-      "Gestion de plusieurs boutiques",
-      "Une capacité d’équipe adaptée aux structures plus importantes",
-    ],
-    action: "Choisir Premium",
-    highlighted: false,
-  },
-];
+import PageHero from "../components/public/PageHero";
+import { plans } from "../data/plans";
+import { images } from "../data/publicImages";
 
 const questions = [
   {
@@ -93,23 +28,15 @@ export default function PricingPage() {
 
   return (
     <main className="min-h-screen bg-white text-slate-800">
-      <section className="border-b border-slate-200 bg-slate-50 px-5 pb-12 pt-16 sm:px-8 sm:pb-16 sm:pt-20">
-        <div className="mx-auto max-w-5xl text-center">
-          <p className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-700">
-            <span className="h-2 w-2 rounded-full bg-emerald-600" />
-            Tarifs Jokko Business
-          </p>
-          <h1 className="mx-auto mt-5 max-w-4xl text-4xl font-bold leading-tight tracking-[-0.04em] text-slate-950 sm:text-5xl lg:text-6xl">
-            Choisissez la formule qui vous ressemble.
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-slate-600">
-            Des outils pour organiser votre commerce au quotidien. Commencez gratuitement et faites évoluer votre formule selon vos besoins.
-          </p>
-          <p className="mt-6 text-sm font-semibold text-emerald-700">
-            14 jours d'essai sur les formules payantes
-          </p>
-        </div>
-      </section>
+      <PageHero
+        align="center"
+        image={images.pricing}
+        eyebrow="Tarifs Jokko Business"
+        title="Choisissez la formule qui vous ressemble."
+        subtitle="Des outils pour organiser votre commerce au quotidien. Commencez gratuitement et faites évoluer votre formule selon vos besoins."
+      >
+        <p className="text-sm font-semibold text-emerald-300">14 jours d'essai sur les formules payantes</p>
+      </PageHero>
 
       <section className="px-5 py-12 sm:px-8 sm:py-16">
         <div className="mx-auto max-w-7xl">
