@@ -101,7 +101,7 @@ export default function SuperAdminDashboard() {
   const subscriptionsByPlan = subscriptionOverview?.subscriptionsByPlan ?? stats.subscriptionsByPlan;
   const freeCount = subscriptionsByPlan.FREE ?? 0;
   const billingShops = Object.values(subscriptionsByPlan).reduce((total, count) => total + count, 0);
-  const payingShops = Math.max(0, billingShops - freeCount);
+  const payingShops = subscriptionOverview?.activePaidCount ?? Math.max(0, billingShops - freeCount);
   const mrr = subscriptionOverview?.mrr ?? stats.mrr;
   const arpu = payingShops > 0 ? Math.round(mrr / payingShops) : 0;
   const trialCount = subscriptionOverview?.subscriptionsByStatus.TRIAL ?? stats.subscriptionsByStatus.TRIAL ?? 0;
