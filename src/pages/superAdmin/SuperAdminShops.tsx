@@ -27,6 +27,8 @@ type ShopRow = {
   subscription: {
     status: string;
     endDate: string | null;
+    gracePeriodEndsAt?: string | null;
+    gracePeriodDaysRemaining?: number;
     plan: { code: string; name: string; price: number };
   } | null;
   counts: { users: number; products: number; sales: number };
@@ -52,6 +54,7 @@ const planBadge: Record<string, string> = {
 const subStatusBadge: Record<string, string> = {
   ACTIVE: "bg-emerald-50 text-emerald-600",
   TRIAL: "bg-violet-50 text-violet-600",
+  GRACE_PERIOD: "bg-amber-50 text-amber-700",
   EXPIRED: "bg-red-50 text-red-600",
   TRIAL_EXPIRED: "bg-red-50 text-red-600",
   SUSPENDED: "bg-slate-100 text-slate-500",
@@ -276,8 +279,13 @@ export default function SuperAdminShops() {
                               "bg-gray-100 text-gray-500"
                             }`}
                           >
-                            {shop.subscription.status}
+                            {shop.subscription.status === "GRACE_PERIOD" ? "Période de grâce" : shop.subscription.status}
                           </span>
+                          {shop.subscription.status === "GRACE_PERIOD" && (
+                            <span className="text-[10px] text-amber-700">
+                              {shop.subscription.gracePeriodDaysRemaining ?? 0} jour(s) restant(s)
+                            </span>
+                          )}
                         </div>
                       ) : (
                         <span className="text-xs text-gray-300">—</span>
