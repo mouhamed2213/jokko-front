@@ -58,8 +58,7 @@ const plans = [
     features: [
       "Les fonctionnalités de Pro",
       "Gestion de plusieurs boutiques",
-      "Utilisateurs sans limite annoncée",
-      "Support prioritaire",
+      "Une capacité d’équipe adaptée aux structures plus importantes",
     ],
     action: "Choisir Premium",
     highlighted: false,
