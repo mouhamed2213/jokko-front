@@ -15,7 +15,7 @@ export default function FooterPublic() {
           <p className="max-w-sm text-sm leading-7 text-slate-400">
             Une solution de gestion commerciale pour organiser vos ventes, suivre vos stocks et piloter votre boutique au quotidien.
           </p>
-          <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-red-400">Pensé pour les commerces d'ici</p>
+          <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">Pensé pour les commerces d'ici</p>
         </div>
 
         <div>
@@ -40,9 +40,9 @@ export default function FooterPublic() {
         <div>
           <h2 className="mb-5 text-xs font-extrabold uppercase tracking-[0.18em] text-white">Nous contacter</h2>
           <ul className="space-y-4 text-sm">
-            <li className="flex items-start gap-3"><Phone size={17} className="mt-0.5 shrink-0 text-red-400" /><a href="tel:+221783333838" className="transition hover:text-white">+221 78 333 38 38</a></li>
-            <li className="flex items-start gap-3"><Mail size={17} className="mt-0.5 shrink-0 text-red-400" /><a href={`mailto:${SUPPORT_EMAIL}`} className="break-all transition hover:text-white">{SUPPORT_EMAIL}</a></li>
-            <li className="flex items-start gap-3"><MapPin size={17} className="mt-0.5 shrink-0 text-red-400" /><span>Dakar, Sénégal</span></li>
+            <li className="flex items-start gap-3"><Phone size={17} className="mt-0.5 shrink-0 text-emerald-400" /><a href="tel:+221783333838" className="transition hover:text-white">+221 78 333 38 38</a></li>
+            <li className="flex items-start gap-3"><Mail size={17} className="mt-0.5 shrink-0 text-emerald-400" /><a href={`mailto:${SUPPORT_EMAIL}`} className="break-all transition hover:text-white">{SUPPORT_EMAIL}</a></li>
+            <li className="flex items-start gap-3"><MapPin size={17} className="mt-0.5 shrink-0 text-emerald-400" /><span>Dakar, Sénégal</span></li>
           </ul>
         </div>
       </div>
