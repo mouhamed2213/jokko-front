@@ -44,7 +44,7 @@ export function HeaderPublic() {
         <div className="hidden items-center gap-8 lg:flex">
           {links.map((link) => (
             <button key={link.to} type="button" onClick={() => goTo(link.to)}
-              className={`text-sm font-semibold transition-colors ${location.pathname === link.to ? "text-red-700" : "text-slate-600 hover:text-slate-950"}`}>
+              className={`text-sm font-semibold transition-colors ${location.pathname === link.to ? "text-emerald-700" : "text-slate-600 hover:text-slate-950"}`}>
               {link.label}
             </button>
           ))}
@@ -52,7 +52,7 @@ export function HeaderPublic() {
 
         <div className="hidden items-center gap-2 sm:flex">
           <button type="button" onClick={() => navigate("/login")} className="rounded-full px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-100">Connexion</button>
-          <button type="button" onClick={() => navigate("/register")} className="inline-flex items-center gap-2 rounded-full bg-red-700 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-red-900/15 transition hover:bg-red-800">
+          <button type="button" onClick={() => navigate("/register")} className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-red-900/15 transition hover:bg-emerald-700">
             Créer un compte <ArrowRight size={16} />
           </button>
         </div>
@@ -75,7 +75,7 @@ export function HeaderPublic() {
             ))}
             <div className="mt-2 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 sm:hidden">
               <button type="button" onClick={() => { setMenuOpen(false); navigate("/login"); }} className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700">Connexion</button>
-              <button type="button" onClick={() => { setMenuOpen(false); navigate("/register"); }} className="rounded-xl bg-red-700 px-4 py-3 text-sm font-bold text-white">Inscription</button>
+              <button type="button" onClick={() => { setMenuOpen(false); navigate("/register"); }} className="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white">Inscription</button>
             </div>
           </div>
         </div>
