@@ -37,6 +37,8 @@ import SuperAdminShopDetail from "./pages/superAdmin/SuperAdminShopDetail";
 import SuperAdminSettings from "./pages/superAdmin/SuperAdminSettings";
 import SuperAdminMaintenanceSettings from "./pages/superAdmin/SuperAdminMaintenanceSettings";
 import SuperAdminUsers from "./pages/superAdmin/SuperAdminUsers";
+import SuperAdminSubscriptions from "./pages/superAdmin/SuperAdminSubscriptions";
+import SuperAdminGracePeriodSettings from "./pages/superAdmin/SuperAdminGracePeriodSettings";
 import AcceptSuperAdminInvitation from "./pages/AcceptSuperAdminInvitation";
 import MaintenanceGate from "./components/MaintenanceGate";
 
@@ -83,8 +85,10 @@ export default function App() {
           <Route path="/admin/shops/:id" element={<SuperAdminShopDetail />} />
           <Route path="/admin/owners" element={<SuperAdminOwners />} />
           <Route path="/admin/owners/:id" element={<SuperAdminOwnerDetail />} />
+          <Route path="/admin/subscriptions" element={<SuperAdminSubscriptions />} />
           <Route path="/admin/settings" element={<SuperAdminSettings />} />
           <Route path="/admin/settings/maintenance" element={<SuperAdminMaintenanceSettings />} />
+          <Route path="/admin/settings/subscription-grace-period" element={<SuperAdminGracePeriodSettings />} />
           <Route path="/admin/settings/users" element={<SuperAdminUsers />} />
           <Route path="/admin/security" element={<AccountSecurity mode="superadmin" />} />
         </Route>
