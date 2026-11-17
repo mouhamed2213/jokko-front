@@ -764,6 +764,7 @@ export type SubscriptionOverviewStats = {
   expiredCount: number;
   pendingSubscriptionPayments: number;
   gracePeriodDays: number;
+  mrr: number;
 };
 
 export const getSuperAdminSubscriptions = async (params?: {
