@@ -116,8 +116,6 @@ export default function PricingPage() {
             </div>
           </div>
           <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-200 pt-5 text-xs font-medium text-slate-500">
-            <span>Sans engagement affiché sur cette page</span>
-            <span className="hidden h-1 w-1 rounded-full bg-slate-300 sm:block" />
             <span>Prix en FCFA</span>
             <span className="hidden h-1 w-1 rounded-full bg-slate-300 sm:block" />
             <span>Offre gratuite disponible</span>
@@ -136,7 +134,7 @@ export default function PricingPage() {
           </div>
 
           <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {plans.map((plan, index) => (
+            {plans.map((plan) => ()
               <article
                 key={plan.id}
                 className={`relative flex min-w-0 flex-col border p-6 transition-colors ${plan.highlighted
