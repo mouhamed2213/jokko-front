@@ -60,13 +60,22 @@ function getSubscriptionAlert(
 ): SubscriptionAlert | null {
   if (!subscription) return null;
 
+  if (subscription.status === "GRACE_PERIOD") {
+    const days = subscription.gracePeriodDaysRemaining ?? 0;
+    return {
+      title: "Votre abonnement est en période de grâce :",
+      text: `Votre formule ${subscription.plan.name} a expiré. Vous conservez toutes ses fonctionnalités pendant encore ${days} jour${days > 1 ? "s" : ""}. Renouvelez avant la fin de ce délai pour éviter le passage au forfait Essentielle.`,
+      type: "warning",
+    };
+  }
+
   if (
     subscription.status === "EXPIRED" ||
     subscription.status === "TRIAL_EXPIRED"
   ) {
     return {
-      title: "Abonnement expiré :",
-      text: "Renouvelez votre abonnement pour retrouver les fonctionnalités de votre offre.",
+      title: "Votre abonnement payant est terminé :",
+      text: "Votre boutique fonctionne désormais avec le forfait Essentielle. Choisissez un forfait payant pour retrouver les fonctionnalités correspondantes.",
       type: "danger",
     };
   }
@@ -80,8 +89,8 @@ function getSubscriptionAlert(
 
   if (daysRemaining <= 0) {
     return {
-      title: "Abonnement expiré :",
-      text: "Renouvelez votre abonnement pour retrouver les fonctionnalités de votre offre.",
+      title: "Abonnement arrivé à échéance :",
+      text: "La période de grâce est terminée. Votre boutique utilise maintenant le forfait Essentielle.",
       type: "danger",
     };
   }
@@ -89,9 +98,7 @@ function getSubscriptionAlert(
   if (daysRemaining <= 7) {
     return {
       title: "Renouvellement à prévoir :",
-      text: `Il vous reste ${daysRemaining} ${
-        daysRemaining === 1 ? "jour" : "jours"
-      } d'abonnement. Renouvelez votre offre pour éviter une interruption.`,
+      text: `Il vous reste ${daysRemaining} ${daysRemaining === 1 ? "jour" : "jours"} d'abonnement. Renouvelez votre offre pour éviter une interruption.`,
       type: "warning",
     };
   }
