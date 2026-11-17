@@ -17,8 +17,12 @@ export type FeatureCode =
 
 export type SubscriptionInfo = {
   id: number;
-  status: "ACTIVE" | "EXPIRED" | "SUSPENDED" | "TRIAL" | "TRIAL_EXPIRED";
+  status: "ACTIVE" | "EXPIRED" | "SUSPENDED" | "TRIAL" | "TRIAL_EXPIRED" | "GRACE_PERIOD";
   endDate: Date | string | null;
+  gracePeriodDays?: number;
+  gracePeriodEndsAt?: Date | string | null;
+  gracePeriodDaysRemaining?: number;
+  isInGracePeriod?: boolean;
   plan: {
     code: PlanCode;
     name: string;
