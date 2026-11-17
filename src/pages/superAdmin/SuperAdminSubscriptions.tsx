@@ -136,7 +136,7 @@ export default function SuperAdminSubscriptions() {
           className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
         >
           <option value="">Tous les forfaits</option>
-          <option value="FREE">Essentielle</option>
+          <option value="FREE">Gratuit</option>
           <option value="BASIC">Basic</option>
           <option value="PRO">Pro</option>
           <option value="PREMIUM">Premium</option>
