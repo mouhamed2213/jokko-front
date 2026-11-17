@@ -428,6 +428,21 @@ export default function Settings() {
             </span>
           </div>
 
+          {isGracePeriod && (
+            <div className="flex flex-col gap-3 border-b border-amber-100 bg-amber-50/60 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-amber-900">
+                Pour conserver votre formule {currentPlan?.name}, demandez son renouvellement avant la fin de la période de grâce.
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate(`/contact?subject=${encodeURIComponent(`Renouvellement du forfait ${currentPlan?.name ?? ""}`)}`)}
+                className="shrink-0 rounded-xl bg-amber-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-800"
+              >
+                Demander le renouvellement
+              </button>
+            </div>
+          )}
+
           {/* Limites du plan actuel */}
           {currentPlan && (
             <div className="px-6 py-4 grid grid-cols-2 gap-3 sm:grid-cols-4 border-b border-slate-100">
