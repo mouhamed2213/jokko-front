@@ -207,16 +207,20 @@ const steps = [
 
 const faqs = [
   {
-    q: "Faut-il installer quelque chose ?",
-    a: "Non. Jokko Business fonctionne entièrement en ligne depuis un navigateur web, sur ordinateur, tablette ou smartphone.",
+    q: "Faut-il installer un logiciel ?",
+    a: "Non. Jokko Business est accessible depuis un navigateur web, sur ordinateur, tablette ou smartphone.",
   },
   {
-    q: "Mes données sont-elles sécurisées ?",
-    a: "Oui. Vos données sont chiffrées, sauvegardées automatiquement et accessibles uniquement depuis votre compte utilisateur.",
+    q: "Puis-je gérer ma boutique depuis mon téléphone ?",
+    a: "Oui. Vous pouvez accéder à votre espace depuis un navigateur mobile pour consulter et gérer votre activité.",
   },
   {
-    q: "Puis-je changer de plan plus tard ?",
-    a: "Absolument. Vous pouvez évoluer ou réduire votre plan à tout moment. Et si votre abonnement arrive à expiration, vous n'êtes jamais bloqué : votre compte repasse simplement au plan Gratuit, sans perte de données ni interruption de votre activité.",
+    q: "Puis-je commencer sans payer ?",
+    a: "Oui. Un plan Gratuit est disponible pour démarrer et découvrir les fonctions essentielles de gestion commerciale.",
+  },
+  {
+    q: "Puis-je faire évoluer mon abonnement ?",
+    a: "Oui. Les offres permettent de choisir un niveau adapté à la taille de votre activité et à vos besoins.",
   },
 
 ];
