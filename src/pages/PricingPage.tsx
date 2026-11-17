@@ -147,7 +147,7 @@ export default function PricingPage() {
                 <div className="min-h-[7.5rem] pt-1">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-xl font-bold tracking-tight text-slate-950">{plan.name}</h3>
-                    {plan.highlighted && <span className="whitespace-nowrap bg-emerald-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">Populaire</span>}
+                    {plan.highlighted && <span className="whitespace-nowrap bg-emerald-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">Mise en avant</span>}
                   </div>
                   <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.12em] text-emerald-700">{plan.eyebrow}</p>
                   <p className="mt-3 text-sm leading-6 text-slate-600">{plan.summary}</p>
