@@ -766,6 +766,7 @@ export type SubscriptionOverviewStats = {
   pendingSubscriptionPayments: number;
   gracePeriodDays: number;
   mrr: number;
+  activePaidCount: number;
   recentSubscriptions: Array<{
     id: number;
     shopId: number;
