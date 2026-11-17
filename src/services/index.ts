@@ -726,3 +726,63 @@ export const confirmSubscriptionPayment = async (paymentId: number) =>
 
 export const cancelSubscriptionPayment = async (paymentId: number) =>
   (await adminApi.patch(`/super-admin/subscription/payments/${paymentId}/cancel`)).data;
+
+
+export type SuperAdminSubscriptionRow = {
+  id: number;
+  shopId: number;
+  shop: { id: number; name: string; email: string; ownerName: string; status: string };
+  owner: { id: number; name: string; email: string };
+  plan: { code: string; name: string; price: number };
+  status: string;
+  storedStatus: string;
+  startDate: string;
+  endDate: string | null;
+  gracePeriodEndsAt: string | null;
+  gracePeriodDaysRemaining: number;
+  latestPayment: {
+    id: number;
+    status: string;
+    provider: string;
+    amount: number;
+    paidAt: string | null;
+    createdAt: string;
+    paymentType: string;
+  } | null;
+  createdAt: string;
+};
+
+export type SuperAdminSubscriptionsResponse = {
+  data: SuperAdminSubscriptionRow[];
+  pagination: { total: number; page: number; limit: number; totalPages: number };
+  gracePeriodDays: number;
+};
+
+export type SubscriptionOverviewStats = {
+  subscriptionsByStatus: Record<string, number>;
+  gracePeriodCount: number;
+  expiredCount: number;
+  pendingSubscriptionPayments: number;
+  gracePeriodDays: number;
+};
+
+export const getSuperAdminSubscriptions = async (params?: {
+  page?: number;
+  limit?: number;
+  q?: string;
+  status?: string;
+  plan?: string;
+}): Promise<SuperAdminSubscriptionsResponse> =>
+  (await adminApi.get("/super-admin/subscriptions", { params })).data;
+
+export const getSubscriptionOverviewStats = async (): Promise<SubscriptionOverviewStats> =>
+  (await adminApi.get("/super-admin/subscriptions/overview")).data;
+
+export const getSubscriptionGracePeriod = async (): Promise<{
+  days: number;
+  defaultDays: number;
+  maxDays: number;
+}> => (await adminApi.get("/super-admin/subscription-grace-period")).data;
+
+export const updateSubscriptionGracePeriod = async (days: number) =>
+  (await adminApi.patch("/super-admin/subscription-grace-period", { days })).data;
