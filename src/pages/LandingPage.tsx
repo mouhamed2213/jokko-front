@@ -4,13 +4,11 @@ import {
   Bell,
   Building2,
   Check,
-  HelpCircle,
   Mail,
   MapPin,
   Package,
   Phone,
   ShoppingCart,
-  Store,
   Truck,
   Users,
   Wallet,
@@ -256,7 +254,7 @@ export default function LandingPage() {
               Ventes, stocks, caisse, clients et fournisseurs : retrouvez les outils essentiels de votre boutique dans un seul espace, accessible depuis votre ordinateur ou votre téléphone.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <button onClick={() => navigate("/register")} className="inline-flex items-center justify-center gap-3 rounded-full bg-emerald-600 px-7 py-4 text-sm font-extrabold text-white shadow-xl shadow-red-950/30 transition hover:-translate-y-0.5 hover:bg-emerald-700">
+              <button onClick={() => navigate("/register")} className="inline-flex items-center justify-center gap-3 rounded-full bg-emerald-600 px-7 py-4 text-sm font-extrabold text-white shadow-xl shadow-emerald-950/20 transition hover:-translate-y-0.5 hover:bg-emerald-700">
                 Créer mon compte gratuitement <ArrowRight size={17} />
               </button>
               <button onClick={() => navigate("/help")} className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-7 py-4 text-sm font-bold text-white backdrop-blur transition hover:bg-white/15">
@@ -304,7 +302,7 @@ export default function LandingPage() {
               immédiate et intuitive.
             </p>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {features.map(({ icon: Icon, title, description }) => (
               <div
                 key={title}
@@ -333,7 +331,7 @@ export default function LandingPage() {
               Comment ça marche
             </p>
             <h2 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">
-              Opérationnel en moin de 3 minutes
+              Démarrez en quelques étapes
             </h2>
             <p className="text-sm text-slate-500">
               Pas d'installation, pas de configuration complexe. Juste votre
@@ -566,12 +564,11 @@ export default function LandingPage() {
             Prêt à simplifier votre gestion ?
           </h2>
           <p className="text-emerald-100 mb-8 text-sm md:text-base max-w-lg mx-auto opacity-90">
-            Rejoignez dès aujourd’hui les commerçants sénégalais qui font
-            confiance à Jokko Business au quotidien.
+            Découvrez les outils pour mieux organiser votre activité et suivre votre commerce au quotidien.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <button
-              onClick={() => navigate("/login")}
+              onClick={() => navigate("/register")}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-emerald-600 font-bold px-6 py-3 rounded-xl hover:bg-emerald-50 transition shadow-md text-sm"
             >
               Démarrer gratuitement <ArrowRight size={17} />
