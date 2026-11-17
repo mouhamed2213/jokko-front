@@ -34,6 +34,17 @@ const formatDate = (value: string | null) =>
       })
     : "—";
 
+const formatDateTime = (value: string | null) =>
+  value
+    ? new Date(value).toLocaleString("fr-FR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "—";
+
 export default function SuperAdminSubscriptions() {
   const navigate = useNavigate();
   const [result, setResult] = useState<SuperAdminSubscriptionsResponse | null>(null);
@@ -170,7 +181,7 @@ export default function SuperAdminSubscriptions() {
                     )}
                   </td>
                   <td className="px-5 py-4 text-slate-600">{formatDate(row.endDate)}</td>
-                  <td className="px-5 py-4 text-slate-600">{row.gracePeriodEndsAt ? formatDate(row.gracePeriodEndsAt) : "—"}</td>
+                  <td className="px-5 py-4 text-slate-600">{row.gracePeriodEndsAt ? formatDateTime(row.gracePeriodEndsAt) : "—"}</td>
                   <td className="px-5 py-4">
                     {row.latestPayment ? (
                       <>
