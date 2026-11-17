@@ -151,6 +151,7 @@ export default function SuperAdminSubscriptions() {
                 <th className="px-5 py-3">Boutique / propriétaire</th>
                 <th className="px-5 py-3">Forfait</th>
                 <th className="px-5 py-3">Statut</th>
+                <th className="px-5 py-3">Début</th>
                 <th className="px-5 py-3">Expiration</th>
                 <th className="px-5 py-3">Fin de grâce</th>
                 <th className="px-5 py-3">Dernier paiement</th>
@@ -159,7 +160,7 @@ export default function SuperAdminSubscriptions() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
-                <tr><td colSpan={7} className="px-5 py-12 text-center text-slate-400">Chargement des abonnements...</td></tr>
+                <tr><td colSpan={8} className="px-5 py-12 text-center text-slate-400">Chargement des abonnements...</td></tr>
               ) : rows.length === 0 ? (
                 <tr><td colSpan={7} className="px-5 py-12 text-center text-slate-400">Aucun abonnement trouvé.</td></tr>
               ) : rows.map((row) => (
@@ -180,6 +181,7 @@ export default function SuperAdminSubscriptions() {
                       <p className="mt-1 text-xs text-amber-700">{row.gracePeriodDaysRemaining} jour(s) restant(s)</p>
                     )}
                   </td>
+                  <td className="px-5 py-4 text-slate-600">{formatDate(row.startDate)}</td>
                   <td className="px-5 py-4 text-slate-600">{formatDate(row.endDate)}</td>
                   <td className="px-5 py-4 text-slate-600">{row.gracePeriodEndsAt ? formatDateTime(row.gracePeriodEndsAt) : "—"}</td>
                   <td className="px-5 py-4">
