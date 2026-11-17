@@ -4,6 +4,8 @@ import { ArrowRight, CheckCircle2, Mail, MessageSquareText } from "lucide-react"
 import { Link, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { sendContactMessage, SUPPORT_EMAIL } from "../services";
+import PageHero from "../components/public/PageHero";
+import { images } from "../data/publicImages";
 
 const initialForm = { name: "", email: "", subject: "", message: "", website: "" };
 
@@ -49,18 +51,12 @@ export default function ContactPage() {
 
   return (
     <div className="bg-slate-50">
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-16">
-          <p className="text-sm font-semibold text-emerald-700">Contact</p>
-          <h1 className="mt-3 max-w-2xl text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-            Parlons de votre activité.
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-            Une question sur Jokko Business, besoin d’un renseignement ou une difficulté à signaler ?
-            Envoyez-nous votre message. Nous vous répondrons à l’adresse email indiquée.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        image={images.contact}
+        eyebrow="Contact"
+        title="Parlons de votre activité."
+        subtitle="Une question sur Jokko Business, besoin d’un renseignement ou une difficulté à signaler ? Envoyez-nous votre message. Nous vous répondrons à l’adresse email indiquée."
+      />
 
       <section className="mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-[0.8fr_1.2fr] lg:gap-12">
         <aside className="space-y-6">

@@ -1,7 +1,9 @@
-import { ArrowRight, BookOpen, Headphones, Search } from "lucide-react";
+import { ArrowRight, Headphones, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { helpModules } from "../data/helpModules";
+import PageHero from "../components/public/PageHero";
+import { images } from "../data/publicImages";
 
 export default function HelpPage() {
   const [query, setQuery] = useState("");
@@ -19,53 +21,36 @@ export default function HelpPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <section className="border-b border-slate-200 bg-slate-50">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-end lg:gap-16 lg:py-20">
-          <div>
-            <div className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700">
-              <BookOpen size={17} aria-hidden="true" />
-              Centre d'aide Jokko Business
-            </div>
-            <h1 className="mt-5 max-w-3xl text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
-              Les bons repères pour gérer votre boutique.
-            </h1>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-slate-600">
-              Retrouvez les explications des principales rubriques de Jokko Business.
-              Choisissez un sujet pour consulter son guide étape par étape.
-            </p>
-
-            <label htmlFor="help-search" className="mt-8 block max-w-xl">
-              <span className="mb-2 block text-sm font-semibold text-slate-800">
-                Que recherchez-vous ?
-              </span>
-              <span className="flex items-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3.5 transition focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-600/15">
-                <Search size={19} className="shrink-0 text-slate-400" aria-hidden="true" />
-                <input
-                  id="help-search"
-                  type="search"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Ex. : caisse, produits, factures…"
-                  className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
-                />
-              </span>
-            </label>
-          </div>
-
-          <aside className="border-l-2 border-emerald-600 pl-5 lg:mb-1">
-            <p className="text-sm font-semibold text-slate-900">Besoin d'un échange direct ?</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Si un guide ne répond pas à votre question, notre équipe reste joignable.
-            </p>
-            <Link
-              to="/contact"
-              className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-emerald-700 transition hover:text-emerald-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-4"
-            >
+      <PageHero
+        image={images.help}
+        eyebrow="Centre d'aide Jokko Business"
+        title="Les bons repères pour gérer votre boutique."
+        subtitle="Retrouvez les explications des principales rubriques de Jokko Business. Choisissez un sujet pour consulter son guide étape par étape."
+      >
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <label htmlFor="help-search" className="block w-full max-w-xl">
+            <span className="mb-2 block text-sm font-semibold text-white">Que recherchez-vous ?</span>
+            <span className="flex items-center gap-3 rounded-xl border border-white/20 bg-white px-4 py-3.5 transition focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/30">
+              <Search size={19} className="shrink-0 text-slate-400" aria-hidden="true" />
+              <input
+                id="help-search"
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Ex. : caisse, produits, factures…"
+                className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+              />
+            </span>
+          </label>
+          <aside className="max-w-xs border-l-2 border-emerald-400 pl-5">
+            <p className="text-sm font-semibold text-white">Besoin d'un échange direct ?</p>
+            <p className="mt-2 text-sm leading-6 text-slate-300">Si un guide ne répond pas à votre question, notre équipe reste joignable.</p>
+            <Link to="/contact" className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-emerald-300 transition hover:text-emerald-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
               Contacter l'équipe <ArrowRight size={16} aria-hidden="true" />
             </Link>
           </aside>
         </div>
-      </section>
+      </PageHero>
 
       <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16">
         <div className="flex flex-col gap-2 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
