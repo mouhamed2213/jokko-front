@@ -6,8 +6,11 @@ import {
   Crown,
   TrendingUp,
   Users,
+  Hourglass,
+  AlertTriangle,
+  CreditCard,
 } from "lucide-react";
-import { getPlatformStats } from "../../services";
+import { getPlatformStats, getSubscriptionOverviewStats, type SubscriptionOverviewStats } from "../../services";
 
 interface PlatformStats {
   totalShops: number;
@@ -68,9 +71,13 @@ const planColors: Record<string, string> = {
 
 export default function SuperAdminDashboard() {
   const [stats, setStats] = useState<PlatformStats | null>(null);
+  const [subscriptionOverview, setSubscriptionOverview] = useState<SubscriptionOverviewStats | null>(null);
 
   useEffect(() => {
     getPlatformStats().then(setStats).catch(() => setStats(null));
+    getSubscriptionOverviewStats()
+      .then(setSubscriptionOverview)
+      .catch(() => setSubscriptionOverview(null));
   }, []);
 
   if (!stats) {
@@ -85,8 +92,11 @@ export default function SuperAdminDashboard() {
   const freeCount = stats.subscriptionsByPlan.FREE ?? 0;
   const payingShops = totalShops - freeCount;
   const arpu = payingShops > 0 ? Math.round(stats.mrr / payingShops) : 0;
-  const trialCount = stats.subscriptionsByStatus.TRIAL ?? 0;
-  const activeCount = stats.subscriptionsByStatus.ACTIVE ?? 0;
+  const trialCount = subscriptionOverview?.subscriptionsByStatus.TRIAL ?? stats.subscriptionsByStatus.TRIAL ?? 0;
+  const activeCount = subscriptionOverview?.subscriptionsByStatus.ACTIVE ?? stats.subscriptionsByStatus.ACTIVE ?? 0;
+  const gracePeriodCount = subscriptionOverview?.gracePeriodCount ?? stats.subscriptionsByStatus.GRACE_PERIOD ?? 0;
+  const expiredCount = subscriptionOverview?.expiredCount ?? 0;
+  const pendingPaymentsCount = subscriptionOverview?.pendingSubscriptionPayments ?? 0;
   const trialShare = totalShops > 0 ? Math.round((trialCount / totalShops) * 100) : 0;
 
   const now = new Date();
@@ -129,6 +139,27 @@ export default function SuperAdminDashboard() {
           value={String(trialCount)}
           sublabel={`${trialShare}% de la base`}
           accent="bg-violet-50 text-violet-600"
+        />
+        <StatCard
+          icon={Hourglass}
+          label="En période de grâce"
+          value={String(gracePeriodCount)}
+          sublabel={`Délai configuré : ${subscriptionOverview?.gracePeriodDays ?? 5} jour(s)`}
+          accent="bg-amber-50 text-amber-700"
+        />
+        <StatCard
+          icon={AlertTriangle}
+          label="Abonnements expirés"
+          value={String(expiredCount)}
+          sublabel="Passés au forfait Essentielle"
+          accent="bg-red-50 text-red-600"
+        />
+        <StatCard
+          icon={CreditCard}
+          label="Paiements en attente"
+          value={String(pendingPaymentsCount)}
+          sublabel="Demandes de renouvellement à traiter"
+          accent="bg-orange-50 text-orange-600"
         />
       </div>
 
