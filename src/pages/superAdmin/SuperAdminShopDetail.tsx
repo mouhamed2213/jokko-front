@@ -49,6 +49,8 @@ type ShopDetail = {
     status: string;
     startDate: string;
     endDate: string | null;
+    gracePeriodEndsAt?: string | null;
+    gracePeriodDaysRemaining?: number;
     plan: {
       code: string;
       name: string;
@@ -110,6 +112,7 @@ const planBadge: Record<string, string> = {
 const subStatusBadge: Record<string, string> = {
   ACTIVE: "bg-emerald-50 text-emerald-600",
   TRIAL: "bg-violet-50 text-violet-600",
+  GRACE_PERIOD: "bg-amber-50 text-amber-700",
   EXPIRED: "bg-red-50 text-red-600",
   TRIAL_EXPIRED: "bg-red-50 text-red-600",
   SUSPENDED: "bg-slate-100 text-slate-500",
@@ -239,6 +242,7 @@ export default function SuperAdminShopDetail() {
   };
 
   const isArchived = shop?.status === "ARCHIVED";
+  const canRenewCurrentPlan = shop?.subscription?.status === "GRACE_PERIOD";
 
   const handleArchiveToggle = async () => {
     if (!shop) return;
@@ -433,9 +437,14 @@ export default function SuperAdminShopDetail() {
                       subStatusBadge[shop.subscription.status] ?? "bg-gray-100 text-gray-500"
                     }`}
                   >
-                    {shop.subscription.status}
+                    {shop.subscription.status === "GRACE_PERIOD" ? "Période de grâce" : shop.subscription.status}
                   </span>
                 </div>
+                {shop.subscription.status === "GRACE_PERIOD" && (
+                  <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    La boutique conserve toutes les fonctionnalités de ce forfait pendant encore {shop.subscription.gracePeriodDaysRemaining ?? 0} jour(s). Fin de grâce : {shop.subscription.gracePeriodEndsAt ? new Date(shop.subscription.gracePeriodEndsAt).toLocaleString("fr-FR") : "—"}.
+                  </p>
+                )}
                 <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
                   <div>
                     <p className="text-gray-400">Prix</p>
@@ -767,11 +776,11 @@ export default function SuperAdminShopDetail() {
               </button>
               <button
                 onClick={handleChangePlan}
-                disabled={changingPlan || !selectedPlan || selectedPlan === shop.subscription?.plan.code}
+                disabled={changingPlan || !selectedPlan || (selectedPlan === shop.subscription?.plan.code && !canRenewCurrentPlan)}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
               >
                 {changingPlan && <Loader2 size={14} className="animate-spin" />}
-                Confirmer
+                {selectedPlan === shop.subscription?.plan.code && canRenewCurrentPlan ? "Enregistrer le renouvellement" : "Confirmer"}
               </button>
             </div>
           </div>
