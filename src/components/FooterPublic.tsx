@@ -23,7 +23,7 @@ export default function FooterPublic() {
           <ul className="space-y-3 text-sm">
             <li><Link className="transition hover:text-white" to="/">Accueil</Link></li>
             <li><Link className="transition hover:text-white" to="/#features">Fonctionnalités</Link></li>
-            <li><Link className="transition hover:text-white" to="/#pricing">Abonnements</Link></li>
+            <li><Link className="transition hover:text-white" to="/tarifs">Tarifs</Link></li>
             <li><Link className="transition hover:text-white" to="/help">Guide d'utilisation</Link></li>
           </ul>
         </div>
