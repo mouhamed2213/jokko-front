@@ -108,6 +108,7 @@ export default function SuperAdminDashboard() {
     (s) => new Date(s.createdAt) >= sevenDaysAgo,
   ).length;
 
+  const recentSubscriptions = subscriptionOverview?.recentSubscriptions ?? stats.recentSubscriptions;
   const planEntries = Object.entries(subscriptionsByPlan);
   const maxPlanCount = Math.max(...planEntries.map(([, c]) => c), 1);
 
@@ -243,7 +244,7 @@ export default function SuperAdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {stats.recentSubscriptions.slice(0, 8).map((sub) => (
+              {recentSubscriptions.slice(0, 8).map((sub) => (
                 <tr key={sub.id} className="border-t border-gray-50">
                   <td className="py-2 font-medium text-slate-900">{sub.shop.name}</td>
                   <td className="py-2 text-gray-500">{sub.plan.name}</td>
@@ -252,7 +253,11 @@ export default function SuperAdminDashboard() {
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                         sub.status === "TRIAL"
                           ? "bg-violet-50 text-violet-600"
-                          : "bg-emerald-50 text-emerald-600"
+                          : sub.status === "GRACE_PERIOD"
+                            ? "bg-amber-50 text-amber-700"
+                            : sub.status === "EXPIRED" || sub.status === "TRIAL_EXPIRED"
+                              ? "bg-red-50 text-red-600"
+                              : "bg-emerald-50 text-emerald-600"
                       }`}
                     >
                       {sub.status}
