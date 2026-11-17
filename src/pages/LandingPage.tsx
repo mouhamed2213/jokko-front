@@ -275,7 +275,7 @@ export default function LandingPage() {
             <div className="relative overflow-hidden rounded-[1.7rem] border border-white/20 bg-white text-slate-900 shadow-2xl shadow-black/40">
               <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
                 <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-red-500" /><span className="h-2.5 w-2.5 rounded-full bg-amber-400" /><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /></div>
-                <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Aperçu de votre espace</span>
+                
                 <Store size={17} className="text-emerald-700" />
               </div>
               <div className="bg-slate-50 p-5 sm:p-7">
