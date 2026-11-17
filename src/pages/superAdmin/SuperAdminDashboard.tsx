@@ -91,7 +91,8 @@ export default function SuperAdminDashboard() {
   const totalShops = stats.totalShops;
   const freeCount = stats.subscriptionsByPlan.FREE ?? 0;
   const payingShops = totalShops - freeCount;
-  const arpu = payingShops > 0 ? Math.round(stats.mrr / payingShops) : 0;
+  const mrr = subscriptionOverview?.mrr ?? stats.mrr;
+  const arpu = payingShops > 0 ? Math.round(mrr / payingShops) : 0;
   const trialCount = subscriptionOverview?.subscriptionsByStatus.TRIAL ?? stats.subscriptionsByStatus.TRIAL ?? 0;
   const activeCount = subscriptionOverview?.subscriptionsByStatus.ACTIVE ?? stats.subscriptionsByStatus.ACTIVE ?? 0;
   const gracePeriodCount = subscriptionOverview?.gracePeriodCount ?? stats.subscriptionsByStatus.GRACE_PERIOD ?? 0;
@@ -122,7 +123,7 @@ export default function SuperAdminDashboard() {
         <StatCard
           icon={Wallet}
           label="MRR"
-          value={`${stats.mrr.toLocaleString("fr-FR")} FCFA`}
+          value={`${mrr.toLocaleString("fr-FR")} FCFA`}
           sublabel={`ARPU : ${arpu.toLocaleString("fr-FR")} FCFA / boutique`}
           accent="bg-sky-50 text-sky-600"
         />
