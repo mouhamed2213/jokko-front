@@ -237,52 +237,67 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white font-sans antialiased text-slate-800">
       {/* ── HERO ── */}
-      <section className="bg-emerald-50/60 border-b border-emerald-100 px-6 py-20 sm:py-28 text-center">
-        <div className="mx-auto max-w-3xl">
-          <div className="inline-flex items-center gap-2 bg-white border border-emerald-200 text-emerald-700 text-xs font-medium px-4 py-1.5 rounded-full mb-6 shadow-sm">
-            <MapPin size={13} /> Conçu pour les commerçants sénégalais
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-tight mb-5">
-            Gérez votre commerce
-            <br />
-            <span className="text-emerald-600">en toute simplicité</span>
-          </h1>
-          <p className="text-base sm:text-lg text-slate-600 max-w-xl mx-auto mb-8 leading-relaxed">
-            Stocks, ventes, clients, caisse , fournisseurs — tout dans une seule
-            application. Accessible 24h/24 depuis votre téléphone ou votre
-            ordinateur.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-            <button
-              onClick={() => navigate("/login")}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-emerald-700 transition shadow-sm"
-            >
-              Commencer gratuitement <ArrowRight size={17} />
-            </button>
-            <button
-              onClick={() => navigate("/help")}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white border border-slate-300 text-slate-700 font-semibold px-6 py-3 rounded-lg hover:bg-slate-50 transition shadow-sm"
-            >
-              <HelpCircle size={17} className="text-emerald-600" /> Guide
-              d'utilisation
-            </button>
+      <section className="relative isolate overflow-hidden bg-slate-950 text-white">
+        <div className="absolute inset-0 -z-20 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=2200&q=85')" }} />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/55" />
+        <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[1.05fr_0.95fr] lg:py-32">
+          <div className="max-w-2xl">
+            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold tracking-wide text-white backdrop-blur">
+              <MapPin size={14} className="text-red-300" /> La gestion commerciale pensée pour les commerces du Sénégal
+            </div>
+            <h1 className="text-4xl font-black leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
+              Votre commerce mérite une gestion <span className="text-red-400">plus claire.</span>
+            </h1>
+            <p className="mt-6 max-w-xl text-base leading-8 text-slate-200 sm:text-lg">
+              Ventes, stocks, caisse, clients et fournisseurs : retrouvez les outils essentiels de votre boutique dans un seul espace, accessible depuis votre ordinateur ou votre téléphone.
+            </p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <button onClick={() => navigate("/register")} className="inline-flex items-center justify-center gap-3 rounded-full bg-red-700 px-7 py-4 text-sm font-extrabold text-white shadow-xl shadow-red-950/30 transition hover:-translate-y-0.5 hover:bg-red-600">
+                Créer mon compte gratuitement <ArrowRight size={17} />
+              </button>
+              <button onClick={() => navigate("/help")} className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-7 py-4 text-sm font-bold text-white backdrop-blur transition hover:bg-white/15">
+                Découvrir les fonctionnalités
+              </button>
+            </div>
+            <div className="mt-10 flex flex-wrap gap-x-7 gap-y-3 text-xs font-semibold text-slate-300">
+              <span className="inline-flex items-center gap-2"><Check size={15} className="text-red-300" /> Démarrage simple</span>
+              <span className="inline-flex items-center gap-2"><Check size={15} className="text-red-300" /> Offre gratuite disponible</span>
+              <span className="inline-flex items-center gap-2"><Check size={15} className="text-red-300" /> Sans installation</span>
+            </div>
           </div>
 
-          {/* Stats */}
-          <div className="mt-14 flex flex-wrap justify-center gap-10">
-            {[
-              { num: "8", label: "Modules complets" },
-              { num: "24/7", label: "Disponibilité cloud" },
-              { num: "4", label: "Plans tarifaires" },
-              { num: "100%", label: "En ligne & mobile" },
-            ].map(({ num, label }) => (
-              <div key={label} className="text-center">
-                <p className="text-3xl font-bold text-emerald-600">{num}</p>
-                <p className="text-xs font-medium text-slate-500 mt-1">
-                  {label}
-                </p>
+          <div className="relative mx-auto w-full max-w-xl">
+            <div className="absolute -inset-5 rounded-[2rem] bg-red-600/20 blur-3xl" />
+            <div className="relative overflow-hidden rounded-[1.7rem] border border-white/20 bg-white text-slate-900 shadow-2xl shadow-black/40">
+              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-red-500" /><span className="h-2.5 w-2.5 rounded-full bg-amber-400" /><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /></div>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Aperçu de votre espace</span>
+                <Store size={17} className="text-red-700" />
               </div>
-            ))}
+              <div className="bg-slate-50 p-5 sm:p-7">
+                <div className="flex items-start justify-between gap-3">
+                  <div><p className="text-xs font-semibold text-slate-500">Tableau de bord</p><h2 className="mt-1 text-xl font-extrabold tracking-tight">Vue d'ensemble</h2></div>
+                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-bold text-emerald-700">En activité</span>
+                </div>
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-slate-100 bg-white p-4"><div className="flex items-center justify-between"><span className="text-[11px] font-semibold text-slate-500">Ventes du jour</span><ShoppingCart size={15} className="text-red-700" /></div><p className="mt-3 text-2xl font-black">128 500 <span className="text-xs font-bold text-slate-500">FCFA</span></p><p className="mt-1 text-[10px] text-slate-400">Suivi des encaissements</p></div>
+                  <div className="rounded-2xl border border-slate-100 bg-white p-4"><div className="flex items-center justify-between"><span className="text-[11px] font-semibold text-slate-500">Produits</span><Package size={15} className="text-red-700" /></div><p className="mt-3 text-2xl font-black">248</p><p className="mt-1 text-[10px] text-slate-400">Catalogue de la boutique</p></div>
+                </div>
+                <div className="mt-3 rounded-2xl border border-slate-100 bg-white p-4">
+                  <div className="flex items-center justify-between"><span className="text-xs font-bold text-slate-700">Activité commerciale</span><span className="text-[10px] font-semibold text-slate-400">Exemple d'interface</span></div>
+                  <div className="mt-5 flex h-28 items-end gap-2">
+                    {[38,56,45,72,60,88,67,100,78,91,70,84].map((height,index)=><div key={index} className="flex-1 rounded-t-md bg-gradient-to-t from-red-800 to-red-500" style={{height:`${height}%`}} />)}
+                  </div>
+                  <div className="mt-2 flex justify-between text-[9px] font-semibold text-slate-400"><span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span></div>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <div className="rounded-xl bg-white p-3 text-center"><Wallet size={16} className="mx-auto text-red-700"/><p className="mt-1 text-[10px] font-bold">Caisse</p></div>
+                  <div className="rounded-xl bg-white p-3 text-center"><Users size={16} className="mx-auto text-red-700"/><p className="mt-1 text-[10px] font-bold">Clients</p></div>
+                  <div className="rounded-xl bg-white p-3 text-center"><BarChart3 size={16} className="mx-auto text-red-700"/><p className="mt-1 text-[10px] font-bold">Rapports</p></div>
+                </div>
+              </div>
+            </div>
+            <p className="relative mt-4 text-center text-[11px] font-medium text-white/60">Illustration indicative de l'interface Jokko Business</p>
           </div>
         </div>
       </section>
@@ -560,6 +575,18 @@ export default function LandingPage() {
         </div>
       </section> */}
 
+      <section id="faq" className="border-y border-slate-200 bg-slate-50 px-5 py-20 sm:px-8">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-10 text-center">
+            <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-red-700">Questions fréquentes</p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950">Les réponses avant de vous lancer</h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {faqs.map(({q,a})=><article key={q} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h3 className="font-extrabold text-slate-900">{q}</h3><p className="mt-3 text-sm leading-7 text-slate-600">{a}</p></article>)}
+          </div>
+        </div>
+      </section>
+
       {/* ── CTA BANNER ── */}
       <section className="px-6 py-12">
         <div className="mx-auto max-w-5xl bg-emerald-600 rounded-2xl px-8 py-14 text-center text-white shadow-xl">
@@ -594,102 +621,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer className="bg-slate-900 text-slate-400 px-6 py-12 text-left">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 mb-10">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center shadow-md">
-                  <Store size={18} className="text-white" />
-                </div>
-                <span className="text-white font-bold text-lg tracking-tight">
-                  Jokko Business
-                </span>
-              </div>
-              <p className="text-xs leading-relaxed max-w-xs text-slate-400">
-                La solution cloud de gestion commerciale moderne entièrement
-                pensée sur le terrain pour les commerçants du Sénégal.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
-                Produit
-              </h4>
-              <ul className="space-y-2.5 text-xs">
-                <li>
-                  <a href="#features" className="hover:text-white transition">
-                    Fonctionnalités
-                  </a>
-                </li>
-                <li>
-                  <a href="#pricing" className="hover:text-white transition">
-                    Tarification
-                  </a>
-                </li>
-                <li>
-                  <button
-                    onClick={() => navigate("/help")}
-                    className="hover:text-white transition text-left"
-                  >
-                    Centre d'aide & Guides
-                  </button>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
-                Entreprise
-              </h4>
-              <ul className="space-y-2.5 text-xs">
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    À propos
-                  </a>
-                </li>
-                <li>
-                  <a href="/contact" className="hover:text-white transition">
-                    Contactez-nous
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
-                Contact
-              </h4>
-              <ul className="space-y-3 text-xs">
-                <li className="flex items-center gap-2">
-                  <Phone size={13} className="text-emerald-400 shrink-0" />
-                  <a
-                    href="tel:+221783333838"
-                    className="hover:text-white transition"
-                  >
-                    +221 78 333 38 38
-                  </a>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Mail size={13} className="text-emerald-400 shrink-0" />
-                  <a
-                    href={`mailto:${SUPPORT_EMAIL}`}
-                    className="hover:text-white transition"
-                  >
-                    {SUPPORT_EMAIL}
-                  </a>
-                </li>
-                <li className="flex items-center gap-2">
-                  <MapPin size={13} className="text-emerald-400 shrink-0" />
-                  <span>Dakar, Sénégal</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-slate-800 pt-6 flex flex-wrap justify-between gap-3 text-[11px] text-slate-500 font-medium">
-            <span>© 2026 Jokko Business. Tous droits réservés.</span>
-            <span>Fait avec soin au Sénégal</span>
-          </div>
-        </div>
-      </footer>
+
     </div>
   );
 }

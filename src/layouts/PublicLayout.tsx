@@ -1,20 +1,13 @@
 import { Outlet } from "react-router-dom";
 import { HeaderPublic } from "../components/HeaderPublic";
-// import FooterPublic from "../components/FooterPublic"; 
+import FooterPublic from "../components/FooterPublic";
 
 export default function PublicLayout() {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans antialiased">
-      {/* Barre de navigation publique (commune à la Landing et à la Formation) */}
+    <div className="flex min-h-screen flex-col bg-white font-sans antialiased text-slate-900">
       <HeaderPublic />
-
-      {/* Contenu dynamique de la page (LandingPage ou FormationPage) */}
-      <main className="grow">
-        <Outlet />
-      </main>
-
-      {/* Pied de page public commun */}
-      {/* <FooterPublic /> */}
+      <main className="grow"><Outlet /></main>
+      <FooterPublic />
     </div>
   );
-} 
+}
