@@ -14,7 +14,6 @@ import {
   Wallet,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { SUPPORT_EMAIL } from "../services";
 
 const features = [
   {
