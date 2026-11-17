@@ -350,9 +350,11 @@ export default function Settings() {
                   className={`font-semibold text-sm ${
                     isTrialing
                       ? "text-blue-800"
-                      : (isExpired || isTrialExpired)
-                        ? "text-red-800"
-                        : "text-emerald-800"
+                      : isGracePeriod
+                        ? "text-amber-800"
+                        : (isExpired || isTrialExpired)
+                          ? "text-red-800"
+                          : "text-emerald-800"
                   }`}
                 >
                   Plan {currentPlan?.name ?? "Gratuit"}
@@ -366,9 +368,11 @@ export default function Settings() {
                   className={`text-xs mt-0.5 ${
                     isTrialing
                       ? "text-blue-600"
-                      : (isExpired || isTrialExpired)
-                        ? "text-red-600"
-                        : "text-emerald-600"
+                      : isGracePeriod
+                        ? "text-amber-700"
+                        : (isExpired || isTrialExpired)
+                          ? "text-red-600"
+                          : "text-emerald-600"
                   }`}
                 >
                   {isTrialing && daysRemaining !== null && (
