@@ -154,7 +154,7 @@ export default function SuperAdminDashboard() {
           icon={AlertTriangle}
           label="Abonnements expirés"
           value={String(expiredCount)}
-          sublabel="Passés au forfait Essentielle"
+          sublabel="Passés au forfait gratuit"
           accent="bg-red-50 text-red-600"
         />
         <StatCard
