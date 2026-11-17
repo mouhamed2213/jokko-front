@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { helpModules } from "../data/helpModules";
 
