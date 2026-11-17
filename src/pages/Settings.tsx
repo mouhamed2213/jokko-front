@@ -395,7 +395,7 @@ export default function Settings() {
                     <>
                       Votre abonnement est arrivé à échéance. Vous conservez toutes les fonctionnalités jusqu'au{" "}
                       {subscriptionInfo?.gracePeriodEndsAt
-                        ? new Date(subscriptionInfo.gracePeriodEndsAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+                        ? new Date(subscriptionInfo.gracePeriodEndsAt).toLocaleString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })
                         : "terme de la période de grâce"}
                       {" "}({subscriptionInfo?.gracePeriodDaysRemaining ?? 0} jour(s) restant(s)).
                     </>
