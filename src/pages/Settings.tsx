@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { api } from "../services/api";
 import { getStoredUser } from "../types/auth";
-import { SUPPORT_EMAIL } from "../services";
+import { SUPPORT_EMAIL, getSubscription } from "../services";
 
 type Plan = {
   id: number;
@@ -32,7 +32,7 @@ type Plan = {
 
 type Subscription = {
   id: number;
-  status: "TRIAL" | "ACTIVE" | "EXPIRED" | "TRIAL_EXPIRED";
+  status: "TRIAL" | "ACTIVE" | "EXPIRED" | "TRIAL_EXPIRED" | "GRACE_PERIOD";
   startDate: string;
   endDate: string | null;
   plan: Plan;
@@ -134,6 +134,7 @@ export default function Settings() {
   const isAdmin = user?.role === "ADMIN";
 
   const [shop, setShop] = useState<ShopInfo | null>(null);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<Awaited<ReturnType<typeof getSubscription>> | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -174,6 +175,7 @@ export default function Settings() {
 
   useEffect(() => {
     fetchShop();
+    getSubscription().then(setSubscriptionInfo).catch(() => undefined);
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -251,14 +253,36 @@ export default function Settings() {
   // // const testSubsStatut = { ...cSubs, status: "TRIAL_EXPIRED" };
   // // const subscription = testSubsStatut;
 
-  const subscription = shop?.subscriptions?.[0] ?? null;
+  const storedSubscription = shop?.subscriptions?.[0] ?? null;
+  const subscription = storedSubscription
+    ? {
+        ...storedSubscription,
+        status: subscriptionInfo?.status ?? storedSubscription.status,
+        endDate: subscriptionInfo?.endDate
+          ? String(subscriptionInfo.endDate)
+          : storedSubscription.endDate,
+        plan: subscriptionInfo
+          ? {
+              ...storedSubscription.plan,
+              code: subscriptionInfo.plan.code as Plan["code"],
+              name: subscriptionInfo.plan.name,
+              maxSalesPerMonth: subscriptionInfo.limits.sales,
+              maxProducts: subscriptionInfo.limits.products,
+              maxCustomers: subscriptionInfo.limits.customers,
+              maxUsers: subscriptionInfo.limits.users ?? 0,
+              maxStores: subscriptionInfo.limits.stores ?? 0,
+            }
+          : storedSubscription.plan,
+      }
+    : null;
 
   const currentPlan = subscription?.plan ?? null;
   const currentPlanCode = currentPlan?.code ?? "FREE";
   const currentPlanIndex = getPlanIndex(currentPlanCode);
   const daysRemaining = getDaysRemaining(subscription?.endDate ?? null);
-  const isActive = subscription?.status === "ACTIVE"; // current active subscription
-  const isExpired = subscription?.status === "EXPIRED"; // cureent subscription EXPIRED
+  const isActive = subscription?.status === "ACTIVE";
+  const isGracePeriod = subscription?.status === "GRACE_PERIOD";
+  const isExpired = subscription?.status === "EXPIRED";
   const isTrialing = subscription?.status === "TRIAL";
   const isTrialExpired = subscription?.status === "TRIAL_EXPIRED";
 
@@ -292,9 +316,11 @@ export default function Settings() {
             className={`px-6 py-4 flex items-center justify-between ${
               isTrialing
                 ? "bg-blue-50 border-b border-blue-100"
-                : isExpired || isTrialExpired 
-                  ? "bg-red-50 border-b border-red-100"
-                  : "bg-emerald-50 border-b border-emerald-100"
+                : isGracePeriod
+                  ? "bg-amber-50 border-b border-amber-100"
+                  : isExpired || isTrialExpired
+                    ? "bg-red-50 border-b border-red-100"
+                    : "bg-emerald-50 border-b border-emerald-100"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -302,13 +328,17 @@ export default function Settings() {
                 className={`w-9 h-9 rounded-xl flex items-center justify-center ${
                   isTrialing
                     ? "bg-blue-100"
-                    : (isExpired || isTrialExpired) 
-                      ? "bg-red-100"
-                      : "bg-emerald-100"
+                    : isGracePeriod
+                      ? "bg-amber-100"
+                      : (isExpired || isTrialExpired)
+                        ? "bg-red-100"
+                        : "bg-emerald-100"
                 }`}
               >
                 {isTrialing ? (
                   <Clock size={18} className="text-blue-600" />
+                ) : isGracePeriod ? (
+                  <Clock size={18} className="text-amber-700" />
                 ) : isExpired || isTrialExpired ? (
                   <AlertTriangle size={18} className="text-red-600" />
                 ) : (
@@ -328,6 +358,7 @@ export default function Settings() {
                   Plan {currentPlan?.name ?? "Gratuit"}
                   {isTrialing && " — Période d'essai"}
                   {isActive && " — Actif"}
+                  {isGracePeriod && " — Période de grâce"}
                   {isExpired && " — Expiré"}
                   {isTrialExpired && " — Fin période d'essai"}
                 </p>
@@ -354,6 +385,15 @@ export default function Settings() {
                         "fr-FR",
                         { day: "numeric", month: "long", year: "numeric" },
                       )}
+                    </>
+                  )}
+                  {isGracePeriod && (
+                    <>
+                      Votre abonnement est arrivé à échéance. Vous conservez toutes les fonctionnalités jusqu'au{" "}
+                      {subscriptionInfo?.gracePeriodEndsAt
+                        ? new Date(subscriptionInfo.gracePeriodEndsAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+                        : "terme de la période de grâce"}
+                      {" "}({subscriptionInfo?.gracePeriodDaysRemaining ?? 0} jour(s) restant(s)).
                     </>
                   )}
                   {isActive && !subscription.endDate && (
