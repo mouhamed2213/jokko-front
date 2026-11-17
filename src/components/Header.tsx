@@ -64,7 +64,7 @@ function getSubscriptionAlert(
     const days = subscription.gracePeriodDaysRemaining ?? 0;
     return {
       title: "Votre abonnement est en période de grâce :",
-      text: `Votre formule ${subscription.plan.name} a expiré. Vous conservez toutes ses fonctionnalités pendant encore ${days} jour${days > 1 ? "s" : ""}. Renouvelez avant la fin de ce délai pour éviter le passage au forfait Essentielle.`,
+      text: `Votre formule ${subscription.plan.name} a expiré. Vous conservez toutes ses fonctionnalités pendant encore ${days} jour${days > 1 ? "s" : ""}. Renouvelez avant la fin de ce délai pour éviter le passage au forfait gratuit.`,
       type: "warning",
     };
   }
@@ -72,7 +72,7 @@ function getSubscriptionAlert(
   if (subscription.status === "TRIAL_EXPIRED") {
     return {
       title: "Votre période d'essai est terminée :",
-      text: "Votre boutique fonctionne désormais avec le forfait Essentielle. Choisissez un forfait payant pour retrouver les fonctionnalités correspondantes.",
+      text: "Votre boutique fonctionne désormais avec le forfait gratuit. Choisissez un forfait payant pour retrouver les fonctionnalités correspondantes.",
       type: "danger",
     };
   }
@@ -80,7 +80,7 @@ function getSubscriptionAlert(
   if (subscription.status === "EXPIRED") {
     return {
       title: "Votre abonnement payant est terminé :",
-      text: "Votre boutique fonctionne désormais avec le forfait Essentielle. Choisissez un forfait payant pour retrouver les fonctionnalités correspondantes.",
+      text: "Votre boutique fonctionne désormais avec le forfait gratuit. Choisissez un forfait payant pour retrouver les fonctionnalités correspondantes.",
       type: "danger",
     };
   }
@@ -95,7 +95,7 @@ function getSubscriptionAlert(
   if (daysRemaining <= 0) {
     return {
       title: "Abonnement arrivé à échéance :",
-      text: "La période de grâce est terminée. Votre boutique utilise maintenant le forfait Essentielle.",
+      text: "La période de grâce est terminée. Votre boutique utilise maintenant le forfait gratuit.",
       type: "danger",
     };
   }
