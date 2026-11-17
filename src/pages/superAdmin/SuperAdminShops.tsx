@@ -294,10 +294,13 @@ export default function SuperAdminShops() {
 
                     <td className="px-5 py-3 text-gray-500">
                       {shop.subscription?.endDate
-                        ? new Date(
-                            shop.subscription.endDate,
-                          ).toLocaleDateString("fr-FR")
+                        ? new Date(shop.subscription.endDate).toLocaleDateString("fr-FR")
                         : "—"}
+                      {shop.subscription?.status === "GRACE_PERIOD" && shop.subscription.gracePeriodEndsAt && (
+                        <span className="mt-1 block text-[10px] text-amber-700">
+                          Grâce jusqu'au {new Date(shop.subscription.gracePeriodEndsAt).toLocaleString("fr-FR")}
+                        </span>
+                      )}
                     </td>
 
                     <td className="px-5 py-3">
