@@ -30,22 +30,22 @@ export default function MaintenanceGate({ children }: { children: React.ReactNod
 
   if (isAdminArea) return <>{children}</>;
   if (state === "checking") {
-    return <div className="flex min-h-screen items-center justify-center bg-slate-950 text-sm text-white/70">Vérification de la disponibilité...</div>;
+    return <div className="flex min-h-screen items-center justify-center bg-ink text-sm text-white/70">Vérification de la disponibilité...</div>;
   }
   if (state === "maintenance") {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 py-12 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-ink px-6 py-12 text-white">
         <section className="w-full max-w-xl text-center">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-400/10 text-amber-300">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-sun text-ink">
             <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2m0 14v2M3 12h2m14 0h2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42m0-12.72-1.42 1.42m-9.88 9.88-1.42 1.42" />
               <circle cx="12" cy="12" r="6" />
             </svg>
           </div>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">Jokko Business</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-ink">Jokko Business</p>
           <h1 className="mt-4 text-3xl font-bold sm:text-4xl">Nous revenons bientôt</h1>
-          <p className="mx-auto mt-4 max-w-lg whitespace-pre-wrap leading-7 text-slate-300">{message || "La plateforme est temporairement indisponible pour maintenance."}</p>
-          <p className="mt-8 text-sm text-slate-500">Merci de votre patience.</p>
+          <p className="mx-auto mt-4 max-w-lg whitespace-pre-wrap leading-7 text-ink/35">{message || "La plateforme est temporairement indisponible pour maintenance."}</p>
+          <p className="mt-8 text-sm text-ink/60">Merci de votre patience.</p>
         </section>
       </main>
     );

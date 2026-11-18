@@ -8,11 +8,11 @@ import type { Sale } from "../types/index";
 import { exportSalesToExcel } from "../utils/exportExcel";
 import { exportSalesPDF } from "../utils/exportPDF";
 
-const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
+const fmt = (v: number) => `${v.toLocaleString("fr-FR").replace(/\u202f/g, " ")} FCFA`;
 
 const statusBadge: Record<string, string> = {
-  PAID: "bg-emerald-100 text-emerald-700",
-  PARTIAL: "bg-yellow-100 text-yellow-700",
+  PAID: "bg-jokko/10 text-jokko-deep",
+  PARTIAL: "bg-sun/20 text-ink",
   UNPAID: "bg-red-100 text-red-700",
 };
 const statusLabel: Record<string, string> = {
@@ -75,16 +75,16 @@ export default function SalesHistory() {
     <section className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">
+          <h1 className="text-xl font-bold text-ink">
             Historique des ventes
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-ink/60 mt-0.5">
             Retrouvez toutes vos ventes et leurs factures.
           </p>
         </div>
         <Link
           to="/sales"
-          className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700"
+          className="rounded-xl bg-jokko px-4 py-2.5 text-sm font-medium text-white transition hover:bg-jokko-deep"
         >
           + Nouvelle vente
         </Link>
@@ -95,7 +95,7 @@ export default function SalesHistory() {
         <div className="relative flex-1 min-w-45">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/45"
           />
           <input
             type="text"
@@ -105,7 +105,7 @@ export default function SalesHistory() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full rounded-xl border border-gray-300 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-emerald-500"
+            className="w-full rounded-xl border border-ink/20 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-jokko"
           />
         </div>
         <select
@@ -114,7 +114,7 @@ export default function SalesHistory() {
             setStatusFilter(e.target.value);
             setPage(1);
           }}
-          className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+          className="rounded-xl border border-ink/20 px-4 py-2.5 text-sm outline-none focus:border-jokko"
         >
           <option value="">Toutes les ventes</option>
           <option value="PAID">Payées</option>
@@ -124,14 +124,14 @@ export default function SalesHistory() {
         <div className="flex gap-2">
           <button
             onClick={() => exportSalesToExcel(sales, user)}
-            className="flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm transition border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
+            className="flex items-center gap-1.5 rounded-full border px-3 py-2.5 text-sm transition border-ink/20 text-ink/75 hover:bg-cream cursor-pointer"
           >
             <Download size={15} />
             <span>Excel</span>
           </button>
           <button
             onClick={() => exportSalesPDF(sales, user)}
-            className="flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm transition border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
+            className="flex items-center gap-1.5 rounded-full border px-3 py-2.5 text-sm transition border-ink/20 text-ink/75 hover:bg-cream cursor-pointer"
           >
             <Download size={15} />
             <span>PDF</span>
@@ -140,15 +140,15 @@ export default function SalesHistory() {
       </div>
 
       {/* Stats */}
-      <p className="text-sm text-gray-500">{total} vente(s)</p>
+      <p className="text-sm text-ink/60">{total} vente(s)</p>
 
       {/* Liste ventes */}
       {loading ? (
-        <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
+        <div className="rounded-2xl bg-paper p-8 text-center text-ink/45">
           Chargement...
         </div>
       ) : !sales.length ? (
-        <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
+        <div className="rounded-2xl bg-paper p-8 text-center text-ink/45">
           Aucune vente trouvée.
         </div>
       ) : (
@@ -156,12 +156,12 @@ export default function SalesHistory() {
           {sales.map((sale) => (
             <div
               key={sale.id}
-              className="rounded-2xl bg-white px-5 py-4 shadow-sm"
+              className="rounded-3xl border border-ink/10 bg-paper px-5 py-4"
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-ink">
                       {sale.items.map((item) => item.productName).join(", ")}
                     </p>
                     <span
@@ -170,19 +170,19 @@ export default function SalesHistory() {
                       {statusLabel[sale.status]}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-0.5">
+                  <p className="text-sm text-ink/60 mt-0.5">
                     {sale.client?.name ||
                       sale.customerName ||
                       "Client non précisé"}{" "}
                     • {new Date(sale.createdAt).toLocaleDateString("fr-FR")}
                   </p>
-                  <div className="mt-1 text-xs text-gray-400">
+                  <div className="mt-1 text-xs text-ink/45">
                     {sale.items.reduce((sum, item) => sum + item.quantity, 0)} article(s) • Total :{" "}
-                    <strong className="text-slate-700">
+                    <strong className="text-ink/75">
                       {fmt(sale.totalAmount)}
                     </strong>{" "}
                     • Payé :{" "}
-                    <strong className="text-emerald-600">
+                    <strong className="text-jokko-deep">
                       {fmt(sale.paidAmount)}
                     </strong>
                     {sale.remaining > 0 && (
@@ -201,14 +201,14 @@ export default function SalesHistory() {
                     onClick={() => {
                       window.location.href = `/invoices?search=${encodeURIComponent(sale.invoiceNumber || String(sale.id))}`;
                     }}
-                    className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100"
+                    className="rounded-full border border-jokko/25 bg-jokko/10 px-3 py-1.5 text-xs font-medium text-jokko-deep transition hover:bg-jokko/10"
                   >
                     Voir la facture
                   </button>
                   {admin && (
                     <button
                       onClick={() => handleDeleteSale(sale.id)}
-                      className="rounded-lg border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50"
+                      className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50"
                     >
                       Annuler
                     </button>
@@ -221,23 +221,23 @@ export default function SalesHistory() {
       )}
 
       {/* Pagination */}
-      <div className="flex items-center justify-between rounded-2xl bg-white px-5 py-3 shadow-sm">
+      <div className="flex items-center justify-between rounded-3xl border border-ink/10 bg-paper px-5 py-3">
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page === 1}
-          className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+          className="flex items-center gap-2 rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/75 hover:bg-cream disabled:opacity-30 disabled:cursor-not-allowed transition"
         >
           ← Précédent
         </button>
-        <span className="text-sm text-gray-500">
-          Page <strong className="text-slate-900">{page}</strong> sur{" "}
-          <strong className="text-slate-900">{totalPages}</strong>
-          <span className="ml-2 text-gray-400">({total} au total)</span>
+        <span className="text-sm text-ink/60">
+          Page <strong className="text-ink">{page}</strong> sur{" "}
+          <strong className="text-ink">{totalPages}</strong>
+          <span className="ml-2 text-ink/45">({total} au total)</span>
         </span>
         <button
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           disabled={page === totalPages}
-          className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+          className="flex items-center gap-2 rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/75 hover:bg-cream disabled:opacity-30 disabled:cursor-not-allowed transition"
         >
           Suivant →
         </button>
