@@ -162,7 +162,7 @@ export default function Header() {
   return (
     <header className="flex flex-col gap-4">
       {/* SECTION 1 : Infos de la page et profil utilisateur */}
-      <div className="rounded-2xl bg-slate-900 text-white px-6 py-4 shadow-sm flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="rounded-2xl bg-ink font-brand text-white px-6 py-4 shadow-sm flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="text-xl font-bold text-white">
             {currentPage.title}
@@ -174,10 +174,10 @@ export default function Header() {
         
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-slate-900">{user?.name}</p>
-            <p className="text-xs text-gray-400">
+            <p className="text-sm font-semibold text-white">{user?.name}</p>
+            <p className="text-xs text-white/55">
               {user?.role === "ADMIN" ? "Administrateur" : "Employe"} •{" "}
-              <span className="font-medium text-slate-600">{user?.shopName}</span>
+              <span className="font-medium text-white/80">{user?.shopName}</span>
             </p>
             <p className="text-xs capitalize text-gray-400">{currentDate}</p>
           </div>
