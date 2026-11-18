@@ -18,8 +18,8 @@ const roleLabel: Record<string, string> = {
   EMPLOYEE: "Employé",
 };
 const roleBadge: Record<string, string> = {
-  ADMIN: "bg-ink/5 text-ink",
-  EMPLOYEE: "bg-jokko/10 text-jokko-deep",
+  ADMIN: "bg-purple-100 text-purple-700",
+  EMPLOYEE: "bg-blue-100 text-blue-700",
 };
 
 export default function Users() {
@@ -129,7 +129,7 @@ export default function Users() {
 
   if (loading)
     return (
-      <div className="rounded-2xl bg-paper p-8 text-center text-ink/45">
+      <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
         Chargement...
       </div>
     );
@@ -145,7 +145,7 @@ export default function Users() {
           </div>
           <button
             onClick={() => setIsUpgradeModalOpen(true)}
-            className="shrink-0 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
+            className="shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
           >
             Augmenter la limite
           </button>
@@ -153,7 +153,7 @@ export default function Users() {
       )}
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-ink/60">{users.length} utilisateur(s) </p>
+        <p className="text-sm text-gray-500">{users.length} utilisateur(s) </p>
 
         {/*  */}
         <button
@@ -166,10 +166,10 @@ export default function Users() {
             setEditingId(null);
             setForm(emptyForm);
           }}
-          className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-white transition ${
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition ${
             limiteReached
-              ? "bg-sun hover:bg-sun shadow-sm"
-              : "bg-jokko hover:bg-jokko-deep" // Style normal
+              ? "bg-amber-600 hover:bg-amber-700 shadow-sm"
+              : "bg-emerald-600 hover:bg-emerald-700" // Style normal
           }`}
         >
           {limiteReached ? <Lock size={16} /> : <Plus size={16} />}
@@ -188,9 +188,9 @@ export default function Users() {
 
       {/* Formulaire */}
       {showForm && (
-        <div className="rounded-3xl border border-ink/10 bg-paper p-6">
+        <div className="rounded-2xl bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-lg font-bold text-ink">
+            <h3 className="text-lg font-bold text-slate-900">
               {editingId ? "Modifier l'utilisateur" : "Nouvel utilisateur"}
             </h3>
             <button
@@ -199,7 +199,7 @@ export default function Users() {
                 setEditingId(null);
               }}
             >
-              <X size={20} className="text-ink/45" />
+              <X size={20} className="text-gray-400" />
             </button>
           </div>
           <form
@@ -207,7 +207,7 @@ export default function Users() {
             className="grid grid-cols-1 gap-4 sm:grid-cols-2"
           >
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Nom complet *
               </label>
               <input
@@ -216,13 +216,13 @@ export default function Users() {
                 onChange={(e) =>
                   setForm((p) => ({ ...p, name: e.target.value }))
                 }
-                className="w-full rounded-xl border border-ink/20 px-4 py-3 text-sm outline-none focus:border-jokko"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500"
                 placeholder="Ex: Fatou Diallo"
                 required
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Email *
               </label>
               <input
@@ -232,13 +232,13 @@ export default function Users() {
                   setForm((p) => ({ ...p, email: e.target.value }))
                 }
                 disabled={!!editingId}
-                className="w-full rounded-xl border border-ink/20 px-4 py-3 text-sm outline-none focus:border-jokko disabled:bg-cream disabled:text-ink/45"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-400"
                 placeholder="email@boutique.com"
                 required={!editingId}
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Mot de passe{" "}
                 {editingId ? "(laisser vide pour ne pas changer)" : "*"}
               </label>
@@ -248,13 +248,13 @@ export default function Users() {
                 onChange={(e) =>
                   setForm((p) => ({ ...p, password: e.target.value }))
                 }
-                className="w-full rounded-xl border border-ink/20 px-4 py-3 text-sm outline-none focus:border-jokko"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500"
                 placeholder="••••••••"
                 required={!editingId}
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Rôle
               </label>
               <select
@@ -262,7 +262,7 @@ export default function Users() {
                 onChange={(e) =>
                   setForm((p) => ({ ...p, role: e.target.value }))
                 }
-                className="w-full rounded-xl border border-ink/20 px-4 py-3 text-sm outline-none focus:border-jokko"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500"
               >
                 <option value="EMPLOYEE">Employé</option>
                 <option value="ADMIN">Administrateur</option>
@@ -272,7 +272,7 @@ export default function Users() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded-full bg-jokko px-6 py-3 text-sm font-medium text-white hover:bg-jokko-deep disabled:opacity-60 transition"
+                className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 transition"
               >
                 {submitting
                   ? "Enregistrement..."
@@ -286,7 +286,7 @@ export default function Users() {
                   setShowForm(false);
                   setEditingId(null);
                 }}
-                className="rounded-full border border-ink/20 px-6 py-3 text-sm text-ink/75 hover:bg-cream"
+                className="rounded-xl border border-gray-300 px-6 py-3 text-sm text-gray-700 hover:bg-gray-50"
               >
                 Annuler
               </button>
@@ -297,8 +297,8 @@ export default function Users() {
 
       {/* Liste utilisateurs */}
       {!users.length ? (
-        <div className="rounded-2xl bg-paper p-8 text-center text-ink/45">
-          <UserCog size={40} className="mx-auto mb-3 text-ink/35" />
+        <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
+          <UserCog size={40} className="mx-auto mb-3 text-gray-300" />
           <p>Aucun utilisateur enregistré.</p>
         </div>
       ) : (
@@ -306,17 +306,17 @@ export default function Users() {
           {users.map((user) => (
             <div
               key={user.id}
-              className="rounded-3xl border border-ink/10 bg-paper px-5 py-4"
+              className="rounded-2xl bg-white px-5 py-4 shadow-sm"
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 {/* Avatar + infos */}
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-jokko/10 text-sm font-bold text-jokko-deep">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold text-ink truncate">
+                      <p className="font-semibold text-slate-900 truncate">
                         {user.name}
                       </p>
                       <span
@@ -325,14 +325,14 @@ export default function Users() {
                         {roleLabel[user.role]}
                       </span>
                     </div>
-                    <p className="text-sm text-ink/60 truncate">
+                    <p className="text-sm text-gray-500 truncate">
                       {user.email}
                     </p>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <p className="text-xs text-ink/45">
+                      <p className="text-xs text-gray-400">
                         Membre depuis {new Date(user.createdAt).toLocaleDateString("fr-FR")}
                       </p>
-                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${user.isActive ? "bg-jokko/10 text-jokko-deep" : "bg-red-100 text-red-700"}`}>
+                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${user.isActive ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
                         {user.isActive ? "Accès actif" : "Accès désactivé"}
                       </span>
                     </div>
@@ -344,7 +344,7 @@ export default function Users() {
                   {user.id !== Number(JSON.parse(localStorage.getItem("user") || "{}").id) && (
                     <button
                       onClick={() => handleToggleActive(user)}
-                      className={`flex items-center gap-1.5 rounded-full border px-3 py-2 text-xs transition ${user.isActive ? "border-sun/60 text-ink hover:bg-sun/20" : "border-jokko/25 text-jokko-deep hover:bg-jokko/10"}`}
+                      className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs transition ${user.isActive ? "border-amber-200 text-amber-700 hover:bg-amber-50" : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"}`}
                     >
                       <Power size={13} />
                       {user.isActive ? "Désactiver" : "Réactiver"}
@@ -362,14 +362,14 @@ export default function Users() {
                       setShowForm(true);
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    className="rounded-full border border-ink/20 px-3 py-2 text-xs text-ink/75 hover:bg-cream transition"
+                    className="rounded-xl border border-gray-300 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition"
                   >
                     Modifier
                   </button>
                   {user.role !== "ADMIN" && (
                     <button
                       onClick={() => handleDelete(user.id)}
-                      className="rounded-full border border-red-200 px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition"
+                      className="rounded-xl border border-red-200 px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition"
                     >
                       Supprimer
                     </button>

@@ -245,7 +245,7 @@ export default function Settings() {
 
   if (loading)
     return (
-      <div className="rounded-2xl bg-paper p-8 text-center text-ink/45">
+      <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
         Chargement...
       </div>
     );
@@ -300,61 +300,61 @@ export default function Settings() {
         ].map((s) => (
           <div
             key={s.label}
-            className="rounded-3xl border border-ink/10 bg-paper p-4 text-center"
+            className="rounded-2xl bg-white p-4 shadow-sm text-center"
           >
-            <p className="text-2xl font-bold text-ink">{s.value}</p>
-            <p className="mt-1 text-xs text-ink/60">{s.label}</p>
+            <p className="text-2xl font-bold text-slate-900">{s.value}</p>
+            <p className="mt-1 text-xs text-gray-500">{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* ── Bloc abonnement actuel ── */}
       {subscription && (
-        <div className="rounded-3xl border border-ink/10 bg-paper overflow-hidden">
+        <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
           {/* Header statut */}
           <div
             className={`px-6 py-4 flex items-center justify-between ${
               isTrialing
-                ? "bg-jokko/10 border-b border-jokko/25"
+                ? "bg-blue-50 border-b border-blue-100"
                 : isGracePeriod
-                  ? "bg-sun/20 border-b border-sun/60"
+                  ? "bg-amber-50 border-b border-amber-100"
                   : isExpired || isTrialExpired
                     ? "bg-red-50 border-b border-red-100"
-                    : "bg-jokko/10 border-b border-jokko/25"
+                    : "bg-emerald-50 border-b border-emerald-100"
             }`}
           >
             <div className="flex items-center gap-3">
               <div
                 className={`w-9 h-9 rounded-xl flex items-center justify-center ${
                   isTrialing
-                    ? "bg-jokko/10"
+                    ? "bg-blue-100"
                     : isGracePeriod
-                      ? "bg-sun/20"
+                      ? "bg-amber-100"
                       : (isExpired || isTrialExpired)
                         ? "bg-red-100"
-                        : "bg-jokko/10"
+                        : "bg-emerald-100"
                 }`}
               >
                 {isTrialing ? (
-                  <Clock size={18} className="text-jokko-deep" />
+                  <Clock size={18} className="text-blue-600" />
                 ) : isGracePeriod ? (
-                  <Clock size={18} className="text-ink" />
+                  <Clock size={18} className="text-amber-700" />
                 ) : isExpired || isTrialExpired ? (
                   <AlertTriangle size={18} className="text-red-600" />
                 ) : (
-                  <Zap size={18} className="text-jokko-deep" />
+                  <Zap size={18} className="text-emerald-600" />
                 )}
               </div>
               <div>
                 <p
                   className={`font-semibold text-sm ${
                     isTrialing
-                      ? "text-jokko-deep"
+                      ? "text-blue-800"
                       : isGracePeriod
-                        ? "text-ink"
+                        ? "text-amber-800"
                         : (isExpired || isTrialExpired)
                           ? "text-red-800"
-                          : "text-jokko-deep"
+                          : "text-emerald-800"
                   }`}
                 >
                   Plan {currentPlan?.name ?? "Gratuit"}
@@ -367,12 +367,12 @@ export default function Settings() {
                 <p
                   className={`text-xs mt-0.5 ${
                     isTrialing
-                      ? "text-jokko-deep"
+                      ? "text-blue-600"
                       : isGracePeriod
-                        ? "text-ink"
+                        ? "text-amber-700"
                         : (isExpired || isTrialExpired)
                           ? "text-red-600"
-                          : "text-jokko-deep"
+                          : "text-emerald-600"
                   }`}
                 >
                   {isTrialing && daysRemaining !== null && (
@@ -416,12 +416,12 @@ export default function Settings() {
             <span
               className={`text-xs font-bold px-3 py-1 rounded-full ${
                 currentPlanCode === "FREE"
-                  ? "bg-ink/5 text-ink/70"
+                  ? "bg-slate-100 text-slate-600"
                   : currentPlanCode === "BASIC"
-                    ? "bg-jokko/10 text-jokko-deep"
+                    ? "bg-emerald-100 text-emerald-700"
                     : currentPlanCode === "PRO"
-                      ? "bg-jokko/10 text-jokko-deep"
-                      : "bg-ink/5 text-ink"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-purple-100 text-purple-700"
               }`}
             >
               {currentPlan?.name ?? "Gratuit"}
@@ -429,14 +429,14 @@ export default function Settings() {
           </div>
 
           {isGracePeriod && (
-            <div className="flex flex-col gap-3 border-b border-sun/60 bg-sun/20 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-ink">
+            <div className="flex flex-col gap-3 border-b border-amber-100 bg-amber-50/60 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-amber-900">
                 Pour conserver votre formule {currentPlan?.name}, demandez son renouvellement avant la fin de la période de grâce.
               </p>
               <button
                 type="button"
                 onClick={() => navigate(`/contact?subject=${encodeURIComponent(`Renouvellement du forfait ${currentPlan?.name ?? ""}`)}`)}
-                className="shrink-0 rounded-full bg-sun px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sun"
+                className="shrink-0 rounded-xl bg-amber-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-800"
               >
                 Demander le renouvellement
               </button>
@@ -445,7 +445,7 @@ export default function Settings() {
 
           {/* Limites du plan actuel */}
           {currentPlan && (
-            <div className="px-6 py-4 grid grid-cols-2 gap-3 sm:grid-cols-4 border-b border-ink/10">
+            <div className="px-6 py-4 grid grid-cols-2 gap-3 sm:grid-cols-4 border-b border-slate-100">
               {[
                 {
                   label: "Utilisateurs",
@@ -477,10 +477,10 @@ export default function Settings() {
                 },
               ].map((item) => (
                 <div key={item.label} className="text-center">
-                  <p className="text-base font-bold text-ink">
+                  <p className="text-base font-bold text-slate-900">
                     {item.value}
                   </p>
-                  <p className="text-xs text-ink/45 mt-0.5">{item.label}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{item.label}</p>
                 </div>
               ))}
             </div>
@@ -489,7 +489,7 @@ export default function Settings() {
           {/* CTA upgrade si pas Premium */}
           {currentPlanCode !== "PREMIUM" && (
             <div className="px-6 py-4">
-              <p className="text-xs font-semibold text-ink/60 uppercase tracking-wider mb-3">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
                 {isExpired
                   ? "Réactivez votre abonnement"
                   : "Passer à un plan supérieur"}
@@ -502,10 +502,10 @@ export default function Settings() {
                     key={plan.code}
                     className={`rounded-xl border p-4 cursor-pointer hover:shadow-sm transition ${
                       plan.code === "BASIC"
-                        ? "border-jokko/25 bg-jokko/10"
+                        ? "border-emerald-200 bg-emerald-50"
                         : plan.code === "PRO"
-                          ? "border-jokko/25 bg-jokko/10"
-                          : "border-ink/15 bg-ink/5"
+                          ? "border-blue-200 bg-blue-50"
+                          : "border-purple-200 bg-purple-50"
                     }`}
                     onClick={() =>
                       navigate(`/contact?subject=${encodeURIComponent(`Demande d'activation du plan ${plan.name}`)}`)
@@ -515,10 +515,10 @@ export default function Settings() {
                       <span
                         className={`text-sm font-bold ${
                           plan.code === "BASIC"
-                            ? "text-jokko-deep"
+                            ? "text-emerald-700"
                             : plan.code === "PRO"
-                              ? "text-jokko-deep"
-                              : "text-ink"
+                              ? "text-blue-700"
+                              : "text-purple-700"
                         }`}
                       >
                         {plan.name}
@@ -527,16 +527,16 @@ export default function Settings() {
                         size={14}
                         className={
                           plan.code === "BASIC"
-                            ? "text-jokko-deep"
+                            ? "text-emerald-500"
                             : plan.code === "PRO"
-                              ? "text-jokko-deep"
-                              : "text-ink"
+                              ? "text-blue-500"
+                              : "text-purple-500"
                         }
                       />
                     </div>
-                    <p className="text-lg font-bold text-ink">
-                      {plan.price.toLocaleString("fr-FR").replace(/\u202f/g, " ")}{" "}
-                      <span className="text-xs font-normal text-ink/60">
+                    <p className="text-lg font-bold text-slate-900">
+                      {plan.price.toLocaleString("fr-FR")}{" "}
+                      <span className="text-xs font-normal text-slate-500">
                         FCFA/mois
                       </span>
                     </p>
@@ -544,28 +544,28 @@ export default function Settings() {
                       {plan.features.slice(0, 3).map((f) => (
                         <li
                           key={f}
-                          className="flex items-center gap-1.5 text-xs text-ink/70"
+                          className="flex items-center gap-1.5 text-xs text-slate-600"
                         >
                           <Check
                             size={11}
-                            className="text-jokko-deep shrink-0"
+                            className="text-emerald-500 shrink-0"
                           />
                           {f}
                         </li>
                       ))}
                       {plan.features.length > 3 && (
-                        <li className="text-xs text-ink/45">
+                        <li className="text-xs text-slate-400">
                           +{plan.features.length - 3} autres...
                         </li>
                       )}
                     </ul>
                     <button
-                      className={`mt-3 w-full py-1.5 rounded-full text-xs font-semibold transition ${
+                      className={`mt-3 w-full py-1.5 rounded-lg text-xs font-semibold transition ${
                         plan.code === "BASIC"
-                          ? "bg-jokko text-white hover:bg-jokko-deep"
+                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
                           : plan.code === "PRO"
-                            ? "bg-jokko text-white hover:bg-jokko-deep"
-                            : "bg-ink text-white hover:bg-ink"
+                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                            : "bg-purple-600 text-white hover:bg-purple-700"
                       }`}
                     >
                       Passer au {plan.name}
@@ -573,16 +573,16 @@ export default function Settings() {
                   </div>
                 ))}
               </div>
-              <p className="mt-3 text-xs text-ink/45 text-center">
+              <p className="mt-3 text-xs text-gray-400 text-center">
                 Pour activer votre plan, contactez-nous par téléphone ou par email :{" "}
                 <a
                   href="tel:+221783333838"
-                  className="text-jokko-deep font-medium hover:underline"
+                  className="text-emerald-600 font-medium hover:underline"
                 >
                   +221 78 333 38 38
                 </a>{" "}
-                · <a href={`mailto:${SUPPORT_EMAIL}`} className="text-jokko-deep font-medium hover:underline">{SUPPORT_EMAIL}</a>{" "}
-                · <a href="/contact?subject=Demande%20d%27activation%20d%27un%20abonnement" className="text-jokko-deep font-medium hover:underline">Formulaire de contact</a>
+                · <a href={`mailto:${SUPPORT_EMAIL}`} className="text-emerald-600 font-medium hover:underline">{SUPPORT_EMAIL}</a>{" "}
+                · <a href="/contact?subject=Demande%20d%27activation%20d%27un%20abonnement" className="text-emerald-600 font-medium hover:underline">Formulaire de contact</a>
               </p>
             </div>
           )}
@@ -590,11 +590,11 @@ export default function Settings() {
       )}
 
       {/* ── Logo de la boutique ── */}
-      <div className="rounded-3xl border border-ink/10 bg-paper p-6">
-        <h3 className="mb-1 text-lg font-bold text-ink">
+      <div className="rounded-2xl bg-white p-6 shadow-sm">
+        <h3 className="mb-1 text-lg font-bold text-slate-900">
           Logo de la boutique
         </h3>
-        <p className="mb-5 text-sm text-ink/60">
+        <p className="mb-5 text-sm text-gray-500">
           Ce logo apparaîtra dans la barre latérale et sur toutes vos factures.
         </p>
 
@@ -607,8 +607,8 @@ export default function Settings() {
               ${isAdmin ? "cursor-pointer" : "cursor-default"}
               ${
                 logoPreview
-                  ? "border-jokko/25 bg-jokko/10"
-                  : "border-dashed border-ink/20 bg-cream hover:border-jokko"
+                  ? "border-emerald-300 bg-emerald-50"
+                  : "border-dashed border-gray-300 bg-gray-50 hover:border-emerald-400"
               }`}
           >
             {logoPreview ? (
@@ -618,14 +618,14 @@ export default function Settings() {
                 className="h-full w-full object-contain p-2"
               />
             ) : (
-              <div className="flex flex-col items-center gap-1 text-ink/45">
+              <div className="flex flex-col items-center gap-1 text-gray-400">
                 <Building2 size={28} />
                 <span className="text-xs text-center px-1">Pas de logo</span>
               </div>
             )}
             {uploading && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-2xl">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-jokko border-t-transparent" />
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
               </div>
             )}
           </div>
@@ -643,7 +643,7 @@ export default function Settings() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="flex items-center gap-2 rounded-full border border-ink/20 px-4 py-2.5 text-sm text-ink/75 hover:bg-cream disabled:opacity-50"
+                className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
               >
                 <Upload size={15} />
                 {uploading
@@ -657,16 +657,16 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={handleDeleteLogo}
-                  className="flex items-center gap-2 rounded-full border border-red-200 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                  className="flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
                 >
                   <Trash2 size={14} /> Supprimer le logo
                 </button>
               )}
 
-              <p className="text-xs text-ink/45">
+              <p className="text-xs text-gray-400">
                 JPG, PNG, WebP ou SVG — max 3MB
               </p>
-              <p className="text-xs text-jokko-deep font-medium">
+              <p className="text-xs text-emerald-600 font-medium">
                 💡 Le logo sera immédiatement visible sur vos nouvelles
                 factures.
               </p>
@@ -676,14 +676,14 @@ export default function Settings() {
       </div>
 
       {/* ── Informations de la boutique ── */}
-      <div className="rounded-3xl border border-ink/10 bg-paper p-6">
-        <h3 className="mb-1 text-lg font-bold text-ink">
+      <div className="rounded-2xl bg-white p-6 shadow-sm">
+        <h3 className="mb-1 text-lg font-bold text-slate-900">
           Informations de la boutique
         </h3>
-        <p className="mb-5 text-sm text-ink/60">
+        <p className="mb-5 text-sm text-gray-500">
           Ces informations apparaissent sur vos factures.
           {!isAdmin && (
-            <span className="ml-1 text-ink">
+            <span className="ml-1 text-orange-500">
               Seul l'administrateur peut modifier ces informations.
             </span>
           )}
@@ -692,8 +692,8 @@ export default function Settings() {
         <form onSubmit={handleSave} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">
-                <Building2 size={14} className="inline mr-1.5 text-ink/45" />
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                <Building2 size={14} className="inline mr-1.5 text-gray-400" />
                 Nom de la boutique *
               </label>
               <input
@@ -703,14 +703,14 @@ export default function Settings() {
                   setForm((p) => ({ ...p, name: e.target.value }))
                 }
                 disabled={!isAdmin}
-                className="w-full rounded-xl border border-ink/20 px-4 py-3 text-sm outline-none focus:border-jokko disabled:bg-cream disabled:text-ink/60"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
                 placeholder="Ex: Boutique Fatou"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">
-                <User size={14} className="inline mr-1.5 text-ink/45" />
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                <User size={14} className="inline mr-1.5 text-gray-400" />
                 Nom du propriétaire *
               </label>
               <input
@@ -720,14 +720,14 @@ export default function Settings() {
                   setForm((p) => ({ ...p, ownerName: e.target.value }))
                 }
                 disabled={!isAdmin}
-                className="w-full rounded-xl border border-ink/20 px-4 py-3 text-sm outline-none focus:border-jokko disabled:bg-cream disabled:text-ink/60"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
                 placeholder="Ex: Fatou Diallo"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">
-                <Phone size={14} className="inline mr-1.5 text-ink/45" />
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                <Phone size={14} className="inline mr-1.5 text-gray-400" />
                 Téléphone
               </label>
               <input
@@ -737,14 +737,14 @@ export default function Settings() {
                   setForm((p) => ({ ...p, phone: e.target.value }))
                 }
                 disabled={!isAdmin}
-                className="w-full rounded-xl border border-ink/20 px-4 py-3 text-sm outline-none focus:border-jokko disabled:bg-cream disabled:text-ink/60"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
                 placeholder="Ex: 77 000 00 00"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">
-                <MapPin size={14} className="inline mr-1.5 text-ink/45" />
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                <MapPin size={14} className="inline mr-1.5 text-gray-400" />
                 Adresse
               </label>
               <input
@@ -754,7 +754,7 @@ export default function Settings() {
                   setForm((p) => ({ ...p, address: e.target.value }))
                 }
                 disabled={!isAdmin}
-                className="w-full rounded-xl border border-ink/20 px-4 py-3 text-sm outline-none focus:border-jokko disabled:bg-cream disabled:text-ink/60"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
                 placeholder="Ex: Dakar, Sénégal"
               />
             </div>
@@ -762,16 +762,16 @@ export default function Settings() {
 
           {/* Email non modifiable */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-ink/75">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Email (identifiant de connexion)
             </label>
             <input
               type="email"
               value={shop?.email || ""}
               disabled
-              className="w-full rounded-xl border border-ink/10 bg-cream px-4 py-3 text-sm text-ink/60"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500"
             />
-            <p className="mt-1 text-xs text-ink/45">
+            <p className="mt-1 text-xs text-gray-400">
               L'email ne peut être modifié que par le Super Administrateur.
             </p>
           </div>
@@ -780,7 +780,7 @@ export default function Settings() {
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 rounded-full bg-jokko px-6 py-3 text-sm font-medium text-white hover:bg-jokko-deep disabled:opacity-60 transition"
+              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 transition"
             >
               <Save size={15} />
               {saving ? "Sauvegarde..." : "Sauvegarder les modifications"}

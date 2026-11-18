@@ -59,7 +59,7 @@ const emptySupplierForm = {
   unitCost: 0,
   paidAmount: 0,
 };
-const fmt = (v: number) => `${v.toLocaleString("fr-FR").replace(/\u202f/g, " ")} FCFA`;
+const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
 export default function Products() {
   const user = getStoredUser();
@@ -458,13 +458,13 @@ export default function Products() {
           className={`mb-4 flex items-center justify-between rounded-xl p-4 text-sm border ${
             limiteReached
               ? "bg-red-50 border-red-200 text-red-800"
-              : "bg-sun/20 border-sun/60 text-ink"
+              : "bg-amber-50 border-amber-200 text-amber-800"
           }`}
         >
           <div className="flex items-center gap-2">
             <AlertTriangle
               size={18}
-              className={limiteReached ? "text-red-600" : "text-ink"}
+              className={limiteReached ? "text-red-600" : "text-amber-600"}
             />
             <span>
               {limiteReached
@@ -480,7 +480,7 @@ export default function Products() {
             className={
               limiteReached
                 ? "shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
-                : "shrink-0 rounded-xl bg-sun px-4 py-2 text-sm font-medium text-white hover:bg-sun transition"
+                : "shrink-0 rounded-xl bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600 transition"
             }
           >
             Passer au plan supérieur
@@ -490,27 +490,27 @@ export default function Products() {
 
       {/* Produit signalé depuis une alerte de stock */}
       {highlightId && (
-        <div className="rounded-2xl border-2 border-jokko bg-jokko/10 p-4 shadow-sm">
+        <div className="rounded-2xl border-2 border-emerald-400 bg-emerald-50/60 p-4 shadow-sm">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wide text-jokko-deep">
+            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
               Produit signalé par une alerte de stock
             </span>
             <button
               type="button"
               onClick={clearHighlight}
-              className="text-ink/45 hover:text-ink/70"
+              className="text-gray-400 hover:text-gray-600"
             >
               <X size={16} />
             </button>
           </div>
           {loadingHighlight ? (
-            <p className="text-sm text-ink/60">Chargement...</p>
+            <p className="text-sm text-gray-500">Chargement...</p>
           ) : !highlightedProduct ? (
-            <p className="text-sm text-ink/60">Produit introuvable.</p>
+            <p className="text-sm text-gray-500">Produit introuvable.</p>
           ) : (
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-ink/5">
+                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-slate-100">
                   {highlightedProduct.imageUrl ? (
                     <img
                       src={highlightedProduct.imageUrl}
@@ -518,20 +518,20 @@ export default function Products() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-lg font-bold text-ink/35">
+                    <div className="flex h-full items-center justify-center text-lg font-bold text-slate-300">
                       {highlightedProduct.name.charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>
                 <div>
-                  <p className="font-semibold text-ink">
+                  <p className="font-semibold text-slate-900">
                     {highlightedProduct.name}
                   </p>
                   <p
                     className={`text-xs font-medium ${
                       highlightedProduct.quantity === 0
                         ? "text-red-600"
-                        : "text-ink"
+                        : "text-yellow-600"
                     }`}
                   >
                     {highlightedProduct.quantity === 0
@@ -543,14 +543,14 @@ export default function Products() {
               <div className="flex gap-2">
                 <button
                   onClick={() => openStockModal(highlightedProduct, "ENTRY")}
-                  className="flex items-center gap-1.5 rounded-full bg-jokko px-3 py-2 text-xs font-medium text-white hover:bg-jokko-deep"
+                  className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700"
                 >
                   <Plus size={13} /> Entrée
                 </button>
                 {admin && (
                   <button
                     onClick={() => handleEdit(highlightedProduct)}
-                    className="rounded-full border border-ink/20 px-3 py-2 text-xs font-medium text-ink/75 hover:bg-cream"
+                    className="rounded-xl border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Modifier
                   </button>
@@ -566,7 +566,7 @@ export default function Products() {
         <div className="relative flex-1 min-w-50">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/45"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
           />
           <input
             type="text"
@@ -576,7 +576,7 @@ export default function Products() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full rounded-xl border border-ink/20 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-jokko"
+            className="w-full rounded-xl border border-gray-300 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-emerald-500"
           />
         </div>
         <select
@@ -587,7 +587,7 @@ export default function Products() {
             );
             setPage(1);
           }}
-          className="rounded-xl border border-ink/20 px-4 py-2.5 text-sm outline-none focus:border-jokko"
+          className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
         >
           <option value="">Toutes catégories</option>
           {categories.map((c) => (
@@ -600,7 +600,7 @@ export default function Products() {
           <>
             <button
               onClick={() => setShowCategoryForm((v) => !v)}
-              className="rounded-full border border-ink/20 px-4 py-2.5 text-sm text-ink/75 hover:bg-cream"
+              className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
             >
               + Catégorie
             </button>
@@ -612,10 +612,10 @@ export default function Products() {
                 resetForm();
                 setShowForm(true);
               }}
-              className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-white transition ${
+              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition ${
                 limiteReached
-                  ? "bg-sun hover:bg-sun shadow-sm" // Style si limite atteinte
-                  : "bg-jokko hover:bg-jokko-deep" // Style normal
+                  ? "bg-amber-600 hover:bg-amber-700 shadow-sm" // Style si limite atteinte
+                  : "bg-emerald-600 hover:bg-emerald-700" // Style normal
               }`}
             >
               {limiteReached ? <Lock size={16} /> : <Plus size={16} />}
@@ -627,23 +627,23 @@ export default function Products() {
 
       {/* Nouvelle catégorie */}
       {showCategoryForm && (
-        <div className="flex items-center gap-3 rounded-3xl border border-ink/10 bg-paper p-4">
+        <div className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm">
           <input
             type="text"
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
             placeholder="Nom de la catégorie"
-            className="flex-1 rounded-xl border border-ink/20 px-4 py-2.5 text-sm outline-none focus:border-jokko"
+            className="flex-1 rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
           />
           <button
             onClick={handleCreateCategory}
-            className="rounded-full bg-jokko px-4 py-2.5 text-sm font-medium text-white"
+            className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white"
           >
             Créer
           </button>
           <button
             onClick={() => setShowCategoryForm(false)}
-            className="rounded-full border border-ink/20 px-4 py-2.5 text-sm text-ink/75"
+            className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700"
           >
             Annuler
           </button>
@@ -652,13 +652,13 @@ export default function Products() {
 
       {/* Formulaire produit */}
       {showForm && (
-        <div className="rounded-3xl border border-ink/10 bg-paper p-6">
+        <div className="rounded-2xl bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-lg font-bold text-ink">
+            <h3 className="text-lg font-bold text-slate-900">
               {editingId ? "Modifier le produit" : "Nouveau produit"}
             </h3>
             <button onClick={resetForm}>
-              <X size={20} className="text-ink/45" />
+              <X size={20} className="text-gray-400" />
             </button>
           </div>
 
@@ -666,7 +666,7 @@ export default function Products() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {/* ── Upload image ──────────────────────────── */}
               <div className="sm:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-ink/75">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Image du produit
                 </label>
                 <div className="flex items-start gap-4">
@@ -674,7 +674,7 @@ export default function Products() {
                   <div
                     onClick={() => !uploading && fileInputRef.current?.click()}
                     className={`relative flex h-32 w-32 shrink-0 cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed transition overflow-hidden
-                      ${imagePreview ? "border-jokko/25 bg-jokko/10" : "border-ink/20 bg-cream hover:border-jokko hover:bg-jokko/10"}`}
+                      ${imagePreview ? "border-emerald-300 bg-emerald-50" : "border-gray-300 bg-gray-50 hover:border-emerald-400 hover:bg-emerald-50"}`}
                   >
                     {imagePreview ? (
                       <img
@@ -683,14 +683,14 @@ export default function Products() {
                         className="h-full w-full object-cover rounded-2xl"
                       />
                     ) : (
-                      <div className="flex flex-col items-center gap-1 text-ink/45">
+                      <div className="flex flex-col items-center gap-1 text-gray-400">
                         <Upload size={24} />
                         <span className="text-xs">Cliquer pour uploader</span>
                       </div>
                     )}
                     {uploading && (
                       <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-white/80">
-                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-jokko border-t-transparent" />
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
                       </div>
                     )}
                   </div>
@@ -708,7 +708,7 @@ export default function Products() {
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploading}
-                      className="flex items-center gap-2 rounded-full border border-ink/20 px-4 py-2.5 text-sm text-ink/75 hover:bg-cream disabled:opacity-50"
+                      className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                     >
                       <Upload size={15} />
                       {uploading
@@ -722,20 +722,20 @@ export default function Products() {
                       <button
                         type="button"
                         onClick={handleRemoveImage}
-                        className="flex items-center gap-2 rounded-full border border-red-200 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                        className="flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
                       >
                         <Trash2 size={14} /> Supprimer l'image
                       </button>
                     )}
 
-                    <p className="text-xs text-ink/45">
+                    <p className="text-xs text-gray-400">
                       JPG, PNG ou WebP — max 5MB
                     </p>
 
                     {/* URL manuelle en fallback */}
                     {!imagePreview && (
                       <div>
-                        <p className="text-xs text-ink/45 mb-1">
+                        <p className="text-xs text-gray-400 mb-1">
                           Ou entrer une URL directe :
                         </p>
                         <input
@@ -748,7 +748,7 @@ export default function Products() {
                             }));
                             setImagePreview(e.target.value);
                           }}
-                          className="w-full rounded-xl border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
+                          className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
                           placeholder="https://..."
                         />
                       </div>
@@ -759,7 +759,7 @@ export default function Products() {
 
               {/* Nom */}
               <div className="sm:col-span-2">
-                <label className="mb-1 block text-sm font-medium text-ink/75">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Nom du produit *
                 </label>
                 <input
@@ -768,7 +768,7 @@ export default function Products() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, name: e.target.value }))
                   }
-                  className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                   placeholder="Ex: Chemise blanche taille M"
                   required
                 />
@@ -776,7 +776,7 @@ export default function Products() {
 
               {/* Référence */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-ink/75">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Référence
                 </label>
                 <input
@@ -785,14 +785,14 @@ export default function Products() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, reference: e.target.value }))
                   }
-                  className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                   placeholder="Ex: REF-001"
                 />
               </div>
 
               {/* Catégorie */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-ink/75">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Catégorie
                 </label>
                 <select
@@ -800,7 +800,7 @@ export default function Products() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, categoryId: e.target.value }))
                   }
-                  className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                 >
                   <option value="">Sans catégorie</option>
                   {categories.map((c) => (
@@ -813,7 +813,7 @@ export default function Products() {
 
               {/* Prix achat */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-ink/75">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Prix d'achat (FCFA) *
                 </label>
                 <input
@@ -827,14 +827,14 @@ export default function Products() {
                       purchasePrice: Number(e.target.value),
                     }))
                   }
-                  className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                   required
                 />
               </div>
 
               {/* Prix vente */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-ink/75">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Prix de vente conseillé (FCFA) *
                 </label>
                 <input
@@ -848,14 +848,14 @@ export default function Products() {
                       salePrice: Number(e.target.value),
                     }))
                   }
-                  className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                   required
                 />
               </div>
 
               {/* Quantité */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-ink/75">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   {editingId ? "Stock actuel" : "Quantité initiale"}
                 </label>
                 {editingId ? (
@@ -864,9 +864,9 @@ export default function Products() {
                       type="number"
                       value={form.quantity}
                       disabled
-                      className="w-full cursor-not-allowed rounded-xl border border-ink/10 bg-cream px-4 py-3 text-ink/60 outline-none"
+                      className="w-full cursor-not-allowed rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-500 outline-none"
                     />
-                    <p className="mt-1 text-xs text-ink/45">
+                    <p className="mt-1 text-xs text-gray-400">
                       Utilisez les boutons Entrée / Sortie sur la fiche produit
                       pour ajuster le stock.
                     </p>
@@ -883,14 +883,14 @@ export default function Products() {
                         quantity: Number(e.target.value),
                       }))
                     }
-                    className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                   />
                 )}
               </div>
 
               {/* Seuil alerte */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-ink/75">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Seuil d'alerte
                 </label>
                 <input
@@ -904,30 +904,30 @@ export default function Products() {
                       alertThreshold: Number(e.target.value),
                     }))
                   }
-                  className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                 />
               </div>
 
               {/* Description */}
               {/* Niveaux tarifaires */}
               <div className="sm:col-span-2">
-                <div className="rounded-xl border border-dashed border-jokko/25 bg-jokko/10 p-4 space-y-4">
+                <div className="rounded-xl border border-dashed border-emerald-300 bg-emerald-50 p-4 space-y-4">
                   <div>
-                    <p className="text-sm font-semibold text-jokko-deep">
+                    <p className="text-sm font-semibold text-emerald-800">
                       Niveaux tarifaires
                     </p>
-                    <p className="text-xs text-jokko-deep mt-0.5">
+                    <p className="text-xs text-emerald-600 mt-0.5">
                       Optionnel — le prix sera suggéré automatiquement selon la
                       quantité à la vente.
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-xl bg-paper p-3 space-y-2 border border-ink/10">
-                      <p className="text-xs font-semibold text-jokko-deep uppercase tracking-wide">
+                    <div className="rounded-xl bg-white p-3 space-y-2 border border-gray-200">
+                      <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">
                         Demi-gros
                       </p>
                       <div>
-                        <label className="mb-1 block text-xs text-ink/70">
+                        <label className="mb-1 block text-xs text-gray-600">
                           Qté minimum
                         </label>
                         <input
@@ -940,12 +940,12 @@ export default function Products() {
                               semiWholesaleMinQty: e.target.value,
                             }))
                           }
-                          className="w-full rounded-lg border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
                           placeholder="Ex: 10"
                         />
                       </div>
                       <div>
-                        <label className="mb-1 block text-xs text-ink/70">
+                        <label className="mb-1 block text-xs text-gray-600">
                           Prix demi-gros (FCFA)
                         </label>
                         <input
@@ -958,17 +958,17 @@ export default function Products() {
                               semiWholesalePrice: e.target.value,
                             }))
                           }
-                          className="w-full rounded-lg border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
                           placeholder="Ex: 850"
                         />
                       </div>
                     </div>
-                    <div className="rounded-xl bg-paper p-3 space-y-2 border border-ink/10">
-                      <p className="text-xs font-semibold text-ink uppercase tracking-wide">
+                    <div className="rounded-xl bg-white p-3 space-y-2 border border-gray-200">
+                      <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">
                         Gros
                       </p>
                       <div>
-                        <label className="mb-1 block text-xs text-ink/70">
+                        <label className="mb-1 block text-xs text-gray-600">
                           Qté minimum
                         </label>
                         <input
@@ -981,12 +981,12 @@ export default function Products() {
                               wholesaleMinQty: e.target.value,
                             }))
                           }
-                          className="w-full rounded-lg border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
                           placeholder="Ex: 50"
                         />
                       </div>
                       <div>
-                        <label className="mb-1 block text-xs text-ink/70">
+                        <label className="mb-1 block text-xs text-gray-600">
                           Prix gros (FCFA)
                         </label>
                         <input
@@ -999,7 +999,7 @@ export default function Products() {
                               wholesalePrice: e.target.value,
                             }))
                           }
-                          className="w-full rounded-lg border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
                           placeholder="Ex: 700"
                         />
                       </div>
@@ -1009,7 +1009,7 @@ export default function Products() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="mb-1 block text-sm font-medium text-ink/75">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Description
                 </label>
                 <textarea
@@ -1017,7 +1017,7 @@ export default function Products() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, description: e.target.value }))
                   }
-                  className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko min-h-[80px]"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 min-h-[80px]"
                   placeholder="Description optionnelle..."
                 />
               </div>
@@ -1050,7 +1050,7 @@ export default function Products() {
               <button
                 type="submit"
                 disabled={submitting || uploading}
-                className="rounded-full bg-jokko px-6 py-3 text-sm font-medium text-white hover:bg-jokko-deep disabled:opacity-60 transition"
+                className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 transition"
               >
                 {submitting
                   ? "Enregistrement..."
@@ -1061,7 +1061,7 @@ export default function Products() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="rounded-full border border-ink/20 px-6 py-3 text-sm text-ink/75 hover:bg-cream"
+                className="rounded-xl border border-gray-300 px-6 py-3 text-sm text-gray-700 hover:bg-gray-50"
               >
                 Annuler
               </button>
@@ -1070,14 +1070,14 @@ export default function Products() {
         </div>
       )}
 
-      <p className="text-sm text-ink/60">{total} produit(s)</p>
+      <p className="text-sm text-gray-500">{total} produit(s)</p>
       {/* Grille produits - Version Optimisée Mobile & Image */}
       {loading ? (
-        <div className="rounded-2xl bg-paper p-12 text-center text-ink/45 font-medium">
+        <div className="rounded-2xl bg-white p-12 text-center text-slate-400 font-medium">
           Chargement des produits...
         </div>
       ) : !products.length ? (
-        <div className="rounded-2xl bg-paper p-12 text-center text-ink/45 font-medium">
+        <div className="rounded-2xl bg-white p-12 text-center text-slate-400 font-medium">
           {search
             ? `Aucun résultat pour "${search}"`
             : "Aucun produit enregistré."}
@@ -1093,10 +1093,10 @@ export default function Products() {
             return (
               <div
                 key={product.id}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl bg-paper border border-ink/10 hover: transition-all"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md transition-all"
               >
                 {/* Top Bar : Conteneur Image avec fond dynamique flouté */}
-                <div className="relative h-40 w-full overflow-hidden bg-ink/5 flex items-center justify-center p-3">
+                <div className="relative h-40 w-full overflow-hidden bg-slate-100 flex items-center justify-center p-3">
                   {product.imageUrl ? (
                     <>
                       {/* 1. Image de fond floutée pour remplir les vides */}
@@ -1114,7 +1114,7 @@ export default function Products() {
                       />
                     </>
                   ) : (
-                    <span className="text-4xl font-extrabold text-ink/35">
+                    <span className="text-4xl font-extrabold text-slate-300">
                       {product.name.charAt(0).toUpperCase()}
                     </span>
                   )}
@@ -1125,7 +1125,7 @@ export default function Products() {
                       className={`absolute top-2 left-2 z-20 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                         isOut
                           ? "bg-red-500 text-white shadow-sm"
-                          : "bg-sun text-ink shadow-sm"
+                          : "bg-amber-400 text-amber-950 shadow-sm"
                       }`}
                     >
                       <AlertTriangle size={10} />
@@ -1138,14 +1138,14 @@ export default function Products() {
                     <div className="absolute top-2 right-2 z-20 flex gap-1 rounded-xl bg-white/90 p-1 shadow-sm backdrop-blur-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => handleEdit(product)}
-                        className="rounded-full p-1.5 text-ink/70 hover:bg-ink/5 active:bg-ink/10"
+                        className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 active:bg-slate-200"
                         title="Modifier"
                       >
                         <Pen size={15} color="green" />
                       </button>
                       <button
                         onClick={() => handleDelete(product.id)}
-                        className="rounded-full p-1.5 text-red-600 hover:bg-red-50 active:bg-red-100"
+                        className="rounded-lg p-1.5 text-red-600 hover:bg-red-50 active:bg-red-100"
                         title="Supprimer"
                       >
                         <Trash size={15} />
@@ -1158,35 +1158,35 @@ export default function Products() {
                 <div className="flex flex-1 flex-col justify-between p-3.5 space-y-3">
                   <div>
                     {/* Categorie & Ref */}
-                    <div className="flex items-center justify-between gap-1 text-[11px] text-ink/45">
-                      <span className="truncate font-medium text-jokko-deep">
+                    <div className="flex items-center justify-between gap-1 text-[11px] text-slate-400">
+                      <span className="truncate font-medium text-emerald-600">
                         {product.category?.name || "Sans catégorie"}
                       </span>
                       {product.reference && (
-                        <span className="font-mono text-ink/45">
+                        <span className="font-mono text-slate-400">
                           #{product.reference}
                         </span>
                       )}
                     </div>
 
                     {/* Titre */}
-                    <h4 className="mt-0.5 font-bold text-ink/80 text-sm leading-snug line-clamp-1">
+                    <h4 className="mt-0.5 font-bold text-slate-800 text-sm leading-snug line-clamp-1">
                       {product.name}
                     </h4>
                   </div>
 
                   {/* Grille des Prix (Compact Box) */}
-                  <div className="rounded-xl bg-cream p-2 space-y-1.5 border border-ink/10 text-xs">
+                  <div className="rounded-xl bg-slate-50 p-2 space-y-1.5 border border-slate-100 text-xs">
                     <div className="flex justify-between items-center">
-                      <span className="text-ink/60 text-[11px]">
+                      <span className="text-slate-500 text-[11px]">
                         Prix Détail
                       </span>
-                      <span className="font-extrabold text-ink text-sm">
+                      <span className="font-extrabold text-slate-900 text-sm">
                         {fmt(product.salePrice)}
                       </span>
                     </div>
 
-                    <div className="flex justify-between items-center text-[10px] text-ink/45 pt-1 border-t border-ink/10">
+                    <div className="flex justify-between items-center text-[10px] text-slate-400 pt-1 border-t border-slate-200/60">
                       <span>Prix Achat</span>
                       <span className="font-medium">
                         {fmt(product.purchasePrice)}
@@ -1195,9 +1195,9 @@ export default function Products() {
 
                     {/* Tarifs Spéciaux Conditionnels */}
                     {(product.semiWholesalePrice || product.wholesalePrice) && (
-                      <div className="pt-1 space-y-1 border-t border-ink/10 text-[10px]">
+                      <div className="pt-1 space-y-1 border-t border-slate-200/60 text-[10px]">
                         {product.semiWholesalePrice && (
-                          <div className="flex justify-between text-jokko-deep">
+                          <div className="flex justify-between text-blue-700">
                             <span>
                               Demi-gros (≥{product.semiWholesaleMinQty})
                             </span>
@@ -1207,7 +1207,7 @@ export default function Products() {
                           </div>
                         )}
                         {product.wholesalePrice && (
-                          <div className="flex justify-between text-ink">
+                          <div className="flex justify-between text-purple-700">
                             <span>Gros (≥{product.wholesaleMinQty})</span>
                             <span className="font-semibold">
                               {fmt(product.wholesalePrice)}
@@ -1221,7 +1221,7 @@ export default function Products() {
                   {/* Footer : Quantité + Actions Mouvement */}
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between text-xs px-1">
-                      <span className="text-ink/60 text-[11px]">
+                      <span className="text-slate-500 text-[11px]">
                         En stock:
                       </span>
                       <span
@@ -1229,8 +1229,8 @@ export default function Products() {
                           isOut
                             ? "text-red-600"
                             : isLow
-                              ? "text-ink"
-                              : "text-ink"
+                              ? "text-amber-600"
+                              : "text-slate-900"
                         }`}
                       >
                         {product.quantity} unité(s)
@@ -1240,14 +1240,14 @@ export default function Products() {
                     <div className="grid grid-cols-2 gap-1.5">
                       <button
                         onClick={() => openStockModal(product, "ENTRY")}
-                        className="flex items-center justify-center gap-1 rounded-full bg-jokko/10 py-2 text-xs font-semibold text-jokko-deep hover:bg-jokko/10 active:scale-95 transition"
+                        className="flex items-center justify-center gap-1 rounded-lg bg-emerald-50 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 active:scale-95 transition"
                       >
                         <Plus size={12} /> Entrée
                       </button>
                       <button
                         onClick={() => openStockModal(product, "OUT")}
                         disabled={product.quantity === 0}
-                        className="flex items-center justify-center gap-1 rounded-full bg-red-50 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 transition"
+                        className="flex items-center justify-center gap-1 rounded-lg bg-red-50 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 transition"
                       >
                         <Minus size={12} /> Sortie
                       </button>
@@ -1261,23 +1261,23 @@ export default function Products() {
       )}
 
       {/* Pagination */}
-      <div className="mt-4 flex items-center justify-between rounded-3xl bg-paper px-5 py-3 border border-ink/10">
+      <div className="mt-4 flex items-center justify-between rounded-2xl bg-white px-5 py-3 shadow-sm border border-slate-100">
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page === 1}
-          className="flex items-center gap-2 rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/75 hover:bg-cream disabled:opacity-30 disabled:cursor-not-allowed transition"
+          className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
         >
           ← Précédent
         </button>
-        <span className="text-sm text-ink/60">
-          Page <strong className="text-ink">{page}</strong> sur{" "}
-          <strong className="text-ink">{totalPages}</strong>
-          <span className="ml-2 text-ink/45">({total} au total)</span>
+        <span className="text-sm text-gray-500">
+          Page <strong className="text-slate-900">{page}</strong> sur{" "}
+          <strong className="text-slate-900">{totalPages}</strong>
+          <span className="ml-2 text-gray-400">({total} au total)</span>
         </span>
         <button
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           disabled={page === totalPages}
-          className="flex items-center gap-2 rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/75 hover:bg-cream disabled:opacity-30 disabled:cursor-not-allowed transition"
+          className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
         >
           Suivant →
         </button>
@@ -1291,21 +1291,21 @@ export default function Products() {
 
       {/* Modal Entrée / Sortie de stock */}
       {stockModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-paper p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-ink">
+              <h3 className="text-lg font-bold text-slate-900">
                 {stockModal.mode === "ENTRY"
                   ? "Entrée de stock"
                   : "Sortie de stock"}
               </h3>
               <button type="button" onClick={closeStockModal}>
-                <X size={20} className="text-ink/45 hover:text-ink/70" />
+                <X size={20} className="text-gray-400 hover:text-gray-600" />
               </button>
             </div>
 
             <div className="mt-4 flex items-center gap-3">
-              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-ink/5">
+              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-slate-100">
                 {stockModal.product.imageUrl ? (
                   <img
                     src={stockModal.product.imageUrl}
@@ -1313,16 +1313,16 @@ export default function Products() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-lg font-bold text-ink/35">
+                  <div className="flex h-full items-center justify-center text-lg font-bold text-slate-300">
                     {stockModal.product.name.charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
               <div>
-                <p className="font-semibold text-ink">
+                <p className="font-semibold text-slate-900">
                   {stockModal.product.name}
                 </p>
-                <p className="text-xs text-ink/45">
+                <p className="text-xs text-gray-400">
                   Stock actuel : {stockModal.product.quantity}
                 </p>
               </div>
@@ -1330,7 +1330,7 @@ export default function Products() {
 
             <form onSubmit={handleStockSubmit} className="mt-5 space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-ink/75">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   {stockModal.mode === "ENTRY"
                     ? "Quantité à ajouter *"
                     : "Quantité à retirer *"}
@@ -1346,20 +1346,20 @@ export default function Products() {
                   onFocus={(e) => e.target.select()}
                   value={stockQty}
                   onChange={(e) => setStockQty(Number(e.target.value))}
-                  className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-ink/75">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   {stockModal.mode === "ENTRY" ? "Note" : "Raison"}
                 </label>
                 <textarea
                   value={stockNote}
                   onFocus={(e) => e.target.select()}
                   onChange={(e) => setStockNote(e.target.value)}
-                  className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko min-h-20"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 min-h-20"
                   placeholder={
                     stockModal.mode === "ENTRY"
                       ? "Ex: Réapprovisionnement..."
@@ -1387,9 +1387,9 @@ export default function Products() {
                 <button
                   type="submit"
                   disabled={submittingStock}
-                  className={`flex-1 rounded-full py-2.5 text-sm font-medium text-white transition disabled:opacity-60 ${
+                  className={`flex-1 rounded-xl py-2.5 text-sm font-medium text-white transition disabled:opacity-60 ${
                     stockModal.mode === "ENTRY"
-                      ? "bg-jokko hover:bg-jokko-deep"
+                      ? "bg-emerald-600 hover:bg-emerald-700"
                       : "bg-red-500 hover:bg-red-600"
                   }`}
                 >
@@ -1402,7 +1402,7 @@ export default function Products() {
                 <button
                   type="button"
                   onClick={closeStockModal}
-                  className="rounded-full border border-ink/20 px-4 py-2.5 text-sm text-ink/75 hover:bg-cream"
+                  className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                 >
                   Annuler
                 </button>

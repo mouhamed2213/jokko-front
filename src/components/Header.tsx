@@ -14,19 +14,19 @@ const pageConfig: Record<string, { title: string; description: string }> = {
   },
   "/products": {
     title: "Produits",
-    description: "Gérez vos produits et alertes de stock.",
+    description: "Gerez vos produits et alertes de stock.",
   },
   "/clients": {
     title: "Clients",
-    description: "Gérez vos clients et suivez leurs comptes.",
+    description: "Gerez vos clients et suivez leurs comptes.",
   },
   "/suppliers": {
     title: "Fournisseurs",
-    description: "Gérez vos fournisseurs et dettes.",
+    description: "Gerez vos fournisseurs et dettes.",
   },
   "/stock": {
     title: "Mouvements de stock",
-    description: "Historique complet des entrées, sorties et ventes.",
+    description: "Historique complet des entrees, sorties et ventes.",
   },
   "/sales": {
     title: "Ventes",
@@ -34,19 +34,16 @@ const pageConfig: Record<string, { title: string; description: string }> = {
   },
   "/invoices": {
     title: "Factures",
-    description: "Consultez, recherchez et gérez vos factures.",
+    description: "Consultez, recherchez et gerez vos factures.",
   },
-  "/cash": { title: "Caisse", description: "Gérez votre caisse journalière." },
+  "/cash": { title: "Caisse", description: "Gerez votre caisse journaliere." },
   "/users": {
     title: "Utilisateurs",
-    description: "Gérez les comptes de votre boutique.",
+    description: "Gerez les comptes de votre boutique.",
   },
-  "/analytics": { title: "Analytics", description: "Analysez vos ventes et vos performances." },
-  "/sales/history": { title: "Historique des ventes", description: "Retrouvez toutes les ventes enregistrées." },
-  "/account/security": { title: "Sécurité du compte", description: "Mot de passe et vérification de votre compte." },
   "/settings": {
-    title: "Paramètres",
-    description: "Gérez les informations et le logo de votre boutique.",
+    title: "Parametres",
+    description: "Gerez les informations et le logo de votre boutique.",
   },
 };
 
@@ -163,52 +160,55 @@ export default function Header() {
   };
 
   return (
-    <header className="flex flex-col gap-5">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <header className="flex flex-col gap-4">
+      {/* SECTION 1 : Infos de la page et profil utilisateur */}
+      <div className="rounded-2xl bg-slate-900 text-white px-6 py-4 shadow-sm flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/55 first-letter:uppercase">{currentDate}</p>
-          <h1 className="mt-2 text-3xl font-extrabold leading-tight tracking-[-0.03em] sm:text-4xl">
+          <h2 className="text-xl font-bold text-white">
             {currentPage.title}
-            <span className="-ml-[0.04em] text-sun">.</span>
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm text-ink/65">{currentPage.description}</p>
+          </h2>
+          <p className="mt-0.5 text-sm text-gray-400">
+            {currentPage.description}
+          </p>
         </div>
-
-        <div className="flex items-center gap-3 self-start lg:self-auto">
-          <div className="hidden text-right sm:block">
-            <p className="text-sm font-extrabold">{user?.name}</p>
-            <p className="text-xs text-ink/55">
-              {user?.role === "ADMIN" ? "Administrateur" : "Employé"} · {user?.shopName}
+        
+        <div className="flex items-center gap-3">
+          <div className="text-right hidden sm:block">
+            <p className="text-sm font-semibold text-slate-900">{user?.name}</p>
+            <p className="text-xs text-gray-400">
+              {user?.role === "ADMIN" ? "Administrateur" : "Employe"} •{" "}
+              <span className="font-medium text-slate-600">{user?.shopName}</span>
             </p>
+            <p className="text-xs capitalize text-gray-400">{currentDate}</p>
           </div>
-
+          
           <NotificationBell />
-
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-jokko text-sm font-extrabold text-white">
+          
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white shadow-inner">
             {user?.name?.charAt(0).toUpperCase() || "U"}
           </div>
-
+          
           <button
             type="button"
             onClick={logout}
-            className="inline-flex items-center gap-2 rounded-full border border-ink/20 px-4 py-2 text-sm font-bold transition hover:border-ink hover:bg-ink hover:text-white"
+            className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-3 py-2 text-sm font-medium text-white hover:bg-red-600 transition shadow-sm"
           >
             <LogOut size={15} />
-            <span className="hidden sm:inline">Déconnexion</span>
+            <span className="hidden sm:inline">Deconnexion</span>
           </button>
         </div>
       </div>
 
       {!emailVerifiedAt && (
-        <div className="flex flex-col gap-3 rounded-2xl border border-sun/60 bg-sun/20 px-5 py-4 text-sm text-ink sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <Mail size={19} className="mt-0.5 shrink-0 text-ink" />
+            <Mail size={19} className="mt-0.5 shrink-0 text-amber-700" />
             <div>
               <p className="font-semibold">Votre adresse email n'est pas encore vérifiée.</p>
-              <p className="mt-1 text-ink">Confirmez {emailStatus?.email || user?.email || "votre adresse"} pour sécuriser votre compte.</p>
+              <p className="mt-1 text-amber-800">Confirmez {emailStatus?.email || user?.email || "votre adresse"} pour sécuriser votre compte.</p>
             </div>
           </div>
-          <button type="button" onClick={handleResendVerification} disabled={resendingVerification} className="shrink-0 rounded-full bg-sun px-4 py-2 font-semibold text-white hover:bg-sun disabled:cursor-not-allowed disabled:opacity-60">
+          <button type="button" onClick={handleResendVerification} disabled={resendingVerification} className="shrink-0 rounded-lg bg-amber-900 px-4 py-2 font-semibold text-white hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-60">
             {resendingVerification ? "Envoi..." : "Renvoyer le lien"}
           </button>
         </div>
@@ -220,13 +220,13 @@ export default function Header() {
           className={`flex items-start gap-3 rounded-2xl border px-5 py-3.5 text-sm transition-all duration-300 animate-in fade-in slide-in-from-top-2 ${
             alertConfig.type === "danger"
               ? "border-red-200 bg-red-50 text-red-800"
-              : "border-sun/60 bg-sun/20 text-ink"
+              : "border-amber-200 bg-amber-50 text-amber-800"
           }`}
         >
           {alertConfig.type === "danger" ? (
             <AlertTriangle size={18} className="text-red-600 mt-0.5 shrink-0" />
           ) : (
-            <Clock size={18} className="text-ink mt-0.5 shrink-0" />
+            <Clock size={18} className="text-amber-600 mt-0.5 shrink-0" />
           )}
           
           <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -240,7 +240,7 @@ export default function Header() {
               className={`text-xs font-bold uppercase tracking-wider  shrink-0 whitespace-nowrap self-end sm:self-center cursor-pointer  text-black ${
                 alertConfig.type === "danger"
                   ? "text-red-950 hover:text-red-900"
-                  : "text-ink hover:text-ink"
+                  : "text-amber-950 hover:text-amber-900"
               }`}
             >
               Renouveler mon offre
