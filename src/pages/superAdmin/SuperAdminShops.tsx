@@ -45,19 +45,19 @@ type ShopsResponse = {
 };
 
 const planBadge: Record<string, string> = {
-  FREE: "bg-gray-100 text-gray-600",
-  BASIC: "bg-sky-50 text-sky-600",
-  PRO: "bg-emerald-50 text-emerald-600",
-  PREMIUM: "bg-amber-50 text-amber-600",
+  FREE: "bg-ink/5 text-ink/70",
+  BASIC: "bg-jokko/10 text-jokko-deep",
+  PRO: "bg-jokko/10 text-jokko",
+  PREMIUM: "bg-sun/20 text-ink",
 };
 
 const subStatusBadge: Record<string, string> = {
-  ACTIVE: "bg-emerald-50 text-emerald-600",
-  TRIAL: "bg-violet-50 text-violet-600",
-  GRACE_PERIOD: "bg-amber-50 text-amber-700",
+  ACTIVE: "bg-jokko/10 text-jokko",
+  TRIAL: "bg-ink/5 text-ink",
+  GRACE_PERIOD: "bg-sun/20 text-ink",
   EXPIRED: "bg-red-50 text-red-600",
   TRIAL_EXPIRED: "bg-red-50 text-red-600",
-  SUSPENDED: "bg-slate-100 text-slate-500",
+  SUSPENDED: "bg-ink/5 text-ink/60",
 };
 
 export default function SuperAdminShops() {
@@ -130,8 +130,7 @@ export default function SuperAdminShops() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Boutiques</h2>
-          <p className="mt-0.5 text-sm text-gray-500">
+          <p className="text-sm font-semibold text-ink/60">
             {pagination
               ? `${pagination.total} boutique(s) au total`
               : "Chargement..."}
@@ -140,25 +139,25 @@ export default function SuperAdminShops() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 rounded-2xl bg-paper p-4 shadow-sm sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/45"
           />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher par nom, email ou propriétaire..."
-            className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-emerald-500"
+            className="w-full rounded-xl border border-ink/10 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-jokko/100"
           />
         </div>
 
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500"
+          className="rounded-xl border border-ink/10 px-3 py-2.5 text-sm text-ink/75 outline-none focus:border-jokko/100"
         >
           <option value="">Tous les statuts</option>
           <option value="ACTIVE">Actif</option>
@@ -169,7 +168,7 @@ export default function SuperAdminShops() {
         <select
           value={planFilter}
           onChange={(e) => setPlanFilter(e.target.value)}
-          className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500"
+          className="rounded-xl border border-ink/10 px-3 py-2.5 text-sm text-ink/75 outline-none focus:border-jokko/100"
         >
           <option value="">Tous les plans</option>
           <option value="FREE">Free</option>
@@ -180,11 +179,11 @@ export default function SuperAdminShops() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
+      <div className="rounded-2xl bg-paper shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-xs uppercase tracking-wider text-gray-400">
+              <tr className="border-b border-ink/10 text-xs uppercase tracking-wider text-ink/45">
                 <th className="px-5 py-3">Boutique</th>
                 <th className="px-5 py-3">Contact</th>
                 <th className="px-5 py-3">Statut</th>
@@ -199,7 +198,7 @@ export default function SuperAdminShops() {
                 <tr>
                   <td
                     colSpan={7}
-                    className="px-5 py-8 text-center text-gray-400"
+                    className="px-5 py-8 text-center text-ink/45"
                   >
                     Chargement...
                   </td>
@@ -210,7 +209,7 @@ export default function SuperAdminShops() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-5 py-8 text-center text-gray-400"
+                    className="px-5 py-8 text-center text-ink/45"
                   >
                     Aucune boutique trouvée.
                   </td>
@@ -222,18 +221,18 @@ export default function SuperAdminShops() {
                   <tr
                     key={shop.id}
                     onClick={() => navigate(`/admin/shops/${shop.id}`)}
-                    className="border-b border-gray-50 transition hover:bg-slate-50/60 cursor-pointer"
+                    className="border-b border-ink/10 transition hover:bg-cream cursor-pointer"
                   >
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 shrink-0">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-jokko/10 text-jokko shrink-0">
                           <Store size={15} />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-medium text-slate-900 truncate">
+                          <p className="font-medium text-ink truncate">
                             {shop.name}
                           </p>
-                          <p className="text-xs text-gray-400 truncate">
+                          <p className="text-xs text-ink/45 truncate">
                             {shop.ownerName}
                           </p>
                         </div>
@@ -241,20 +240,20 @@ export default function SuperAdminShops() {
                     </td>
 
                     <td className="px-5 py-3">
-                      <p className="text-slate-700 truncate max-w-48">
+                      <p className="text-ink/75 truncate max-w-48">
                         {shop.email}
                       </p>
-                      <p className="text-xs text-gray-400">{shop.phone}</p>
+                      <p className="text-xs text-ink/45">{shop.phone}</p>
                     </td>
 
                     <td className="px-5 py-3">
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                           shop.status === "ACTIVE"
-                            ? "bg-emerald-50 text-emerald-600"
+                            ? "bg-jokko/10 text-jokko"
                             : shop.status === "ARCHIVED"
                               ? "bg-red-50 text-red-600"
-                              : "bg-slate-100 text-slate-500"
+                              : "bg-ink/5 text-ink/60"
                         }`}
                       >
                         {shop.status === "ARCHIVED" ? "ARCHIVÉE" : shop.status}
@@ -267,7 +266,7 @@ export default function SuperAdminShops() {
                           <span
                             className={`inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
                               planBadge[shop.subscription.plan.code] ??
-                              "bg-gray-100 text-gray-600"
+                              "bg-ink/5 text-ink/70"
                             }`}
                           >
                             <Crown size={10} />
@@ -276,35 +275,35 @@ export default function SuperAdminShops() {
                           <span
                             className={`inline-flex w-fit rounded-full px-2 py-0.5 text-[10px] font-medium ${
                               subStatusBadge[shop.subscription.status] ??
-                              "bg-gray-100 text-gray-500"
+                              "bg-ink/5 text-ink/60"
                             }`}
                           >
                             {shop.subscription.status === "GRACE_PERIOD" ? "Période de grâce" : shop.subscription.status}
                           </span>
                           {shop.subscription.status === "GRACE_PERIOD" && (
-                            <span className="text-[10px] text-amber-700">
+                            <span className="text-[10px] text-ink">
                               {shop.subscription.gracePeriodDaysRemaining ?? 0} jour(s) restant(s)
                             </span>
                           )}
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-300">—</span>
+                        <span className="text-xs text-ink/25">—</span>
                       )}
                     </td>
 
-                    <td className="px-5 py-3 text-gray-500">
+                    <td className="px-5 py-3 text-ink/60">
                       {shop.subscription?.endDate
                         ? new Date(shop.subscription.endDate).toLocaleDateString("fr-FR")
                         : "—"}
                       {shop.subscription?.status === "GRACE_PERIOD" && shop.subscription.gracePeriodEndsAt && (
-                        <span className="mt-1 block text-[10px] text-amber-700">
-                          Grâce jusqu'au {new Date(shop.subscription.gracePeriodEndsAt).toLocaleString("fr-FR")}
+                        <span className="mt-1 block text-[10px] text-ink">
+                          Grâce jusqu'au {new Date(shop.subscription.gracePeriodEndsAt).toLocaleString("fr-FR").replace(/\u202f/g, " ")}
                         </span>
                       )}
                     </td>
 
                     <td className="px-5 py-3">
-                      <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <div className="flex items-center gap-3 text-xs text-ink/60">
                         <span className="flex items-center gap-1">
                           <Users size={12} /> {shop.counts.users}
                         </span>
@@ -325,7 +324,7 @@ export default function SuperAdminShops() {
                           event.stopPropagation();
                           setRenewalShop(shop);
                         }}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-jokko/10 px-3 py-1.5 text-xs font-medium text-jokko-deep transition hover:bg-jokko/15 disabled:cursor-not-allowed disabled:opacity-40"
                         title={!shop.subscription?.endDate || shop.subscription.plan.code === "FREE" ? "Cette boutique ne peut pas être prolongée" : "Prolonger l'abonnement"}
                       >
                         <CalendarPlus size={13} />
@@ -340,8 +339,8 @@ export default function SuperAdminShops() {
 
         {/* Pagination */}
         {pagination && pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-gray-100 px-5 py-3">
-            <p className="text-xs text-gray-400">
+          <div className="flex items-center justify-between border-t border-ink/10 px-5 py-3">
+            <p className="text-xs text-ink/45">
               Page {pagination.page} sur {pagination.totalPages}
             </p>
             <div className="flex items-center gap-2">
@@ -349,7 +348,7 @@ export default function SuperAdminShops() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-ink/10 text-ink/60 transition hover:bg-ink/5 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={14} />
               </button>
@@ -359,7 +358,7 @@ export default function SuperAdminShops() {
                 onClick={() =>
                   setPage((p) => Math.min(pagination.totalPages, p + 1))
                 }
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-ink/10 text-ink/60 transition hover:bg-ink/5 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ChevronRight size={14} />
               </button>
@@ -369,15 +368,15 @@ export default function SuperAdminShops() {
       </div>
       {renewalShop && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm" onClick={() => !renewing && setRenewalShop(null)}>
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" onClick={(event) => event.stopPropagation()}>
-            <h3 className="mb-1 text-lg font-bold text-slate-900">Prolonger l'abonnement</h3>
-            <p className="mb-5 text-sm text-gray-500">Boutique : <span className="font-medium text-slate-700">{renewalShop.name}</span></p>
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">Nombre de jours</label>
-            <input type="number" min={1} step={1} value={renewalDays} onChange={(event) => setRenewalDays(Number(event.target.value))} className="mb-2 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" />
-            <p className="mb-5 text-xs text-gray-400">Fin actuelle : {renewalShop.subscription?.endDate ? new Date(renewalShop.subscription.endDate).toLocaleDateString("fr-FR") : "—"}</p>
+          <div className="w-full max-w-sm rounded-2xl bg-paper p-6 shadow-xl" onClick={(event) => event.stopPropagation()}>
+            <h3 className="mb-1 text-lg font-bold text-ink">Prolonger l'abonnement</h3>
+            <p className="mb-5 text-sm text-ink/60">Boutique : <span className="font-medium text-ink/75">{renewalShop.name}</span></p>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-ink/45">Nombre de jours</label>
+            <input type="number" min={1} step={1} value={renewalDays} onChange={(event) => setRenewalDays(Number(event.target.value))} className="mb-2 w-full rounded-xl border border-ink/10 px-3 py-2.5 text-sm text-ink/75 outline-none focus:border-jokko/100 focus:ring-2 focus:ring-jokko/15" />
+            <p className="mb-5 text-xs text-ink/45">Fin actuelle : {renewalShop.subscription?.endDate ? new Date(renewalShop.subscription.endDate).toLocaleDateString("fr-FR") : "—"}</p>
             <div className="flex gap-2">
-              <button type="button" disabled={renewing} onClick={() => setRenewalShop(null)} className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50">Annuler</button>
-              <button type="button" disabled={renewing || !Number.isInteger(renewalDays) || renewalDays <= 0} onClick={handleRenewal} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">
+              <button type="button" disabled={renewing} onClick={() => setRenewalShop(null)} className="flex-1 rounded-xl border border-ink/10 px-4 py-2.5 text-sm text-ink/75 hover:bg-ink/5 disabled:opacity-50">Annuler</button>
+              <button type="button" disabled={renewing || !Number.isInteger(renewalDays) || renewalDays <= 0} onClick={handleRenewal} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-jokko px-4 py-2.5 text-sm font-semibold text-white hover:bg-jokko-deep disabled:cursor-not-allowed disabled:opacity-50">
                 {renewing && <Loader2 size={14} className="animate-spin" />}
                 Confirmer
               </button>

@@ -17,12 +17,12 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusClasses: Record<string, string> = {
-  ACTIVE: "bg-emerald-50 text-emerald-700",
-  TRIAL: "bg-violet-50 text-violet-700",
-  GRACE_PERIOD: "bg-amber-50 text-amber-800",
+  ACTIVE: "bg-jokko/10 text-jokko-deep",
+  TRIAL: "bg-ink/5 text-ink",
+  GRACE_PERIOD: "bg-sun/20 text-ink",
   EXPIRED: "bg-red-50 text-red-700",
   TRIAL_EXPIRED: "bg-red-50 text-red-700",
-  SUSPENDED: "bg-slate-100 text-slate-600",
+  SUSPENDED: "bg-ink/5 text-ink/70",
 };
 
 const formatDate = (value: string | null) =>
@@ -91,8 +91,7 @@ export default function SuperAdminSubscriptions() {
     <section className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Abonnements</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-ink/60">
             Suivi des abonnements facturables des boutiques principales. Les boutiques secondaires héritent du forfait de leur boutique principale.
           </p>
         </div>
@@ -100,27 +99,27 @@ export default function SuperAdminSubscriptions() {
           type="button"
           onClick={() => void load()}
           disabled={loading}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-ink/10 bg-paper px-4 py-2.5 text-sm font-medium text-ink/75 hover:bg-cream disabled:opacity-60"
         >
           <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
           Actualiser
         </button>
       </div>
 
-      <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-[minmax(220px,1fr)_180px_160px]">
+      <div className="grid gap-3 rounded-2xl border border-ink/10 bg-paper p-4 md:grid-cols-[minmax(220px,1fr)_180px_160px]">
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/45" />
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Boutique, propriétaire, email..."
-            className="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-emerald-500"
+            className="w-full rounded-xl border border-ink/10 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-jokko/100"
           />
         </div>
         <select
           value={status}
           onChange={(event) => setStatus(event.target.value)}
-          className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
+          className="rounded-xl border border-ink/10 px-3 py-2.5 text-sm outline-none focus:border-jokko/100"
         >
           <option value="">Tous les statuts</option>
           <option value="ACTIVE">Actif</option>
@@ -133,7 +132,7 @@ export default function SuperAdminSubscriptions() {
         <select
           value={plan}
           onChange={(event) => setPlan(event.target.value)}
-          className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
+          className="rounded-xl border border-ink/10 px-3 py-2.5 text-sm outline-none focus:border-jokko/100"
         >
           <option value="">Tous les forfaits</option>
           <option value="FREE">Gratuit</option>
@@ -143,10 +142,10 @@ export default function SuperAdminSubscriptions() {
         </select>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-ink/10 bg-paper shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1050px] text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <thead className="bg-cream text-xs uppercase tracking-wide text-ink/60">
               <tr>
                 <th className="px-5 py-3">Boutique / propriétaire</th>
                 <th className="px-5 py-3">Forfait</th>
@@ -158,45 +157,45 @@ export default function SuperAdminSubscriptions() {
                 <th className="px-5 py-3">Détail</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-ink/10">
               {loading ? (
-                <tr><td colSpan={8} className="px-5 py-12 text-center text-slate-400">Chargement des abonnements...</td></tr>
+                <tr><td colSpan={8} className="px-5 py-12 text-center text-ink/45">Chargement des abonnements...</td></tr>
               ) : rows.length === 0 ? (
-                <tr><td colSpan={7} className="px-5 py-12 text-center text-slate-400">Aucun abonnement trouvé.</td></tr>
+                <tr><td colSpan={7} className="px-5 py-12 text-center text-ink/45">Aucun abonnement trouvé.</td></tr>
               ) : rows.map((row) => (
-                <tr key={row.id} className="hover:bg-slate-50/70">
+                <tr key={row.id} className="hover:bg-cream">
                   <td className="px-5 py-4">
-                    <p className="font-semibold text-slate-900">{row.shop.name}</p>
-                    <p className="mt-0.5 text-xs text-slate-500">{row.owner.name} · {row.owner.email}</p>
+                    <p className="font-semibold text-ink">{row.shop.name}</p>
+                    <p className="mt-0.5 text-xs text-ink/60">{row.owner.name} · {row.owner.email}</p>
                   </td>
                   <td className="px-5 py-4">
-                    <p className="font-medium text-slate-800">{row.plan.name}</p>
-                    <p className="text-xs text-slate-500">{row.plan.price.toLocaleString("fr-FR")} FCFA</p>
+                    <p className="font-medium text-ink/80">{row.plan.name}</p>
+                    <p className="text-xs text-ink/60">{row.plan.price.toLocaleString("fr-FR").replace(/\u202f/g, " ")} FCFA</p>
                   </td>
                   <td className="px-5 py-4">
-                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[row.status] ?? "bg-slate-100 text-slate-600"}`}>
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[row.status] ?? "bg-ink/5 text-ink/70"}`}>
                       {statusLabels[row.status] ?? row.status}
                     </span>
                     {row.status === "GRACE_PERIOD" && (
-                      <p className="mt-1 text-xs text-amber-700">{row.gracePeriodDaysRemaining} jour(s) restant(s)</p>
+                      <p className="mt-1 text-xs text-ink">{row.gracePeriodDaysRemaining} jour(s) restant(s)</p>
                     )}
                   </td>
-                  <td className="px-5 py-4 text-slate-600">{formatDate(row.startDate)}</td>
-                  <td className="px-5 py-4 text-slate-600">{formatDate(row.endDate)}</td>
-                  <td className="px-5 py-4 text-slate-600">{row.gracePeriodEndsAt ? formatDateTime(row.gracePeriodEndsAt) : "—"}</td>
+                  <td className="px-5 py-4 text-ink/70">{formatDate(row.startDate)}</td>
+                  <td className="px-5 py-4 text-ink/70">{formatDate(row.endDate)}</td>
+                  <td className="px-5 py-4 text-ink/70">{row.gracePeriodEndsAt ? formatDateTime(row.gracePeriodEndsAt) : "—"}</td>
                   <td className="px-5 py-4">
                     {row.latestPayment ? (
                       <>
-                        <p className="font-medium text-slate-700">{row.latestPayment.amount.toLocaleString("fr-FR")} FCFA · {row.latestPayment.provider}</p>
-                        <p className="mt-0.5 text-xs text-slate-500">{row.latestPayment.status} · {formatDate(row.latestPayment.paidAt ?? row.latestPayment.createdAt)}</p>
+                        <p className="font-medium text-ink/75">{row.latestPayment.amount.toLocaleString("fr-FR").replace(/\u202f/g, " ")} FCFA · {row.latestPayment.provider}</p>
+                        <p className="mt-0.5 text-xs text-ink/60">{row.latestPayment.status} · {formatDate(row.latestPayment.paidAt ?? row.latestPayment.createdAt)}</p>
                       </>
-                    ) : <span className="text-slate-400">Aucun paiement</span>}
+                    ) : <span className="text-ink/45">Aucun paiement</span>}
                   </td>
                   <td className="px-5 py-4">
                     <button
                       type="button"
                       onClick={() => navigate(`/admin/shops/${row.shopId}`)}
-                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-white"
+                      className="rounded-lg border border-ink/10 px-3 py-1.5 text-xs font-semibold text-ink/75 hover:bg-paper"
                     >
                       Voir
                     </button>
@@ -207,8 +206,8 @@ export default function SuperAdminSubscriptions() {
           </table>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-slate-500">
+        <div className="flex flex-col gap-3 border-t border-ink/10 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-ink/60">
             {pagination ? `${pagination.total} abonnement(s) · Page ${pagination.page} sur ${Math.max(1, pagination.totalPages)}` : "—"}
           </p>
           <div className="flex items-center gap-2">
@@ -216,14 +215,14 @@ export default function SuperAdminSubscriptions() {
               type="button"
               disabled={!pagination || page <= 1 || loading}
               onClick={() => setPage((value) => Math.max(1, value - 1))}
-              className="rounded-lg border border-slate-200 p-2 text-slate-600 disabled:opacity-40"
+              className="rounded-lg border border-ink/10 p-2 text-ink/70 disabled:opacity-40"
               aria-label="Page précédente"
             ><ChevronLeft size={16} /></button>
             <button
               type="button"
               disabled={!pagination || page >= pagination.totalPages || loading}
               onClick={() => setPage((value) => value + 1)}
-              className="rounded-lg border border-slate-200 p-2 text-slate-600 disabled:opacity-40"
+              className="rounded-lg border border-ink/10 p-2 text-ink/70 disabled:opacity-40"
               aria-label="Page suivante"
             ><ChevronRight size={16} /></button>
           </div>

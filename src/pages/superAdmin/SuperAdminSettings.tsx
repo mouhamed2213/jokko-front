@@ -31,26 +31,22 @@ const sections = [
 export default function SuperAdminSettings() {
   return (
     <section className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Paramètres</h1>
-        <p className="mt-1 text-sm text-slate-500">Configuration et administration de la plateforme Jokko Business.</p>
-      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         {sections.map(({ title, description, path, icon: Icon }) => (
           <Link
             key={path}
             to={path}
-            className="group flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+            className="group flex items-start gap-4 rounded-2xl border border-ink/10 bg-paper p-5 shadow-sm transition hover:border-ink/20 hover:shadow-md"
           >
-            <div className="rounded-xl bg-slate-100 p-3 text-slate-700">
+            <div className="rounded-xl bg-ink/5 p-3 text-ink/75">
               <Icon size={21} />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="font-semibold text-slate-900">{title}</h2>
-              <p className="mt-1 text-sm leading-5 text-slate-500">{description}</p>
+              <h2 className="font-semibold text-ink">{title}</h2>
+              <p className="mt-1 text-sm leading-5 text-ink/60">{description}</p>
             </div>
-            <ChevronRight size={18} className="mt-1 shrink-0 text-slate-400 transition group-hover:translate-x-1" />
+            <ChevronRight size={18} className="mt-1 shrink-0 text-ink/45 transition group-hover:translate-x-1" />
           </Link>
         ))}
       </div>
