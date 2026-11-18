@@ -1,7 +1,7 @@
 import { BarChart3, Building2, ChevronDown, Clock, CreditCard, KeyRound, LogOut, Menu, Settings, UserRound, X, Users, Wrench } from "lucide-react";
 import { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import logo from "../assets/logo.svg";
+import Logo from "./public/Logo";
 import { logoutSuperAdmin } from "../utils/superAdminAuth";
 
 const superAdminLinks = [
@@ -30,15 +30,16 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const logout = () => logoutSuperAdmin(navigate);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-slate-900 text-white">
-      <div className="shrink-0 flex items-center gap-3 border-b border-white/10 px-5 py-4">
-        <img src={logo} alt="Jokko" className="h-9 w-9 rounded-lg bg-white object-contain p-1" />
+    <div className="flex h-full flex-col overflow-hidden bg-ink text-white">
+      <div className="shrink-0 flex items-start justify-between gap-3 border-b border-white/10 px-5 pb-5 pt-6">
         <div>
-          <p className="text-base font-bold">Jokko</p>
-          <p className="text-xs text-white/50">Super Admin</p>
+          <Logo variant="sur-encre" className="h-11 w-auto" />
+          <p className="mt-3 inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-sun">
+            <span className="h-2 w-2 rounded-full bg-sun" /> Super admin
+          </p>
         </div>
         {onClose && (
-          <button type="button" onClick={onClose} className="ml-auto rounded-lg p-2 text-white/80 hover:bg-white/10 md:hidden">
+          <button type="button" onClick={onClose} aria-label="Fermer le menu" className="rounded-lg p-2 text-white/80 hover:bg-white/10 md:hidden">
             <X size={18} />
           </button>
         )}
@@ -54,8 +55,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
               onClick={onClose}
               end={link.path === "/admin/dash"}
               className={({ isActive }) =>
-                `group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition ${
-                  isActive ? "bg-white text-slate-900" : "text-white/70 hover:bg-white/10 hover:text-white"
+                `group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition ${
+                  isActive ? "bg-white/10 text-white" : "text-white/65 hover:bg-white/5 hover:text-white"
                 }`
               }
             >
@@ -77,8 +78,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
               className={({ isActive }) =>
                 `group flex flex-1 items-center gap-3 rounded-l-xl px-3 py-2 text-sm font-medium transition ${
                   isActive || childIsActive
-                    ? "bg-white text-slate-900"
-                    : "text-white/70 hover:bg-white/10 hover:text-white"
+                    ? "bg-white/10 text-white"
+                    : "text-white/65 hover:bg-white/5 hover:text-white"
                 }`
               }
             >
@@ -92,8 +93,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
               aria-expanded={settingsOpen}
               className={`rounded-r-xl px-3 py-2 transition ${
                 childIsActive || location.pathname === "/admin/settings"
-                  ? "bg-white text-slate-900"
-                  : "text-white/70 hover:bg-white/10 hover:text-white"
+                  ? "bg-white/10 text-white"
+                  : "text-white/65 hover:bg-white/5 hover:text-white"
               }`}
             >
               <ChevronDown size={15} className={`transition-transform ${settingsOpen ? "rotate-180" : ""}`} />
@@ -112,7 +113,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
                     onClick={onClose}
                     className={({ isActive }) =>
                       `flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition ${
-                        isActive ? "bg-white/15 text-white" : "text-white/55 hover:bg-white/10 hover:text-white"
+                        isActive ? "bg-white/10 text-sun" : "text-white/55 hover:bg-white/5 hover:text-white"
                       }`
                     }
                   >
@@ -127,7 +128,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
       </nav>
 
       <div className="shrink-0 border-t border-white/10 p-3">
-        <button type="button" onClick={logout} className="flex w-full items-center gap-3 rounded-xl bg-red-500/90 px-3 py-2.5 text-sm font-medium text-white transition hover:bg-red-600">
+        <button type="button" onClick={logout} className="flex w-full items-center gap-3 rounded-xl border border-white/20 px-3 py-2.5 text-sm font-semibold text-white/85 transition hover:border-white/40 hover:bg-white/10 hover:text-white">
           <LogOut size={16} />
           <span>Déconnexion</span>
         </button>
@@ -141,7 +142,7 @@ export default function SuperAdminSidebar() {
 
   return (
     <>
-      <button type="button" onClick={() => setMobileOpen(true)} className="fixed left-4 top-4 z-40 rounded-xl bg-slate-900 p-3 text-white shadow-lg md:hidden">
+      <button type="button" aria-label="Ouvrir le menu" onClick={() => setMobileOpen(true)} className="fixed left-4 top-4 z-40 rounded-xl bg-ink p-3 text-white shadow-lg md:hidden">
         <Menu size={20} />
       </button>
 

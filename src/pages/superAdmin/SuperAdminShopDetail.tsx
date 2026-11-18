@@ -105,29 +105,32 @@ type ShopDetail = {
 };
 
 const planBadge: Record<string, string> = {
-  FREE: "bg-gray-100 text-gray-600",
-  BASIC: "bg-sky-50 text-sky-600",
-  PRO: "bg-emerald-50 text-emerald-600",
-  PREMIUM: "bg-amber-50 text-amber-600",
+  FREE: "bg-ink/5 text-ink/70",
+  BASIC: "bg-jokko/10 text-jokko-deep",
+  PRO: "bg-jokko/10 text-jokko",
+  PREMIUM: "bg-sun/20 text-ink",
 };
 
 const subStatusBadge: Record<string, string> = {
-  ACTIVE: "bg-emerald-50 text-emerald-600",
-  TRIAL: "bg-violet-50 text-violet-600",
-  GRACE_PERIOD: "bg-amber-50 text-amber-700",
+  ACTIVE: "bg-jokko/10 text-jokko",
+  TRIAL: "bg-ink/5 text-ink",
+  GRACE_PERIOD: "bg-sun/20 text-ink",
   EXPIRED: "bg-red-50 text-red-600",
   TRIAL_EXPIRED: "bg-red-50 text-red-600",
-  SUSPENDED: "bg-slate-100 text-slate-500",
+  SUSPENDED: "bg-ink/5 text-ink/60",
 };
 
 const paymentStatusBadge: Record<string, string> = {
-  SUCCESS: "bg-emerald-50 text-emerald-600",
-  PENDING: "bg-amber-50 text-amber-600",
+  SUCCESS: "bg-jokko/10 text-jokko",
+  PENDING: "bg-sun/20 text-ink",
   FAILED: "bg-red-50 text-red-600",
-  CANCELLED: "bg-slate-100 text-slate-500",
+  CANCELLED: "bg-ink/5 text-ink/60",
 };
 
 const plans = ["FREE", "BASIC", "PRO", "PREMIUM"];
+
+const paymentStatusLabel: Record<string, string> = { SUCCESS: "Réussi", PENDING: "En attente", FAILED: "Échoué", CANCELLED: "Annulé" };
+const providerLabel: Record<string, string> = { WAVE: "Wave", ORANGE_MONEY: "Orange Money", OTHER: "Autre", IN_APP: "Dans l'app" };
 
 function InfoRow({
   icon: Icon,
@@ -140,29 +143,25 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-center gap-3 text-sm">
-      <Icon size={14} className="text-gray-400 shrink-0" />
-      <span className="text-gray-400 w-24 shrink-0">{label}</span>
-      <span className="font-medium text-slate-700 truncate">{value}</span>
+      <Icon size={14} className="text-ink/45 shrink-0" />
+      <span className="text-ink/45 w-24 shrink-0">{label}</span>
+      <span className="font-medium text-ink/75 truncate">{value}</span>
     </div>
   );
 }
 
 function StatBlock({
-  icon: Icon,
   label,
   value,
 }: {
-  icon: any;
+  icon?: any;
   label: string;
   value: string | number;
 }) {
   return (
-    <div className="rounded-xl bg-slate-50 p-3 text-center">
-      <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-white text-emerald-600 shadow-sm">
-        <Icon size={14} />
-      </div>
-      <p className="text-lg font-bold text-slate-900">{value}</p>
-      <p className="text-xs text-gray-400">{label}</p>
+    <div className="rounded-2xl bg-cream p-4">
+      <p className="text-2xl font-extrabold tabular-nums tracking-[-0.03em] text-ink">{value}</p>
+      <p className="mt-0.5 text-[10px] font-extrabold uppercase tracking-[0.08em] text-ink/50">{label}</p>
     </div>
   );
 }
@@ -317,7 +316,7 @@ export default function SuperAdminShopDetail() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-gray-400">
+      <div className="flex h-64 items-center justify-center text-sm text-ink/45">
         Chargement...
       </div>
     );
@@ -325,11 +324,11 @@ export default function SuperAdminShopDetail() {
 
   if (error || !shop) {
     return (
-      <div className="flex h-64 flex-col items-center justify-center gap-3 text-sm text-gray-400">
+      <div className="flex h-64 flex-col items-center justify-center gap-3 text-sm text-ink/45">
         <p>Boutique introuvable.</p>
         <button
           onClick={() => navigate("/admin/shops")}
-          className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+          className="rounded-full bg-jokko px-4 py-2 text-sm font-medium text-white hover:bg-jokko-deep"
         >
           Retour à la liste
         </button>
@@ -343,13 +342,13 @@ export default function SuperAdminShopDetail() {
       <div className="flex items-center gap-3">
         <button
           onClick={() => navigate("/admin/shops")}
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-gray-500 shadow-sm hover:bg-gray-50"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-paper text-ink/60 shadow-sm hover:bg-ink/5"
         >
           <ArrowLeft size={16} />
         </button>
         <div>
-          <h2 className="text-xl font-bold text-slate-900">{shop.name}</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-ink">{shop.name}</h2>
+          <p className="text-sm text-ink/60">
             {shop.currentShop === "PRIMARY"
               ? "Boutique principale"
               : "Boutique secondaire"}
@@ -359,10 +358,10 @@ export default function SuperAdminShopDetail() {
         <span
           className={`ml-auto rounded-full px-3 py-1 text-xs font-medium ${
             shop.status === "ACTIVE"
-              ? "bg-emerald-50 text-emerald-600"
+              ? "bg-jokko/10 text-jokko"
               : isArchived
                 ? "bg-red-50 text-red-600"
-                : "bg-slate-100 text-slate-500"
+                : "bg-ink/5 text-ink/60"
           }`}
         >
           {isArchived ? "ARCHIVÉE" : shop.status}
@@ -373,9 +372,9 @@ export default function SuperAdminShopDetail() {
             setConfirmName("");
             setArchiveModalOpen(true);
           }}
-          className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-medium transition ${
+          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
             isArchived
-              ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              ? "border-jokko/25 text-jokko-deep hover:bg-jokko/10"
               : "border-red-200 text-red-600 hover:bg-red-50"
           }`}
         >
@@ -393,7 +392,7 @@ export default function SuperAdminShopDetail() {
       )}
 
       {shop.primaryShop?.status === "ARCHIVED" && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">
+        <div className="rounded-2xl border border-sun/50 bg-sun/20 px-5 py-3 text-sm text-ink">
           Cette boutique secondaire est inaccessible car sa boutique principale
           « {shop.primaryShop.name} » est archivée. Son statut individuel est
           conservé.
@@ -404,12 +403,12 @@ export default function SuperAdminShopDetail() {
         {/* Left column: info + subscription */}
         <div className="flex flex-col gap-5 lg:col-span-1">
           {/* Shop info card */}
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-900">
+          <div className="rounded-3xl border border-ink/10 bg-paper p-5">
+            <h3 className="mb-4 flex items-center gap-2 text-base font-extrabold tracking-tight">
               <Store size={15} /> Informations
             </h3>
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <InfoRow
                   icon={Users}
                   label="Propriétaire"
@@ -419,7 +418,7 @@ export default function SuperAdminShopDetail() {
                   <button
                     type="button"
                     onClick={() => navigate(`/admin/owners/${shop.ownerId}`)}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-jokko/25 px-3 py-1.5 text-xs font-medium text-jokko-deep transition hover:bg-jokko/10"
                     title="Consulter la fiche du propriétaire"
                   >
                     Voir le propriétaire
@@ -442,8 +441,8 @@ export default function SuperAdminShopDetail() {
             </div>
 
             {shop.secondaryShops.length > 0 && (
-              <div className="mt-4 border-t border-gray-100 pt-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+              <div className="mt-4 border-t border-ink/10 pt-4">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink/45">
                   Boutiques secondaires ({shop.secondaryShops.length})
                 </p>
                 <div className="flex flex-col gap-1.5">
@@ -451,10 +450,10 @@ export default function SuperAdminShopDetail() {
                     <button
                       key={s.id}
                       onClick={() => navigate(`/admin/shops/${s.id}`)}
-                      className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-left text-sm hover:bg-slate-100"
+                      className="flex items-center justify-between rounded-full bg-cream px-3 py-2 text-left text-sm hover:bg-ink/5"
                     >
-                      <span className="text-slate-700">{s.name}</span>
-                      <span className="text-xs text-gray-400">{s.status}</span>
+                      <span className="text-ink/75">{s.name}</span>
+                      <span className="text-xs text-ink/45">{s.status}</span>
                     </button>
                   ))}
                 </div>
@@ -463,16 +462,16 @@ export default function SuperAdminShopDetail() {
           </div>
 
           {/* Subscription card */}
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
+          <div className="rounded-3xl border border-ink/10 bg-paper p-5">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+              <h3 className="flex items-center gap-2 text-base font-extrabold tracking-tight">
                 <Crown size={15} /> Abonnement
               </h3>
               <div className="flex gap-2">
                 <button
                   disabled
                   title="Fonctionnalité en cours de développement côté backend"
-                  className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-400 cursor-not-allowed"
+                  className="rounded-full bg-ink/5 px-3 py-1.5 text-xs font-medium text-ink/45 cursor-not-allowed"
                 >
                   Changer le statut
                 </button>
@@ -487,7 +486,7 @@ export default function SuperAdminShopDetail() {
                     setSelectedPlan(shop.subscription?.plan.code ?? "");
                     setPlanModalOpen(true);
                   }}
-                  className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-full bg-jokko px-4 py-2 text-xs font-bold text-white transition hover:bg-jokko-deep disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Changer le plan
                 </button>
@@ -495,7 +494,7 @@ export default function SuperAdminShopDetail() {
             </div>
 
             {shop.subscriptionInherited && shop.primaryShop && (
-              <p className="mb-3 rounded-lg bg-sky-50 px-3 py-2 text-xs text-sky-700">
+              <p className="mb-3 rounded-lg bg-jokko/10 px-3 py-2 text-xs text-jokko-deep">
                 Cet abonnement est hérité de la boutique principale «{" "}
                 {shop.primaryShop.name} ». Les changements de forfait doivent
                 être effectués depuis cette boutique.
@@ -508,7 +507,7 @@ export default function SuperAdminShopDetail() {
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${
                       planBadge[shop.subscription.plan.code] ??
-                      "bg-gray-100 text-gray-600"
+                      "bg-ink/5 text-ink/70"
                     }`}
                   >
                     {shop.subscription.plan.name}
@@ -516,7 +515,7 @@ export default function SuperAdminShopDetail() {
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${
                       subStatusBadge[shop.subscription.status] ??
-                      "bg-gray-100 text-gray-500"
+                      "bg-ink/5 text-ink/60"
                     }`}
                   >
                     {shop.subscription.status === "GRACE_PERIOD"
@@ -525,7 +524,7 @@ export default function SuperAdminShopDetail() {
                   </span>
                 </div>
                 {shop.subscription.status === "GRACE_PERIOD" && (
-                  <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  <p className="rounded-lg bg-sun/20 px-3 py-2 text-xs text-ink">
                     La boutique conserve toutes les fonctionnalités de ce
                     forfait pendant encore{" "}
                     {shop.subscription.gracePeriodDaysRemaining ?? 0} jour(s).
@@ -533,22 +532,22 @@ export default function SuperAdminShopDetail() {
                     {shop.subscription.gracePeriodEndsAt
                       ? new Date(
                           shop.subscription.gracePeriodEndsAt,
-                        ).toLocaleString("fr-FR")
+                        ).toLocaleString("fr-FR").replace(/\u202f/g, " ")
                       : "—"}
                     .
                   </p>
                 )}
-                <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
+                <div className="grid grid-cols-2 gap-2 text-xs text-ink/60">
                   <div>
-                    <p className="text-gray-400">Prix</p>
-                    <p className="font-medium text-slate-700">
-                      {shop.subscription.plan.price.toLocaleString("fr-FR")}{" "}
+                    <p className="text-ink/45">Prix</p>
+                    <p className="font-medium text-ink/75">
+                      {shop.subscription.plan.price.toLocaleString("fr-FR").replace(/\u202f/g, " ")}{" "}
                       FCFA
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-400">Fin</p>
-                    <p className="font-medium text-slate-700">
+                    <p className="text-ink/45">Fin</p>
+                    <p className="font-medium text-ink/75">
                       {shop.subscription.endDate
                         ? new Date(
                             shop.subscription.endDate,
@@ -557,32 +556,32 @@ export default function SuperAdminShopDetail() {
                     </p>
                   </div>
                 </div>
-                <div className="border-t border-gray-100 pt-3">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                <div className="border-t border-ink/10 pt-3">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink/45">
                     Limites du plan
                   </p>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <p className="text-gray-500">
+                    <p className="text-ink/60">
                       Ventes/mois:{" "}
-                      <span className="font-medium text-slate-700">
+                      <span className="font-medium text-ink/75">
                         {shop.subscription.plan.limits.sales ?? "∞"}
                       </span>
                     </p>
-                    <p className="text-gray-500">
+                    <p className="text-ink/60">
                       Produits:{" "}
-                      <span className="font-medium text-slate-700">
+                      <span className="font-medium text-ink/75">
                         {shop.subscription.plan.limits.products ?? "∞"}
                       </span>
                     </p>
-                    <p className="text-gray-500">
+                    <p className="text-ink/60">
                       Clients:{" "}
-                      <span className="font-medium text-slate-700">
+                      <span className="font-medium text-ink/75">
                         {shop.subscription.plan.limits.customers ?? "∞"}
                       </span>
                     </p>
-                    <p className="text-gray-500">
+                    <p className="text-ink/60">
                       Utilisateurs:{" "}
-                      <span className="font-medium text-slate-700">
+                      <span className="font-medium text-ink/75">
                         {shop.subscription.plan.limits.users ?? "∞"}
                       </span>
                     </p>
@@ -590,7 +589,7 @@ export default function SuperAdminShopDetail() {
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-gray-400">Aucun abonnement.</p>
+              <p className="text-sm text-ink/45">Aucun abonnement.</p>
             )}
           </div>
         </div>
@@ -598,12 +597,12 @@ export default function SuperAdminShopDetail() {
         {/* Right column: stats, users, payments, audit log */}
         <div className="flex flex-col gap-5 lg:col-span-2">
           {/* Stats */}
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <h3 className="mb-4 text-sm font-semibold text-slate-900">
+          <div className="rounded-3xl border border-ink/10 bg-paper p-5">
+            <h3 className="mb-4 text-base font-extrabold tracking-tight">
               Activité
             </h3>
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-              <StatBlock icon={Users} label="Users" value={shop.counts.users} />
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+              <StatBlock icon={Users} label="Équipe" value={shop.counts.users} />
               <StatBlock
                 icon={Package}
                 label="Produits"
@@ -616,7 +615,7 @@ export default function SuperAdminShopDetail() {
               />
               <StatBlock
                 icon={Truck}
-                label="Fourn."
+                label="Fournisseurs"
                 value={shop.counts.suppliers}
               />
               <StatBlock
@@ -633,26 +632,26 @@ export default function SuperAdminShopDetail() {
           </div>
 
           {/* Users list */}
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-900">
+          <div className="rounded-3xl border border-ink/10 bg-paper p-5">
+            <h3 className="mb-4 flex items-center gap-2 text-base font-extrabold tracking-tight">
               <Users size={15} /> Utilisateurs ({shop.users.length})
             </h3>
             <div className="flex flex-col gap-2">
               {shop.users.map((u) => (
                 <div
                   key={u.id}
-                  className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-2.5"
+                  className="flex items-center justify-between rounded-xl bg-cream px-4 py-2.5"
                 >
                   <div>
-                    <p className="text-sm font-medium text-slate-800">
+                    <p className="text-sm font-medium text-ink/80">
                       {u.name}
                     </p>
-                    <p className="text-xs text-gray-400">{u.email}</p>
+                    <p className="text-xs text-ink/45">{u.email}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400">{u.role}</span>
+                    <span className="text-xs text-ink/45">{u.role}</span>
                     <span
-                      className={`h-2 w-2 rounded-full ${u.isActive ? "bg-emerald-500" : "bg-gray-300"}`}
+                      className={`h-2 w-2 rounded-full ${u.isActive ? "bg-jokko/100" : "bg-gray-300"}`}
                       title={u.isActive ? "Actif" : "Inactif"}
                     />
                   </div>
@@ -662,25 +661,25 @@ export default function SuperAdminShopDetail() {
           </div>
 
           {/* Payment history */}
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-900">
+          <div className="rounded-3xl border border-ink/10 bg-paper p-5">
+            <h3 className="mb-4 flex items-center gap-2 text-base font-extrabold tracking-tight">
               <FileText size={15} /> Historique des paiements
             </h3>
             {shop.subscriptionInherited && shop.primaryShop && (
-              <p className="mb-3 text-xs text-sky-700">
+              <p className="mb-3 text-xs text-jokko-deep">
                 Les paiements de cet abonnement sont gérés depuis la boutique
                 principale « {shop.primaryShop.name} ».
               </p>
             )}
             {shop.payments.length === 0 ? (
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-ink/45">
                 Aucun paiement enregistré.
               </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead>
-                    <tr className="text-xs uppercase tracking-wider text-gray-400">
+                    <tr className="text-xs uppercase tracking-wider text-ink/45">
                       <th className="pb-2">Plan</th>
                       <th className="pb-2">Montant</th>
                       <th className="pb-2">Provider</th>
@@ -692,28 +691,28 @@ export default function SuperAdminShopDetail() {
                   </thead>
                   <tbody>
                     {shop.payments.map((p) => (
-                      <tr key={p.id} className="border-t border-gray-50">
-                        <td className="py-2 font-medium text-slate-700">
+                      <tr key={p.id} className="border-t border-ink/10">
+                        <td className="py-2 font-medium text-ink/75">
                           {p.planName ?? p.planCode ?? "—"}
                         </td>
-                        <td className="py-2 text-gray-600">
-                          {p.amount.toLocaleString("fr-FR")} {p.currency}
+                        <td className="py-2 text-ink/70">
+                          {p.amount.toLocaleString("fr-FR").replace(/\u202f/g, " ")} {p.currency}
                         </td>
-                        <td className="py-2 text-gray-500">{p.provider}</td>
+                        <td className="py-2 text-ink/60">{providerLabel[p.provider] ?? p.provider}</td>
                         <td className="py-2">
                           <span
                             className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                               paymentStatusBadge[p.status] ??
-                              "bg-gray-100 text-gray-500"
+                              "bg-ink/5 text-ink/60"
                             }`}
                           >
-                            {p.status}
+                            {paymentStatusLabel[p.status] ?? p.status}
                           </span>
                         </td>
-                        <td className="py-2 text-gray-500">
+                        <td className="py-2 text-ink/60">
                           {p.transactionReference || "—"}
                         </td>
-                        <td className="py-2 text-gray-400">
+                        <td className="py-2 text-ink/45">
                           {new Date(p.createdAt).toLocaleDateString("fr-FR")}
                         </td>
                         <td className="py-2">
@@ -728,7 +727,7 @@ export default function SuperAdminShopDetail() {
                                     confirmingPaymentId === p.id ||
                                     cancellingPaymentId === p.id
                                   }
-                                  className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+                                  className="rounded-full bg-jokko/10 px-2.5 py-1.5 text-xs font-medium text-jokko-deep hover:bg-jokko/15 disabled:opacity-50"
                                 >
                                   {confirmingPaymentId === p.id
                                     ? "Confirmation..."
@@ -741,7 +740,7 @@ export default function SuperAdminShopDetail() {
                                     confirmingPaymentId === p.id ||
                                     cancellingPaymentId === p.id
                                   }
-                                  className="rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+                                  className="rounded-full bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
                                 >
                                   {cancellingPaymentId === p.id
                                     ? "Annulation..."
@@ -759,12 +758,12 @@ export default function SuperAdminShopDetail() {
           </div>
 
           {/* Audit log */}
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-900">
+          <div className="rounded-3xl border border-ink/10 bg-paper p-5">
+            <h3 className="mb-4 flex items-center gap-2 text-base font-extrabold tracking-tight">
               <History size={15} /> Journal d'audit
             </h3>
             {shop.auditLogs.length === 0 ? (
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-ink/45">
                 Aucune action enregistrée.
               </p>
             ) : (
@@ -774,11 +773,11 @@ export default function SuperAdminShopDetail() {
                     key={log.id}
                     className="flex items-center justify-between text-sm"
                   >
-                    <span className="text-slate-600">
+                    <span className="text-ink/70">
                       <span className="font-medium">{log.actorName}</span> —{" "}
                       {log.action}
                     </span>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-ink/45">
                       {new Date(log.createdAt).toLocaleDateString("fr-FR")}
                     </span>
                   </div>
@@ -791,43 +790,43 @@ export default function SuperAdminShopDetail() {
 
       {/* Archive / restore modal */}
       {archiveModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-2 text-lg font-bold text-slate-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl bg-paper p-6 shadow-xl">
+            <h3 className="mb-2 text-lg font-bold text-ink">
               {isArchived ? "Restaurer la boutique" : "Archiver la boutique"}
             </h3>
             {isArchived ? (
-              <p className="mb-5 text-sm text-gray-500">
-                <span className="font-medium text-slate-700">{shop.name}</span>{" "}
+              <p className="mb-5 text-sm text-ink/60">
+                <span className="font-medium text-ink/75">{shop.name}</span>{" "}
                 sera de nouveau accessible : ses utilisateurs pourront se
                 reconnecter.
               </p>
             ) : (
               <>
-                <p className="mb-3 text-sm text-gray-500">
+                <p className="mb-3 text-sm text-ink/60">
                   Les utilisateurs de{" "}
-                  <span className="font-medium text-slate-700">
+                  <span className="font-medium text-ink/75">
                     {shop.name}
                   </span>{" "}
                   ne pourront plus se connecter et leurs sessions ouvertes
                   seront coupées en moins de 30 secondes. Aucune donnée n'est
                   supprimée et la boutique peut être restaurée.
                 </p>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1 block text-xs font-medium text-ink/70">
                   Pour confirmer, saisissez le nom de la boutique :
                 </label>
                 <input
                   value={confirmName}
                   onChange={(e) => setConfirmName(e.target.value)}
                   placeholder={shop.name}
-                  className="mb-5 w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-red-400"
+                  className="mb-5 w-full rounded-xl border border-ink/20 px-4 py-2.5 text-sm outline-none focus:border-red-400"
                 />
               </>
             )}
             <div className="flex gap-2">
               <button
                 onClick={() => setArchiveModalOpen(false)}
-                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                className="flex-1 rounded-full border border-ink/10 px-4 py-2.5 text-sm text-ink/75 hover:bg-ink/5"
               >
                 Annuler
               </button>
@@ -837,9 +836,9 @@ export default function SuperAdminShopDetail() {
                   archiving ||
                   (!isArchived && confirmName.trim() !== shop.name.trim())
                 }
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50 ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50 ${
                   isArchived
-                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    ? "bg-jokko hover:bg-jokko-deep"
                     : "bg-red-600 hover:bg-red-700"
                 }`}
               >
@@ -853,14 +852,14 @@ export default function SuperAdminShopDetail() {
 
       {/* Plan change modal */}
       {planModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-1 text-lg font-bold text-slate-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-3xl bg-paper p-6 shadow-xl">
+            <h3 className="mb-1 text-lg font-bold text-ink">
               Changer le plan
             </h3>
-            <p className="mb-4 text-sm text-gray-500">
+            <p className="mb-4 text-sm text-ink/60">
               Boutique :{" "}
-              <span className="font-medium text-slate-700">{shop.name}</span>
+              <span className="font-medium text-ink/75">{shop.name}</span>
             </p>
 
             <div className="flex flex-col gap-2 mb-5">
@@ -868,26 +867,26 @@ export default function SuperAdminShopDetail() {
                 <button
                   key={code}
                   onClick={() => setSelectedPlan(code)}
-                  className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-medium transition ${
+                  className={`flex items-center justify-between rounded-full border px-4 py-3 text-sm font-medium transition ${
                     selectedPlan === code
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                      : "border-gray-200 text-slate-600 hover:bg-gray-50"
+                      ? "border-jokko/100 bg-jokko/10 text-jokko-deep"
+                      : "border-ink/10 text-ink/70 hover:bg-ink/5"
                   }`}
                 >
                   {code}
                   {shop.subscription?.plan.code === code && (
-                    <span className="text-xs text-gray-400">actuel</span>
+                    <span className="text-xs text-ink/45">actuel</span>
                   )}
                 </button>
               ))}
             </div>
             {selectedPlan && selectedPlan !== "FREE" && (
-              <div className="mb-5 flex flex-col gap-3 border-t border-gray-100 pt-4">
-                <p className="text-xs text-gray-500">
+              <div className="mb-5 flex flex-col gap-3 border-t border-ink/10 pt-4">
+                <p className="text-xs text-ink/60">
                   Le paiement sera enregistré en attente. Le forfait actuel ne
                   changera qu'après vérification de la réception.
                 </p>
-                <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                <label className="flex flex-col gap-1 text-xs font-medium text-ink/70">
                   Moyen de paiement
                   <select
                     value={paymentProvider}
@@ -896,14 +895,14 @@ export default function SuperAdminShopDetail() {
                         e.target.value as "WAVE" | "ORANGE_MONEY" | "OTHER",
                       )
                     }
-                    className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm font-normal text-slate-700"
+                    className="rounded-xl border border-ink/20 px-3 py-2.5 text-sm font-normal text-ink/75"
                   >
                     <option value="WAVE">Wave</option>
                     <option value="ORANGE_MONEY">Orange Money</option>
                     <option value="OTHER">Autre</option>
                   </select>
                 </label>
-                <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                <label className="flex flex-col gap-1 text-xs font-medium text-ink/70">
                   Montant déclaré (FCFA)
                   <input
                     type="number"
@@ -912,10 +911,10 @@ export default function SuperAdminShopDetail() {
                     value={paymentAmount}
                     onChange={(e) => setPaymentAmount(e.target.value)}
                     placeholder="Prix du forfait si non renseigné"
-                    className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm font-normal text-slate-700"
+                    className="rounded-xl border border-ink/20 px-3 py-2.5 text-sm font-normal text-ink/75"
                   />
                 </label>
-                <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                <label className="flex flex-col gap-1 text-xs font-medium text-ink/70">
                   Référence de transaction (facultatif)
                   <input
                     type="text"
@@ -923,7 +922,7 @@ export default function SuperAdminShopDetail() {
                     value={paymentReference}
                     onChange={(e) => setPaymentReference(e.target.value)}
                     placeholder="Ex. référence Wave ou Orange Money"
-                    className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm font-normal text-slate-700"
+                    className="rounded-xl border border-ink/20 px-3 py-2.5 text-sm font-normal text-ink/75"
                   />
                 </label>
               </div>
@@ -932,7 +931,7 @@ export default function SuperAdminShopDetail() {
             <div className="flex gap-2">
               <button
                 onClick={() => setPlanModalOpen(false)}
-                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                className="flex-1 rounded-full border border-ink/10 px-4 py-2.5 text-sm text-ink/75 hover:bg-ink/5"
               >
                 Annuler
               </button>
@@ -944,7 +943,7 @@ export default function SuperAdminShopDetail() {
                   (selectedPlan === shop.subscription?.plan.code &&
                     !canRenewCurrentPlan)
                 }
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-jokko px-4 py-2.5 text-sm font-semibold text-white hover:bg-jokko-deep disabled:opacity-50"
               >
                 {changingPlan && <Loader2 size={14} className="animate-spin" />}
                 {selectedPlan === shop.subscription?.plan.code &&

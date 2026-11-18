@@ -50,33 +50,32 @@ export default function SuperAdminGracePeriodSettings() {
   };
 
   if (loading) {
-    return <div className="flex h-64 items-center justify-center text-sm text-gray-400">Chargement des paramètres...</div>;
+    return <div className="flex h-64 items-center justify-center text-sm text-ink/45">Chargement des paramètres...</div>;
   }
 
   return (
     <section className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Période de grâce des abonnements</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-ink/60">
           Définissez le délai pendant lequel une boutique conserve toutes les fonctionnalités de son forfait après expiration.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-ink/10 bg-paper p-6 shadow-sm">
         <div className="flex items-start gap-3">
-          <div className="rounded-xl bg-amber-50 p-3 text-amber-700">
+          <div className="rounded-xl bg-sun/20 p-3 text-ink">
             <Clock size={22} />
           </div>
           <div>
-            <h2 className="font-semibold text-slate-900">Durée supplémentaire</h2>
-            <p className="mt-1 text-sm leading-6 text-slate-500">
+            <h2 className="font-semibold text-ink">Durée supplémentaire</h2>
+            <p className="mt-1 text-sm leading-6 text-ink/60">
               À l'expiration d'un abonnement payant ou d'une période d'essai, le propriétaire et les responsables des boutiques secondaires conservent les droits du forfait pendant cette durée. À son terme, la boutique principale passe au forfait gratuit. Une durée déjà attribuée à une période de grâce en cours reste inchangée ; ce réglage s'applique aux prochaines expirations.
             </p>
           </div>
         </div>
 
         <div className="mt-6 max-w-sm">
-          <label htmlFor="grace-days" className="mb-2 block text-sm font-medium text-slate-700">
+          <label htmlFor="grace-days" className="mb-2 block text-sm font-medium text-ink/75">
             Nombre de jours de grâce
           </label>
           <div className="flex items-center gap-3">
@@ -88,26 +87,26 @@ export default function SuperAdminGracePeriodSettings() {
               step={1}
               value={days}
               onChange={(event) => setDays(event.target.value)}
-              className="w-32 rounded-xl border border-slate-300 px-4 py-3 text-lg font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              className="w-32 rounded-xl border border-ink/20 px-4 py-3 text-lg font-semibold text-ink outline-none focus:border-jokko/100 focus:ring-2 focus:ring-jokko/15"
             />
-            <span className="text-sm text-slate-500">jour(s)</span>
+            <span className="text-sm text-ink/60">jour(s)</span>
           </div>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-ink/60">
             Valeur par défaut : {defaultDays} jours si aucun paramètre n'est encore enregistré. Maximum : {maxDays} jours.
           </p>
           {Number(days) === 0 && (
-            <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            <p className="mt-2 rounded-lg bg-sun/20 px-3 py-2 text-xs text-ink">
               La période de grâce sera désactivée : le passage à gratuit se fera dès l'expiration.
             </p>
           )}
         </div>
 
-        <div className="mt-6 flex justify-end border-t border-slate-100 pt-5">
+        <div className="mt-6 flex justify-end border-t border-ink/10 pt-5">
           <button
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Save size={16} />
             {saving ? "Enregistrement..." : "Enregistrer"}

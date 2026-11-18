@@ -6,13 +6,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getOwnerDetail } from "../../services";
 import type { OwnerAlert, OwnerDetail, OwnerShop, UsageItem } from "../../types/owner";
 
-const money = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
+const money = (n: number) => `${Math.round(n).toLocaleString("fr-FR").replace(/\u202f/g, " ")} FCFA`;
 const date = (d: string | null) => (d ? new Date(d).toLocaleDateString("fr-FR") : "—");
 
 const alertStyle: Record<OwnerAlert["level"], string> = {
   danger: "border-red-200 bg-red-50 text-red-700",
-  warning: "border-amber-200 bg-amber-50 text-amber-800",
-  info: "border-slate-200 bg-slate-50 text-slate-600",
+  warning: "border-sun/50 bg-sun/20 text-ink",
+  info: "border-ink/10 bg-cream text-ink/70",
 };
 
 function AlertChip({ alert }: { alert: OwnerAlert }) {
@@ -26,16 +26,16 @@ function AlertChip({ alert }: { alert: OwnerAlert }) {
 
 function UsageBar({ item }: { item: UsageItem }) {
   const pct = item.percent ?? 0;
-  const color = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
+  const color = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-sun" : "bg-jokko/100";
   return (
     <div>
       <div className="mb-1 flex justify-between text-xs">
-        <span className="text-gray-500">{item.label}</span>
-        <span className="font-medium text-slate-700">
+        <span className="text-ink/60">{item.label}</span>
+        <span className="font-medium text-ink/75">
           {item.used} / {item.limit ?? "∞"}
         </span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
+      <div className="h-1.5 overflow-hidden rounded-full bg-ink/5">
         {item.limit !== null && (
           <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(100, pct)}%` }} />
         )}
@@ -46,9 +46,9 @@ function UsageBar({ item }: { item: UsageItem }) {
 
 function Stat({ label, value, danger }: { label: string; value: string | number; danger?: boolean }) {
   return (
-    <div className="rounded-xl bg-slate-50 px-3 py-2">
-      <p className="text-[11px] uppercase tracking-wide text-gray-400">{label}</p>
-      <p className={`text-sm font-semibold ${danger ? "text-red-600" : "text-slate-800"}`}>{value}</p>
+    <div className="rounded-xl bg-cream px-3 py-2">
+      <p className="text-[11px] uppercase tracking-wide text-ink/45">{label}</p>
+      <p className={`text-sm font-semibold ${danger ? "text-red-600" : "text-ink/80"}`}>{value}</p>
     </div>
   );
 }
@@ -59,11 +59,11 @@ function ShopCard({ shop, onOpen }: { shop: OwnerShop; onOpen: () => void }) {
   const unavailable = archived || parentArchived;
   const s = shop.stats;
   return (
-    <div className={`rounded-2xl bg-white p-5 shadow-sm ${unavailable ? "opacity-70" : ""}`}>
+    <div className={`rounded-3xl border border-ink/10 bg-paper p-5 ${unavailable ? "opacity-70" : ""}`}>
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <Store size={16} className="text-emerald-600" />
-        <h3 className="font-bold text-slate-900">{shop.name}</h3>
-        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+        <Store size={16} className="text-jokko" />
+        <h3 className="font-bold text-ink">{shop.name}</h3>
+        <span className="rounded-full bg-ink/5 px-2 py-0.5 text-xs text-ink/70">
           {shop.isPrimary ? "Principale" : "Secondaire"}
         </span>
         <span
@@ -71,8 +71,8 @@ function ShopCard({ shop, onOpen }: { shop: OwnerShop; onOpen: () => void }) {
             archived
               ? "bg-red-50 text-red-600"
               : parentArchived
-                ? "bg-amber-50 text-amber-700"
-                : "bg-emerald-50 text-emerald-600"
+                ? "bg-sun/20 text-ink"
+                : "bg-jokko/10 text-jokko"
           }`}
         >
           {archived ? "ARCHIVÉE" : parentArchived ? "BLOQUÉE PAR LA PRINCIPALE" : shop.status}
@@ -80,13 +80,13 @@ function ShopCard({ shop, onOpen }: { shop: OwnerShop; onOpen: () => void }) {
         <button
           type="button"
           onClick={onOpen}
-          className="ml-auto rounded-lg border border-gray-200 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-gray-50"
+          className="ml-auto rounded-full border border-ink/10 px-3 py-1 text-xs font-medium text-ink/75 hover:bg-ink/5"
         >
           Voir la boutique
         </button>
       </div>
 
-      <p className="mb-3 text-xs text-gray-500">
+      <p className="mb-3 text-xs text-ink/60">
         {shop.subscription
           ? `Plan ${shop.subscription.plan.name} · ${shop.subscription.status} · fin ${date(shop.subscription.endDate)}${
               shop.subscription.daysRemaining !== null ? ` (${shop.subscription.daysRemaining} j)` : ""
@@ -146,7 +146,7 @@ export default function SuperAdminOwnerDetail() {
 
   if (loading || !data) {
     return (
-      <div className="flex items-center justify-center py-20 text-gray-400">
+      <div className="flex items-center justify-center py-20 text-ink/45">
         <Loader2 className="animate-spin" size={20} />
       </div>
     );
@@ -161,13 +161,13 @@ export default function SuperAdminOwnerDetail() {
         <button
           type="button"
           onClick={() => navigate("/admin/owners")}
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm hover:bg-gray-50"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-paper shadow-sm hover:bg-ink/5"
         >
           <ArrowLeft size={16} />
         </button>
         <div>
-          <h2 className="text-lg font-bold text-slate-900">{owner.name}</h2>
-          <p className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+          <h2 className="text-lg font-bold text-ink">{owner.name}</h2>
+          <p className="flex flex-wrap items-center gap-3 text-xs text-ink/60">
             <span className="inline-flex items-center gap-1"><Mail size={12} />{owner.email}</span>
             {owner.phone && <span className="inline-flex items-center gap-1"><Phone size={12} />{owner.phone}</span>}
             <span>Client depuis le {date(owner.createdAt)}</span>
@@ -176,13 +176,13 @@ export default function SuperAdminOwnerDetail() {
       </div>
 
       {diagnostics.length > 0 && (
-        <div className={`space-y-2 rounded-2xl border p-4 ${hasDiagnosticAnomaly ? "border-red-200 bg-red-50" : "border-slate-200 bg-slate-50"}`}>
-          <p className={`flex items-center gap-2 text-sm font-semibold ${hasDiagnosticAnomaly ? "text-red-800" : "text-slate-700"}`}>
+        <div className={`space-y-2 rounded-2xl border p-4 ${hasDiagnosticAnomaly ? "border-red-200 bg-red-50" : "border-ink/10 bg-cream"}`}>
+          <p className={`flex items-center gap-2 text-sm font-semibold ${hasDiagnosticAnomaly ? "text-red-800" : "text-ink/75"}`}>
             {hasDiagnosticAnomaly ? <AlertTriangle size={16} /> : <Info size={16} />}
             {hasDiagnosticAnomaly ? "Anomalies de données détectées" : "Informations sur les données historiques"}
           </p>
           {diagnostics.map((d) => (
-            <p key={d.code + d.message} className={`text-sm ${d.level === "info" ? "text-slate-600" : "text-red-700"}`}>• {d.message}</p>
+            <p key={d.code + d.message} className={`text-sm ${d.level === "info" ? "text-ink/70" : "text-red-700"}`}>• {d.message}</p>
           ))}
         </div>
       )}
@@ -198,9 +198,9 @@ export default function SuperAdminOwnerDetail() {
         <Stat label="Produits" value={totals.products} />
       </div>
 
-      <div className="rounded-2xl bg-white p-5 shadow-sm">
+      <div className="rounded-3xl border border-ink/10 bg-paper p-5">
         <UsageBar item={storesUsage} />
-        <p className="mt-2 text-xs text-gray-400">
+        <p className="mt-2 text-xs text-ink/45">
           Limite du plan de la boutique principale pour les boutiques secondaires actives.
         </p>
       </div>
