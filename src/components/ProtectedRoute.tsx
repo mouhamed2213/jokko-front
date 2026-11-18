@@ -70,7 +70,7 @@ export function SuperAdminGuard({ children }: Props) {
 
   if (state === "checking") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-cream text-sm text-ink/45">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm text-gray-400">
         Vérification de la session...
       </div>
     );
@@ -78,12 +78,12 @@ export function SuperAdminGuard({ children }: Props) {
 
   if (state === "error") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-cream text-sm text-ink/60">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-50 text-sm text-gray-500">
         <p>Impossible de vérifier la session. Vérifiez votre connexion.</p>
         <button
           type="button"
           onClick={() => setAttempt((n) => n + 1)}
-          className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:opacity-90"
         >
           Réessayer
         </button>

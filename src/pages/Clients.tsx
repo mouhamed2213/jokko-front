@@ -23,7 +23,7 @@ import { exportClientsToExcel } from "../utils/exportExcel";
 import { hasFeature } from "../utils/subscription.checker";
 
 const emptyForm = { name: "", phone: "", email: "", address: "" };
-const fmt = (v: number) => `${v.toLocaleString("fr-FR").replace(/\u202f/g, " ")} FCFA`;
+const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
 export default function Clients() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -168,7 +168,7 @@ export default function Clients() {
   }
   if (loading)
     return (
-      <div className="rounded-2xl bg-paper p-8 text-center text-ink/45">
+      <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
         Chargement...
       </div>
     );
@@ -189,7 +189,7 @@ export default function Clients() {
           <button
             type="button"
             onClick={() => setIsUpgradeModalOpen(true)}
-            className="shrink-0 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
+            className="shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
           >
             Augmenter la limite
           </button>
@@ -201,14 +201,14 @@ export default function Clients() {
         <div className="relative flex-1 min-w-50">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/45"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
           />
           <input
             type="text"
             placeholder="Rechercher un client..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-ink/20 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-jokko"
+            className="w-full rounded-xl border border-gray-300 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-emerald-500"
           />
         </div>
         <button
@@ -217,10 +217,10 @@ export default function Clients() {
             setEditingId(null);
             setForm(emptyForm);
           }}
-          className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-white transition ${
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition ${
             isLimitCustomerReached
-              ? "bg-sun hover:bg-sun shadow-sm" // Style si limite atteinte
-              : "bg-jokko hover:bg-jokko-deep" // Style normal
+              ? "bg-amber-600 hover:bg-amber-700 shadow-sm" // Style si limite atteinte
+              : "bg-emerald-600 hover:bg-emerald-700" // Style normal
           }`}
         >
           {isLimitCustomerReached ? <Lock size={16} /> : <Plus size={16} />}
@@ -234,14 +234,14 @@ export default function Clients() {
             }
             exportClientsToExcel(clients, user);
           }}
-          className={`flex items-center gap-1.5 rounded-full border px-3 py-2.5 text-sm transition ${
+          className={`flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm transition ${
             !hasfeatures
-              ? "border-sun/60 bg-sun/20 text-ink hover:bg-sun/20" // Mode premium/verrouillé
-              : "border-ink/20 text-ink/75 hover:bg-cream" // Mode normal
+              ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100" // Mode premium/verrouillé
+              : "border-gray-300 text-gray-700 hover:bg-gray-50" // Mode normal
           }`}
         >
           {!hasfeatures ? (
-            <Lock size={15} className="text-ink" />
+            <Lock size={15} className="text-amber-600" />
           ) : (
             <Download size={15} />
           )}
@@ -251,9 +251,9 @@ export default function Clients() {
 
       {/* Formulaire */}
       {showForm && (
-        <div className="rounded-3xl border border-ink/10 bg-paper p-6">
+        <div className="rounded-2xl bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-ink">
+            <h3 className="text-lg font-bold text-slate-900">
               {editingId ? "Modifier" : "Nouveau"} client
             </h3>
             <button
@@ -262,7 +262,7 @@ export default function Clients() {
                 setEditingId(null);
               }}
             >
-              <X size={20} className="text-ink/45" />
+              <X size={20} className="text-gray-400" />
             </button>
           </div>
           <form
@@ -296,7 +296,7 @@ export default function Clients() {
               },
             ].map(({ label, key, placeholder, type }) => (
               <div key={key}>
-                <label className="mb-1 block text-sm font-medium text-ink/75">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   {label}
                 </label>
                 <input
@@ -305,7 +305,7 @@ export default function Clients() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, [key]: e.target.value }))
                   }
-                  className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                   placeholder={placeholder}
                 />
               </div>
@@ -314,7 +314,7 @@ export default function Clients() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded-full bg-jokko px-6 py-3 text-sm font-medium text-white hover:bg-jokko-deep disabled:opacity-60"
+                className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
               >
                 {submitting
                   ? "Enregistrement..."
@@ -328,7 +328,7 @@ export default function Clients() {
                   setShowForm(false);
                   setEditingId(null);
                 }}
-                className="rounded-full border border-ink/20 px-6 py-3 text-sm text-ink/75 hover:bg-cream"
+                className="rounded-xl border border-gray-300 px-6 py-3 text-sm text-gray-700 hover:bg-gray-50"
               >
                 Annuler
               </button>
@@ -337,13 +337,13 @@ export default function Clients() {
         </div>
       )}
 
-      <p className="text-sm text-ink/60">
+      <p className="text-sm text-gray-500">
         {totalClients} client(s)
       </p>
 
       {/* Liste clients */}
       {!clients.length ? (
-        <div className="rounded-2xl bg-paper p-8 text-center text-ink/45">
+        <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
           {search
             ? `Aucun client pour "${search}"`
             : "Aucun client enregistré."}
@@ -353,18 +353,18 @@ export default function Clients() {
           {clients.map((client) => (
             <div
               key={client.id}
-              className="rounded-3xl border border-ink/10 bg-paper overflow-hidden"
+              className="rounded-2xl bg-white shadow-sm overflow-hidden"
             >
               <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-jokko/10 text-sm font-bold text-jokko-deep">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
                     {client.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-semibold text-ink">
+                    <p className="font-semibold text-slate-900">
                       {client.name}
                     </p>
-                    <p className="text-sm text-ink/60">
+                    <p className="text-sm text-gray-500">
                       {client.phone}
                       {client.email ? ` • ${client.email}` : ""}
                     </p>
@@ -372,7 +372,7 @@ export default function Clients() {
                       className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
                         (client.totalRemaining ?? 0) > 0
                           ? "bg-red-100 text-red-700"
-                          : "bg-jokko/10 text-jokko-deep"
+                          : "bg-emerald-100 text-emerald-700"
                       }`}
                     >
                       {(client.totalRemaining ?? 0) > 0
@@ -385,21 +385,21 @@ export default function Clients() {
                 <div className="flex flex-wrap items-center gap-3">
                   <button
                     onClick={() => handleEdit(client)}
-                    className="rounded-full border border-ink/20 px-3 py-1.5 text-xs text-ink/75 hover:bg-cream"
+                    className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
                   >
                     Modifier
                   </button>
                   {admin && (
                     <button
                       onClick={() => handleDelete(client.id)}
-                      className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50"
+                      className="rounded-lg border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50"
                     >
                       Supprimer
                     </button>
                   )}
                   <button
                     onClick={() => openHistory(client)}
-                    className="rounded-full border border-jokko/25 px-3 py-1.5 text-xs text-jokko-deep hover:bg-jokko/10"
+                    className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs text-emerald-700 hover:bg-emerald-50"
                   >
                     Voir détail
                   </button>
@@ -411,22 +411,22 @@ export default function Clients() {
       )}
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between rounded-3xl border border-ink/10 bg-paper px-5 py-3">
+        <div className="flex items-center justify-between rounded-2xl bg-white px-5 py-3 shadow-sm">
           <button
             onClick={() => setPage((current) => Math.max(1, current - 1))}
             disabled={page === 1}
-            className="rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/75 hover:bg-cream disabled:cursor-not-allowed disabled:opacity-30"
+            className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30"
           >
             ← Précédent
           </button>
-          <span className="text-sm text-ink/60">
-            Page <strong className="text-ink">{page}</strong> sur{" "}
-            <strong className="text-ink">{totalPages}</strong>
+          <span className="text-sm text-gray-500">
+            Page <strong className="text-slate-900">{page}</strong> sur{" "}
+            <strong className="text-slate-900">{totalPages}</strong>
           </span>
           <button
             onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
             disabled={page === totalPages}
-            className="rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/75 hover:bg-cream disabled:cursor-not-allowed disabled:opacity-30"
+            className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30"
           >
             Suivant →
           </button>
@@ -434,25 +434,25 @@ export default function Clients() {
       )}
 
       {historyClient && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4">
-          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-paper shadow-xl">
-            <div className="sticky top-0 flex items-center justify-between border-b bg-paper px-6 py-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-xl">
+            <div className="sticky top-0 flex items-center justify-between border-b bg-white px-6 py-4">
               <div>
-                <h3 className="text-lg font-bold text-ink">
+                <h3 className="text-lg font-bold text-slate-900">
                   Historique de {historyClient.name}
                 </h3>
-                <p className="text-sm text-ink/60">
+                <p className="text-sm text-gray-500">
                   {historyClient.phone}
                   {historyClient.email ? ` • ${historyClient.email}` : ""}
                 </p>
               </div>
               <button onClick={() => setHistoryClient(null)}>
-                <X size={20} className="text-ink/45" />
+                <X size={20} className="text-gray-400" />
               </button>
             </div>
             <div className="space-y-3 p-6">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-medium text-ink/75">
+                <p className="text-sm font-medium text-slate-700">
                   Factures et achats
                 </p>
                 <select
@@ -463,7 +463,7 @@ export default function Clients() {
                     setHistoryPage(1);
                     void loadHistory(historyClient, 1, nextStatus);
                   }}
-                  className="rounded-lg border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
+                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
                 >
                   <option value="">Tous les statuts</option>
                   <option value="PAID">Payées</option>
@@ -472,34 +472,34 @@ export default function Clients() {
                 </select>
               </div>
               {historyLoading ? (
-                <p className="py-8 text-center text-ink/45">Chargement...</p>
+                <p className="py-8 text-center text-gray-400">Chargement...</p>
               ) : !historySales.length ? (
-                <p className="py-8 text-center text-ink/45">
+                <p className="py-8 text-center text-gray-400">
                   Aucun achat enregistré.
                 </p>
               ) : (
                 historySales.map((sale) => (
-                  <div key={sale.id} className="rounded-xl border border-ink/10 p-4">
+                  <div key={sale.id} className="rounded-xl border border-gray-200 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
-                        <p className="font-semibold text-ink">
+                        <p className="font-semibold text-slate-900">
                           {sale.invoiceNumber || `Facture #${sale.id}`}
                         </p>
-                        <p className="text-xs text-ink/60">
+                        <p className="text-xs text-gray-500">
                           {new Date(sale.createdAt).toLocaleDateString("fr-FR")}
                         </p>
                       </div>
                       <span className={`rounded-full px-2 py-1 text-xs font-medium ${
                         sale.status === "PAID"
-                          ? "bg-jokko/10 text-jokko-deep"
+                          ? "bg-emerald-100 text-emerald-700"
                           : sale.status === "PARTIAL"
-                            ? "bg-sun/20 text-ink"
+                            ? "bg-yellow-100 text-yellow-700"
                             : "bg-red-100 text-red-700"
                       }`}>
                         {sale.status === "PAID" ? "Payée" : sale.status === "PARTIAL" ? "Partielle" : "Non réglée"}
                       </span>
                     </div>
-                    <div className="mt-3 space-y-1 text-sm text-ink/70">
+                    <div className="mt-3 space-y-1 text-sm text-gray-600">
                       {sale.items.map((item) => (
                         <p key={item.id}>
                           {item.productName} × {item.quantity} — {fmt(item.totalAmount)}
@@ -508,13 +508,13 @@ export default function Clients() {
                     </div>
                     <div className="mt-3 flex flex-wrap gap-4 border-t pt-3 text-xs">
                       <span>Total : <strong>{fmt(sale.totalAmount)}</strong></span>
-                      <span>Payé : <strong className="text-jokko-deep">{fmt(sale.paidAmount)}</strong></span>
+                      <span>Payé : <strong className="text-emerald-700">{fmt(sale.paidAmount)}</strong></span>
                       <span>Reste : <strong className="text-red-600">{fmt(sale.remaining)}</strong></span>
                       <button
                         onClick={() => {
                           window.location.href = `/invoices?search=${encodeURIComponent(sale.invoiceNumber || String(sale.id))}`;
                         }}
-                        className="rounded-full border border-jokko/25 bg-jokko/10 px-3 py-1.5 font-medium text-jokko-deep transition hover:bg-jokko/10"
+                        className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-medium text-emerald-700 transition hover:bg-emerald-100"
                       >
                         Voir la facture
                       </button>
@@ -531,11 +531,11 @@ export default function Clients() {
                       void loadHistory(historyClient, nextPage, historyStatus);
                     }}
                     disabled={historyPage === 1}
-                    className="rounded-full border border-ink/20 px-3 py-2 text-xs disabled:opacity-40"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-xs disabled:opacity-40"
                   >
                     ← Précédent
                   </button>
-                  <span className="text-xs text-ink/60">
+                  <span className="text-xs text-gray-500">
                     Page {historyPage} sur {historyTotalPages}
                   </span>
                   <button
@@ -545,7 +545,7 @@ export default function Clients() {
                       void loadHistory(historyClient, nextPage, historyStatus);
                     }}
                     disabled={historyPage === historyTotalPages}
-                    className="rounded-full border border-ink/20 px-3 py-2 text-xs disabled:opacity-40"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-xs disabled:opacity-40"
                   >
                     Suivant →
                   </button>

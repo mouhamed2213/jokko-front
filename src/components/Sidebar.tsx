@@ -28,6 +28,7 @@ import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { NavLink, useLocation } from "react-router-dom";
 import logo from "../assets/brand/icone-app.svg";
+import Logo from "./public/Logo";
 
 import { api } from "../services/api";
 import {
@@ -214,14 +215,14 @@ function AddShopModal({
   ];
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md rounded-3xl bg-paper p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-ink">
+          <h3 className="text-lg font-bold text-slate-900">
             Nouvelle boutique
           </h3>
           <button type="button" onClick={onClose}>
-            <X size={20} className="text-ink/45 hover:text-ink/70" />
+            <X size={20} className="text-gray-400 hover:text-gray-600" />
           </button>
         </div>
 
@@ -231,7 +232,7 @@ function AddShopModal({
         >
           {fields.map(({ label, key, type, placeholder, span2 }) => (
             <div key={key} className={span2 ? "sm:col-span-2" : ""}>
-              <label className="mb-1 block text-sm font-medium text-ink/75">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 {label}
               </label>
               <input
@@ -239,58 +240,58 @@ function AddShopModal({
                 required={key === "email"}
                 value={form[key]}
                 onChange={(e) => handleChange(key, e.target.value)}
-                className="w-full rounded-xl border border-ink/20 px-4 py-3 text-sm outline-none focus:border-jokko"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500"
                 placeholder={placeholder}
               />
             </div>
           ))}
 
-          <div className="sm:col-span-2 rounded-xl border border-ink/10 p-4">
-            <label className="flex items-center gap-2 text-sm font-medium text-ink/80">
+          <div className="sm:col-span-2 rounded-xl border border-slate-200 p-4">
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
               <input
                 type="checkbox"
                 checked={form.managerEnabled}
                 onChange={(e) => setForm((p) => ({ ...p, managerEnabled: e.target.checked }))}
-                className="h-4 w-4 rounded border-ink/20 text-jokko-deep focus:ring-jokko"
+                className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
               />
               Créer un compte responsable pour cette boutique
             </label>
-            <p className="mt-1 text-xs text-ink/60">
+            <p className="mt-1 text-xs text-slate-500">
               Facultatif. Vous pourrez toujours accéder à cette boutique avec votre compte propriétaire.
             </p>
             {form.managerEnabled && (
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-ink/75">Nom du responsable *</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Nom du responsable *</label>
                   <input
                     type="text"
                     required
                     value={form.managerName}
                     onChange={(e) => handleChange("managerName", e.target.value)}
-                    className="w-full rounded-xl border border-ink/20 px-4 py-3 text-sm outline-none focus:border-jokko"
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500"
                     placeholder="Prénom Nom"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-ink/75">Email de connexion *</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Email de connexion *</label>
                   <input
                     type="email"
                     required
                     value={form.managerEmail}
                     onChange={(e) => handleChange("managerEmail", e.target.value)}
-                    className="w-full rounded-xl border border-ink/20 px-4 py-3 text-sm outline-none focus:border-jokko"
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500"
                     placeholder="responsable@boutique.com"
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="mb-1 block text-sm font-medium text-ink/75">Mot de passe initial *</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Mot de passe initial *</label>
                   <input
                     type="password"
                     required
                     minLength={8}
                     value={form.managerPassword}
                     onChange={(e) => handleChange("managerPassword", e.target.value)}
-                    className="w-full rounded-xl border border-ink/20 px-4 py-3 text-sm outline-none focus:border-jokko"
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-emerald-500"
                     placeholder="8 caractères minimum"
                   />
                 </div>
@@ -302,14 +303,14 @@ function AddShopModal({
             <button
               type="submit"
               disabled={submitting}
-              className="rounded-full bg-jokko px-6 py-3 text-sm font-medium text-white hover:bg-jokko-deep disabled:opacity-60 transition"
+              className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 transition"
             >
               {submitting ? "Création..." : "Créer la boutique"}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full border border-ink/20 px-6 py-3 text-sm text-ink/75 hover:bg-cream"
+              className="rounded-xl border border-gray-300 px-6 py-3 text-sm text-gray-700 hover:bg-gray-50"
             >
               Annuler
             </button>
@@ -438,7 +439,7 @@ function ShopSwitcher({
           setSelected(null);
           setPassword("");
         }}
-        className="w-full flex items-center justify-between gap-2 rounded-full px-3 py-2 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition"
+        className="w-full flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium text-white/65 hover:bg-white/5 hover:text-white transition"
       >
         <div className="flex items-center gap-3">
           <Store size={17} />
@@ -476,7 +477,7 @@ function ShopSwitcher({
                             : "hover:bg-white/10 cursor-pointer"
                         }`}
                     >
-                      <div className="w-8 h-8 rounded-lg bg-jokko flex items-center justify-center shrink-0 overflow-hidden">
+                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 overflow-hidden">
                         {shop.logoUrl ? (
                           <img
                             src={shop.logoUrl}
@@ -502,7 +503,7 @@ function ShopSwitcher({
                       {isCurrent ? (
                         <Check
                           size={14}
-                          className="text-jokko shrink-0"
+                          className="text-sun shrink-0"
                         />
                       ) : (
                         <ChevronRight
@@ -522,9 +523,9 @@ function ShopSwitcher({
                     setOpen(false);
                     onAddShopClick();
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-jokko hover:bg-white/10 border-t border-white/10 transition"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-sun hover:bg-white/10 border-t border-white/10 transition"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-jokko flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
                     <Plus size={16} />
                   </div>
                   <span>Ajouter une boutique</span>
@@ -537,20 +538,20 @@ function ShopSwitcher({
                     setOpen(false);
                     onUpgradeClick();
                   }}
-                  className="w-full flex items-center justify-between gap-3 border-t border-white/10 px-4 py-3 text-left text-sm font-medium text-ink transition hover:bg-sun hover:text-ink"
+                  className="w-full flex items-center justify-between gap-3 border-t border-white/10 px-4 py-3 text-left text-sm font-medium text-sun/80 transition hover:bg-sun/10 hover:text-sun"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sun">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sun/20">
                       <Crown size={14} />
                     </div>
                     <div className="min-w-0">
                       <p className="truncate">Ajouter une boutique</p>
-                      <p className="truncate text-[11px] text-ink">
+                      <p className="truncate text-[11px] text-sun/70">
                         {addShopStatus.message}
                       </p>
                     </div>
                   </div>
-                  <span className="shrink-0 rounded-md bg-sun px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-ink">
+                  <span className="shrink-0 rounded-md bg-sun/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-sun">
                     Pro
                   </span>
                 </button>
@@ -572,7 +573,7 @@ function ShopSwitcher({
                 Retour
               </button>
               <div className="flex items-center gap-3 mb-4 pb-3 border-b border-white/10">
-                <div className="w-9 h-9 rounded-lg bg-jokko flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
                   {selected.logoUrl ? (
                     <img
                       src={selected.logoUrl}
@@ -580,7 +581,7 @@ function ShopSwitcher({
                       className="w-full h-full object-contain rounded-lg"
                     />
                   ) : (
-                    <span className="text-sm font-bold text-jokko">
+                    <span className="text-sm font-bold text-sun">
                       {selected.name.charAt(0).toUpperCase()}
                     </span>
                   )}
@@ -602,7 +603,7 @@ function ShopSwitcher({
                   onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
                   placeholder="Mot de passe de votre compte propriétaire"
                   autoFocus
-                  className="w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-jokko pr-10"
+                  className="w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-sun pr-10"
                 />
                 <button
                   type="button"
@@ -616,7 +617,7 @@ function ShopSwitcher({
                 type="button"
                 onClick={handleConfirm}
                 disabled={!password || loading}
-                className="w-full rounded-full bg-jokko py-2.5 text-sm font-semibold text-white hover:bg-jokko-deep disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="w-full rounded-lg bg-jokko py-2.5 text-sm font-semibold text-white hover:bg-jokko-deep disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 {loading ? "Accès en cours..." : `Accéder à ${selected.name}`}
               </button>
@@ -655,10 +656,10 @@ function NavGroup({
         onClick={onClose}
         title={link.name}
         className={({ isActive }) =>
-          `group flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition ${
+          `group flex items-center justify-center rounded-xl px-3 py-2 text-sm font-semibold transition ${
             isActive
               ? "bg-white/10 text-white"
-              : "text-white/70 hover:bg-white/10 hover:text-white"
+              : "text-white/65 hover:bg-white/5 hover:text-white"
           }`
         }
       >
@@ -670,10 +671,10 @@ function NavGroup({
   return (
     <div>
       <div
-        className={`group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition ${
+        className={`group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition ${
           isParentActive
             ? "bg-white/10 text-white"
-            : "text-white/70 hover:bg-white/10 hover:text-white"
+            : "text-white/65 hover:bg-white/5 hover:text-white"
         }`}
       >
         <NavLink
@@ -710,7 +711,7 @@ function NavGroup({
               className={({ isActive }) =>
                 `block rounded-lg px-3 py-1.5 text-sm transition ${
                   isActive
-                    ? "bg-white/10 text-white font-medium"
+                    ? "bg-white/10 text-sun font-semibold"
                     : "text-white/50 hover:bg-white/5 hover:text-white/80"
                 }`
               }
@@ -807,21 +808,29 @@ function SidebarContent({
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-ink text-white">
+    <div className="flex h-full flex-col overflow-hidden bg-ink font-brand text-white">
       <div className="shrink-0 border-b border-white/10 px-5 py-4">
+        {/* Logo Jokko Business */}
+        <div className={`mb-4 flex ${collapsed ? "justify-center" : "justify-start"}`}>
+          {collapsed ? (
+            <img src={logo} alt="Jokko Business" className="h-9 w-9 rounded-lg" />
+          ) : (
+            <Logo variant="sur-encre" className="h-11 w-auto" />
+          )}
+        </div>
         <div className="flex items-center justify-between">
           <div className={`flex items-center gap-3 ${collapsed ? "justify-center w-full" : ""}`}>
             <img
               src={shopLogo || logo}
               alt={shopName}
-              className="h-10 w-10 shrink-0 rounded-xl bg-paper object-contain"
+              className="h-10 w-10 shrink-0 rounded-xl bg-white object-contain p-1"
             />
             {!collapsed && (
               <div className="min-w-0">
                 <h1 className="text-base font-bold truncate max-w-32.5">
                   {shopName}
                 </h1>
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-sun">Jokko Business</p>
+                <p className="text-xs text-white/50">Gestion commerciale</p>
               </div>
             )}
           </div>
@@ -829,7 +838,7 @@ function SidebarContent({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full p-2 text-white/80 hover:bg-white/10 md:hidden"
+              className="rounded-lg p-2 text-white/80 hover:bg-white/10 md:hidden"
             >
               <X size={18} />
             </button>
@@ -840,7 +849,7 @@ function SidebarContent({
             type="button"
             onClick={onToggleCollapse}
             title={collapsed ? "Agrandir le menu" : "Réduire le menu"}
-            className="mt-3 hidden w-full items-center justify-center gap-2 rounded-full py-1.5 text-xs font-medium text-white/50 hover:bg-white/10 hover:text-white/80 transition md:flex"
+            className="mt-3 hidden w-full items-center justify-center gap-2 rounded-lg py-1.5 text-xs font-medium text-white/50 hover:bg-white/10 hover:text-white/80 transition md:flex"
           >
             {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
             {!collapsed && <span>Réduire</span>}
@@ -866,7 +875,7 @@ function SidebarContent({
                   onUpgradeClick();
                 }}
                 title={collapsed ? link.name : undefined}
-                className={`group flex w-full items-center rounded-full px-3 py-2 text-sm font-medium transition text-ink hover:bg-sun hover:text-ink ${
+                className={`group flex w-full items-center rounded-xl px-3 py-2 text-sm font-semibold transition text-sun/80 hover:bg-sun/10 hover:text-sun ${
                   collapsed ? "justify-center" : "justify-between"
                 }`}
               >
@@ -877,7 +886,7 @@ function SidebarContent({
                   {!collapsed && (
                     <>
                       <span>{link.name}</span>
-                      <span className="rounded-md bg-sun px-1.5 py-0.5 text-[10px] font-bold text-ink uppercase tracking-wider">
+                      <span className="rounded-md bg-sun/20 px-1.5 py-0.5 text-[10px] font-bold text-sun uppercase tracking-wider">
                         Pro
                       </span>
                     </>
@@ -908,12 +917,12 @@ function SidebarContent({
               end={link.path === "/dashboard"}
               title={collapsed ? link.name : undefined}
               className={({ isActive }) =>
-                `group flex items-center rounded-xl px-3 py-2 text-sm font-medium transition ${
+                `group flex items-center rounded-xl px-3 py-2 text-sm font-semibold transition ${
                   collapsed ? "justify-center" : "justify-between"
                 } ${
                   isActive
                     ? "bg-white/10 text-white"
-                    : "text-white/70 hover:bg-white/10 hover:text-white"
+                    : "text-white/65 hover:bg-white/5 hover:text-white"
                 }`
               }
             >
@@ -949,8 +958,8 @@ function SidebarContent({
       {!collapsed && (
         <div className="shrink-0 border-t border-white/10 p-3">
           <div className="rounded-xl bg-white/5 px-4 py-2.5">
-            <p className="text-xs font-extrabold text-white/80">Jokko Business</p>
-            <p className="text-xs text-white/40">v1.0</p>
+            <p className="text-xs font-semibold text-white/80">v1.0</p>
+            <p className="text-xs text-white/40">Jokko Business SaaS</p>
           </div>
         </div>
       )}
@@ -991,7 +1000,7 @@ export default function Sidebar() {
       <button
         type="button"
         onClick={() => setMobileOpen(true)}
-        className="fixed left-4 top-4 z-40 rounded-full bg-ink p-3 text-white shadow-lg md:hidden"
+        className="fixed left-4 top-4 z-40 rounded-xl bg-ink p-3 text-white shadow-lg md:hidden"
       >
         <Menu size={20} />
       </button>
@@ -1030,25 +1039,25 @@ export default function Sidebar() {
       )}
 
       {isUpgradeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-paper p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
             <div className="flex flex-col items-center text-center">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-sun/20 text-ink">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600">
                 <Crown size={24} />
               </div>
-              <h3 className="text-lg font-bold text-ink">
+              <h3 className="text-lg font-bold text-slate-900">
                 Fonctionnalité Pro
               </h3>
-              <p className="mt-2 text-sm text-ink/60">
+              <p className="mt-2 text-sm text-gray-500">
                 Cette fonctionnalité est réservée aux abonnés des plans
                 supérieurs.
               </p>
             </div>
-            <div className="my-5 rounded-xl bg-cream p-4 text-left">
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink/45 mb-2">
+            <div className="my-5 rounded-xl bg-slate-50 p-4 text-left">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
                 Débloquez le Plan Pro :
               </p>
-              <ul className="space-y-2 text-sm text-ink/75">
+              <ul className="space-y-2 text-sm text-slate-700">
                 <li className="flex items-center gap-2">
                   🤝 Gestion fournisseurs complète
                 </li>
@@ -1063,7 +1072,7 @@ export default function Sidebar() {
             <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
               <button
                 onClick={() => setIsUpgradeModalOpen(false)}
-                className="w-full rounded-full border border-ink/10 px-4 py-2.5 text-sm font-medium text-ink/75 hover:bg-cream sm:w-auto"
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:w-auto"
               >
                 Plus tard
               </button>
@@ -1072,7 +1081,7 @@ export default function Sidebar() {
                   setIsUpgradeModalOpen(false);
                   window.location.href = "/settings";
                 }}
-                className="w-full rounded-full bg-jokko px-4 py-2.5 text-sm font-semibold text-white hover:bg-jokko-deep shadow-sm transition sm:w-auto"
+                className="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 shadow-sm transition sm:w-auto"
               >
                 Voir les plans
               </button>

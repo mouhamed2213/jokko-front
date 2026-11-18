@@ -7,13 +7,13 @@ import { getStoredUser } from "../types/auth";
 import type { Product, StockMovement } from "../types/index";
 import { exportStockToExcel } from "../utils/exportExcel";
 
-const fmt = (v: number) => v.toLocaleString("fr-FR").replace(/\u202f/g, " ");
+const fmt = (v: number) => v.toLocaleString("fr-FR");
 
 const typeLabel: Record<string, { label: string; color: string }> = {
-  ENTRY: { label: "Entrée", color: "bg-jokko/10 text-jokko-deep" },
+  ENTRY: { label: "Entrée", color: "bg-emerald-100 text-emerald-700" },
   OUT: { label: "Sortie", color: "bg-red-100 text-red-700" },
-  SALE: { label: "Vente", color: "bg-jokko/10 text-jokko-deep" },
-  ADJUST: { label: "Ajustement", color: "bg-sun/20 text-ink" },
+  SALE: { label: "Vente", color: "bg-blue-100 text-blue-700" },
+  ADJUST: { label: "Ajustement", color: "bg-yellow-100 text-yellow-700" },
 };
 
 export default function Stock() {
@@ -65,26 +65,26 @@ export default function Stock() {
     <section className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-ink">
+          <h1 className="text-xl font-bold text-slate-900">
             Mouvements de stock
           </h1>
-          <p className="text-sm text-ink/60 mt-0.5">
+          <p className="text-sm text-gray-500 mt-0.5">
             Historique complet des entrées, sorties et ventes.
           </p>
         </div>
         <Link
           to="/products"
-          className="rounded-xl bg-jokko px-4 py-2.5 text-sm font-medium text-white transition hover:bg-jokko-deep"
+          className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700"
         >
           + Gérer les produits
         </Link>
       </div>
 
-      <p className="rounded-xl bg-cream border border-ink/10 px-4 py-3 text-sm text-ink/70">
+      <p className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm text-slate-600">
         Pour ajouter ou retirer du stock, utilisez les boutons{" "}
         <strong>Entrée</strong> / <strong>Sortie</strong> sur la fiche de
         chaque produit, dans la page{" "}
-        <Link to="/products" className="text-jokko-deep hover:underline">
+        <Link to="/products" className="text-emerald-700 hover:underline">
           Produits
         </Link>
         .
@@ -98,7 +98,7 @@ export default function Stock() {
             setProductFilter(e.target.value ? Number(e.target.value) : "");
             setPage(1);
           }}
-          className="rounded-xl border border-ink/20 px-4 py-2.5 text-sm outline-none focus:border-jokko"
+          className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
         >
           <option value="">Tous les produits</option>
           {products.map((p) => (
@@ -113,7 +113,7 @@ export default function Stock() {
             setTypeFilter(e.target.value);
             setPage(1);
           }}
-          className="rounded-xl border border-ink/20 px-4 py-2.5 text-sm outline-none focus:border-jokko"
+          className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
         >
           <option value="">Tous les types</option>
           <option value="ENTRY">Entrées</option>
@@ -123,7 +123,7 @@ export default function Stock() {
         </select>
         <button
           onClick={() => exportStockToExcel(movements, user)}
-          className="flex items-center gap-1.5 rounded-full border px-3 py-2.5 text-sm transition border-ink/20 text-ink/75 hover:bg-cream cursor-pointer"
+          className="flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm transition border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
         >
           <Download size={15} />
           <span>Excel</span>
@@ -131,17 +131,17 @@ export default function Stock() {
       </div>
 
       {/* Historique */}
-      <div className="rounded-3xl border border-ink/10 bg-paper p-6">
+      <div className="rounded-2xl bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-ink">
+          <h3 className="text-lg font-bold text-slate-900">
             {totalMovements} mouvement(s)
           </h3>
         </div>
 
         {loading ? (
-          <p className="text-center text-ink/45 py-8">Chargement...</p>
+          <p className="text-center text-gray-400 py-8">Chargement...</p>
         ) : !movements.length ? (
-          <p className="text-center text-ink/45 py-8">
+          <p className="text-center text-gray-400 py-8">
             Aucun mouvement enregistré.
           </p>
         ) : (
@@ -150,7 +150,7 @@ export default function Stock() {
             <div className="hidden overflow-x-auto lg:block">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b text-ink/60 text-xs uppercase">
+                  <tr className="border-b text-gray-500 text-xs uppercase">
                     <th className="pb-3 pr-4">Produit</th>
                     <th className="pb-3 pr-4">Type</th>
                     <th className="pb-3 pr-4">Qté</th>
@@ -162,8 +162,8 @@ export default function Stock() {
                 </thead>
                 <tbody>
                   {movements.map((m) => (
-                    <tr key={m.id} className="border-b hover:bg-cream">
-                      <td className="py-3 pr-4 font-medium text-ink">
+                    <tr key={m.id} className="border-b hover:bg-gray-50">
+                      <td className="py-3 pr-4 font-medium text-slate-900">
                         {m.product?.name || "-"}
                       </td>
                       <td className="py-3 pr-4">
@@ -176,17 +176,17 @@ export default function Stock() {
                       <td className="py-3 pr-4 font-medium">
                         {fmt(m.quantity)}
                       </td>
-                      <td className="py-3 pr-4 text-ink/60">
+                      <td className="py-3 pr-4 text-gray-500">
                         {m.supplier?.name || "-"}
                       </td>
-                      <td className="py-3 pr-4 text-ink/60">
+                      <td className="py-3 pr-4 text-gray-500">
                         {m.user?.name || "-"}
                       </td>
-                      <td className="py-3 pr-4 text-ink/60 max-w-40 truncate">
+                      <td className="py-3 pr-4 text-gray-500 max-w-40 truncate">
                         {m.note || "-"}
                       </td>
-                      <td className="py-3 text-ink/60">
-                        {new Date(m.createdAt).toLocaleString("fr-FR").replace(/\u202f/g, " ")}
+                      <td className="py-3 text-gray-500">
+                        {new Date(m.createdAt).toLocaleString("fr-FR")}
                       </td>
                     </tr>
                   ))}
@@ -199,15 +199,15 @@ export default function Stock() {
               {movements.map((m) => (
                 <div
                   key={m.id}
-                  className="rounded-xl border border-ink/10 p-4"
+                  className="rounded-xl border border-gray-200 p-4"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="font-semibold text-ink">
+                      <p className="font-semibold text-slate-900">
                         {m.product?.name}
                       </p>
-                      <p className="text-xs text-ink/45">
-                        {new Date(m.createdAt).toLocaleString("fr-FR").replace(/\u202f/g, " ")}
+                      <p className="text-xs text-gray-400">
+                        {new Date(m.createdAt).toLocaleString("fr-FR")}
                       </p>
                     </div>
                     <span
@@ -218,16 +218,16 @@ export default function Stock() {
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <p className="text-xs text-ink/45">Quantité</p>
+                      <p className="text-xs text-gray-400">Quantité</p>
                       <p className="font-medium">{fmt(m.quantity)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-ink/45">Fournisseur</p>
+                      <p className="text-xs text-gray-400">Fournisseur</p>
                       <p className="font-medium">{m.supplier?.name || "-"}</p>
                     </div>
                     {m.note && (
                       <div className="col-span-2">
-                        <p className="text-xs text-ink/45">Note</p>
+                        <p className="text-xs text-gray-400">Note</p>
                         <p className="font-medium">{m.note}</p>
                       </div>
                     )}
@@ -242,17 +242,17 @@ export default function Stock() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/75 hover:bg-cream disabled:opacity-40"
+                  className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40"
                 >
                   ← Précédent
                 </button>
-                <span className="text-sm text-ink/60">
+                <span className="text-sm text-gray-500">
                   Page {page} / {totalPages}
                 </span>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/75 hover:bg-cream disabled:opacity-40"
+                  className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40"
                 >
                   Suivant →
                 </button>

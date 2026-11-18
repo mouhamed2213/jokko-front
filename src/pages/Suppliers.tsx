@@ -28,7 +28,7 @@ import type { UpgradeFeature } from "../utils/upgradeFeaturesData";
 import SupplierAnalyticsTab from "../components/SupplierAnalyticsTab";
 import ConsolidatedSuppliersTab from "../components/ConsolidatedSuppliersTab";
 
-const fmt = (v: number) => `${v.toLocaleString("fr-FR").replace(/\u202f/g, " ")} FCFA`;
+const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 const emptyForm = { name: "", phone: "", email: "", address: "" };
 
 export default function Suppliers() {
@@ -205,12 +205,12 @@ export default function Suppliers() {
 
   const totalDebtAll = suppliers.reduce((sum, s) => sum + (s.totalDebt ?? 0), 0);
 
-  if (loading) return <div className="rounded-2xl bg-paper p-8 text-center text-ink/45">Chargement...</div>;
+  if (loading) return <div className="rounded-2xl bg-white p-8 text-center text-gray-400">Chargement...</div>;
 
   return (
     <section className="space-y-6">
     {/* Onglets */}
-    <div className="flex gap-2 border-b border-ink/10">
+    <div className="flex gap-2 border-b border-gray-200">
       {(
         [
           { key: "list", label: "Fournisseurs" },
@@ -224,8 +224,8 @@ export default function Suppliers() {
           onClick={() => setActiveTab(tab.key)}
           className={`flex items-center gap-1.5 border-b-2 px-4 py-2.5 text-sm font-medium transition ${
             activeTab === tab.key
-              ? "border-jokko text-jokko-deep"
-              : "border-transparent text-ink/60 hover:text-ink/80"
+              ? "border-emerald-600 text-emerald-700"
+              : "border-transparent text-gray-500 hover:text-slate-800"
           }`}
         >
           {tab.label}
@@ -234,7 +234,7 @@ export default function Suppliers() {
             !hasFeature(
               subscription,
               tab.key === "analytics" ? "ADVANCED_REPORTS" : "MULTI_STORE",
-            ) && <Lock size={12} className="text-ink" />}
+            ) && <Lock size={12} className="text-amber-500" />}
         </button>
       ))}
     </div>
@@ -259,13 +259,13 @@ export default function Suppliers() {
     {activeTab === "list" && (
     <>
     {quota && (
-      <div className="rounded-2xl border border-ink/10 bg-paper px-5 py-4">
-        <p className="text-sm font-semibold text-ink/80">
+      <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
+        <p className="text-sm font-semibold text-slate-800">
           Fournisseurs : {quota.count}
           {quota.limit === null ? " (illimité)" : ` / ${quota.limit}`}
         </p>
         {quota.remaining !== null && (
-          <p className="mt-1 text-xs text-ink/60">
+          <p className="mt-1 text-xs text-slate-500">
             {quota.remaining} place(s) restante(s) sur votre plan
           </p>
         )}
@@ -295,17 +295,17 @@ export default function Suppliers() {
                       selectedAgingBucket === bucket.key ? null : bucket.key,
                     );
                   }}
-                  className={`rounded-full p-3 text-left transition ${
+                  className={`rounded-xl p-3 text-left transition ${
                     selectedAgingBucket === bucket.key
                       ? "bg-red-100 ring-2 ring-red-400"
-                      : "bg-paper hover:bg-red-100"
+                      : "bg-white hover:bg-red-100"
                   }`}
                 >
-                  <p className="text-xs text-ink/60">{bucket.label}</p>
-                  <p className="mt-1 font-bold text-ink">
+                  <p className="text-xs text-gray-500">{bucket.label}</p>
+                  <p className="mt-1 font-bold text-slate-900">
                     {fmt(bucket.amount)}
                   </p>
-                  <p className="text-xs text-ink/45">
+                  <p className="text-xs text-gray-400">
                     {bucket.count} dette(s)
                   </p>
                 </button>
@@ -344,7 +344,7 @@ export default function Suppliers() {
 
       {/* Actions */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-ink/60">{suppliers.length} fournisseur(s)</p>
+        <p className="text-sm text-gray-500">{suppliers.length} fournisseur(s)</p>
         <button
           disabled={quota?.remaining === 0}
           onClick={() => {
@@ -352,7 +352,7 @@ export default function Suppliers() {
             setEditingId(null);
             setForm(emptyForm);
           }}
-          className="flex items-center gap-2 rounded-full bg-jokko px-4 py-2.5 text-sm font-medium text-white hover:bg-jokko-deep transition disabled:cursor-not-allowed disabled:bg-ink/20"
+          className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition disabled:cursor-not-allowed disabled:bg-slate-300"
           title={quota?.remaining === 0 ? "Quota fournisseur atteint" : undefined}
         >
           <Plus size={16} /> Nouveau fournisseur
@@ -361,10 +361,10 @@ export default function Suppliers() {
 
       {/* Formulaire fournisseur */}
       {showForm && (
-        <div className="rounded-3xl border border-ink/10 bg-paper p-6">
+        <div className="rounded-2xl bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-ink">{editingId ? "Modifier" : "Nouveau"} fournisseur</h3>
-            <button onClick={() => { setShowForm(false); setEditingId(null); }}><X size={20} className="text-ink/45" /></button>
+            <h3 className="text-lg font-bold text-slate-900">{editingId ? "Modifier" : "Nouveau"} fournisseur</h3>
+            <button onClick={() => { setShowForm(false); setEditingId(null); }}><X size={20} className="text-gray-400" /></button>
           </div>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {[
@@ -374,20 +374,20 @@ export default function Suppliers() {
               { label: "Adresse", key: "address", placeholder: "Adresse..." },
             ].map(({ label, key, placeholder }) => (
               <div key={key}>
-                <label className="mb-1 block text-sm font-medium text-ink/75">{label}</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
                 <input type="text" value={form[key as keyof typeof form]}
                   onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value }))}
-                  className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                   placeholder={placeholder} />
               </div>
             ))}
             <div className="flex gap-3 sm:col-span-2">
               <button type="submit" disabled={submitting}
-                className="rounded-full bg-jokko px-5 py-2.5 text-sm font-medium text-white hover:bg-jokko-deep disabled:opacity-60">
+                className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60">
                 {submitting ? "Enregistrement..." : editingId ? "Modifier" : "Créer"}
               </button>
               <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }}
-                className="rounded-full border border-ink/20 px-5 py-2.5 text-sm text-ink/75">Annuler</button>
+                className="rounded-xl border border-gray-300 px-5 py-2.5 text-sm text-gray-700">Annuler</button>
             </div>
           </form>
         </div>
@@ -395,49 +395,49 @@ export default function Suppliers() {
 
       {/* Modal paiement dette */}
       {payingDebt && (
-        <div className="rounded-3xl border border-ink/10 bg-paper p-6 border-l-4 border-jokko">
+        <div className="rounded-2xl bg-white p-6 shadow-sm border-l-4 border-emerald-500">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-bold text-ink">Payer une dette fournisseur</h3>
-              <p className="text-sm text-ink/60 mt-0.5">
+              <h3 className="text-lg font-bold text-slate-900">Payer une dette fournisseur</h3>
+              <p className="text-sm text-gray-500 mt-0.5">
                 Reste dû : <strong className="text-red-600">{fmt(payingDebt.debt.remaining)}</strong>
                 {payingDebt.debt.note && ` • ${payingDebt.debt.note}`}
               </p>
             </div>
-            <button onClick={() => setPayingDebt(null)}><X size={20} className="text-ink/45" /></button>
+            <button onClick={() => setPayingDebt(null)}><X size={20} className="text-gray-400" /></button>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">Montant à payer (FCFA)</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Montant à payer (FCFA)</label>
               <input type="number" min={1} max={payingDebt.debt.remaining} value={payAmount}
                 onChange={(e) => setPayAmount(e.target.value)}
-                className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko" />
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">Mode de paiement</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Mode de paiement</label>
               <PaymentMethodSelect value={payMethod} onChange={setPayMethod} className="w-full" />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">Note (optionnel)</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Note (optionnel)</label>
               <input type="text" value={payNote} onChange={(e) => setPayNote(e.target.value)}
-                className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                 placeholder="Ex: Règlement partiel..." />
             </div>
             <div className="flex items-end">
               <button onClick={handlePayment} disabled={paySubmitting}
-                className="w-full rounded-full bg-jokko py-3 text-sm font-medium text-white hover:bg-jokko-deep disabled:opacity-60">
+                className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60">
                 {paySubmitting ? "Paiement..." : "✓ Confirmer le paiement"}
               </button>
             </div>
           </div>
-          <p className="mt-3 text-xs text-jokko-deep">
+          <p className="mt-3 text-xs text-emerald-600">
             💡 Ce paiement sera automatiquement décaissé de la caisse si elle est ouverte.
           </p>
         </div>
       )}
 
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-ink/80">
+        <p className="text-sm font-semibold text-slate-800">
           {selectedAgingBucket
             ? `Fournisseurs avec dettes : ${
                 aging?.buckets.find(
@@ -453,7 +453,7 @@ export default function Suppliers() {
               setSupplierPage(1);
               setSelectedAgingBucket(null);
             }}
-            className="text-xs font-medium text-jokko-deep hover:text-jokko-deep"
+            className="text-xs font-medium text-emerald-700 hover:text-emerald-800"
           >
             Voir tout
           </button>
@@ -462,7 +462,7 @@ export default function Suppliers() {
 
       {/* Liste fournisseurs filtrée et paginée par le backend */}
       {!suppliers.length ? (
-        <div className="rounded-2xl bg-paper p-8 text-center text-ink/45">
+        <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
           {selectedAgingBucket
             ? "Aucun fournisseur avec une dette dans cette tranche."
             : "Aucun fournisseur enregistré."}
@@ -472,16 +472,16 @@ export default function Suppliers() {
           {suppliers.map((s) => {
             const unpaidDebts = s.supplierDebts?.filter((d) => d.status !== "PAID") || [];
             return (
-              <div key={s.id} className="rounded-3xl border border-ink/10 bg-paper overflow-hidden">
+              <div key={s.id} className="rounded-2xl bg-white shadow-sm overflow-hidden">
                 {/* En-tête fournisseur */}
                 <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-jokko/10 text-sm font-bold text-jokko-deep">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
                       {s.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="font-semibold text-ink">{s.name}</p>
-                      <p className="text-sm text-ink/60">
+                      <p className="font-semibold text-slate-900">{s.name}</p>
+                      <p className="text-sm text-gray-500">
                         {s.phone || "Pas de téléphone"}
                         {s.email ? ` • ${s.email}` : ""}
                       </p>
@@ -495,7 +495,7 @@ export default function Suppliers() {
                       </span>
                     )}
                     {(s.totalDebt ?? 0) === 0 && (s as any).totalPurchases > 0 && (
-                      <span className="rounded-full bg-jokko/10 px-3 py-1 text-xs font-medium text-jokko-deep">
+                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
                         Tout réglé
                       </span>
                     )}
@@ -510,16 +510,16 @@ export default function Suppliers() {
                           }
                           openPayment(s.id, unpaidDebts[0]);
                         }}
-                        className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-white transition ${cashOpen ? "bg-jokko hover:bg-jokko-deep" : "bg-ink/40 cursor-not-allowed"}`}>
+                        className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium text-white transition ${cashOpen ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-400 cursor-not-allowed"}`}>
                         <CreditCard size={13} /> Payer
                       </button>
                     )}
 
                     <button onClick={() => { setForm({ name: s.name, phone: s.phone || "", email: s.email || "", address: s.address || "" }); setEditingId(s.id); setShowForm(true); }}
-                      className="rounded-full border border-ink/20 px-3 py-1.5 text-xs text-ink/75 hover:bg-cream">Modifier</button>
+                      className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50">Modifier</button>
                     <button onClick={() => handleDelete(s.id)}
-                      className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50">Supprimer</button>
-                    <button onClick={() => setExpandedId(expandedId === s.id ? null : s.id)} className="text-ink/45 hover:text-ink/70">
+                      className="rounded-lg border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50">Supprimer</button>
+                    <button onClick={() => setExpandedId(expandedId === s.id ? null : s.id)} className="text-gray-400 hover:text-gray-600">
                       {expandedId === s.id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                     </button>
                   </div>
@@ -527,20 +527,20 @@ export default function Suppliers() {
 
                 {/* Section expandée */}
                 {expandedId === s.id && (
-                  <div className="border-t bg-cream px-5 py-4 space-y-4">
+                  <div className="border-t bg-slate-50 px-5 py-4 space-y-4">
                     {/* Résumé financier */}
                     <div className="grid grid-cols-3 gap-3 text-center text-sm">
-                      <div className="rounded-xl bg-paper p-3">
-                        <p className="text-xs text-ink/45">Total achats</p>
-                        <p className="font-bold text-ink">{fmt((s as any).totalPurchases ?? 0)}</p>
+                      <div className="rounded-xl bg-white p-3">
+                        <p className="text-xs text-gray-400">Total achats</p>
+                        <p className="font-bold text-slate-900">{fmt((s as any).totalPurchases ?? 0)}</p>
                       </div>
-                      <div className="rounded-xl bg-paper p-3">
-                        <p className="text-xs text-ink/45">Total payé</p>
-                        <p className="font-bold text-jokko-deep">{fmt((s as any).totalPaid ?? 0)}</p>
+                      <div className="rounded-xl bg-white p-3">
+                        <p className="text-xs text-gray-400">Total payé</p>
+                        <p className="font-bold text-emerald-700">{fmt((s as any).totalPaid ?? 0)}</p>
                       </div>
-                      <div className="rounded-xl bg-paper p-3">
-                        <p className="text-xs text-ink/45">Reste dû</p>
-                        <p className={`font-bold ${(s.totalDebt ?? 0) > 0 ? "text-red-600" : "text-jokko-deep"}`}>
+                      <div className="rounded-xl bg-white p-3">
+                        <p className="text-xs text-gray-400">Reste dû</p>
+                        <p className={`font-bold ${(s.totalDebt ?? 0) > 0 ? "text-red-600" : "text-emerald-600"}`}>
                           {fmt(s.totalDebt ?? 0)}
                         </p>
                       </div>
@@ -555,50 +555,50 @@ export default function Suppliers() {
                       <button
                         type="button"
                         onClick={() => openSupplierHistory(s.id)}
-                        className="text-sm font-medium text-jokko-deep hover:text-jokko-deep"
+                        className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
                       >
                         Voir l’historique des achats
                       </button>
                     </div>
 
                     {showDebtForm === s.id && (
-                      <div className="rounded-xl bg-paper p-4 space-y-3">
-                        <p className="text-sm font-semibold text-ink/80">Nouvelle dette fournisseur</p>
+                      <div className="rounded-xl bg-white p-4 space-y-3">
+                        <p className="text-sm font-semibold text-slate-800">Nouvelle dette fournisseur</p>
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                           <div>
-                            <label className="mb-1 block text-xs text-ink/70">Montant total (FCFA) *</label>
+                            <label className="mb-1 block text-xs text-gray-600">Montant total (FCFA) *</label>
                             <input type="number" min="1" value={debtTotal} onChange={(e) => setDebtTotal(e.target.value)}
-                              className="w-full rounded-xl border border-ink/20 px-3 py-2.5 text-sm outline-none focus:border-jokko"
+                              className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
                               placeholder="Ex: 100000" />
                           </div>
                           <div>
-                            <label className="mb-1 block text-xs text-ink/70">Acompte versé (FCFA)</label>
+                            <label className="mb-1 block text-xs text-gray-600">Acompte versé (FCFA)</label>
                             <input type="number" min="0" value={debtPaid} onChange={(e) => setDebtPaid(e.target.value)}
-                              className="w-full rounded-xl border border-ink/20 px-3 py-2.5 text-sm outline-none focus:border-jokko"
+                              className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
                               placeholder="0" />
                           </div>
                           <div>
-                            <label className="mb-1 block text-xs text-ink/70">Note</label>
+                            <label className="mb-1 block text-xs text-gray-600">Note</label>
                             <input type="text" value={debtNote} onChange={(e) => setDebtNote(e.target.value)}
-                              className="w-full rounded-xl border border-ink/20 px-3 py-2.5 text-sm outline-none focus:border-jokko"
+                              className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
                               placeholder="Ex: Tissu, farine..." />
                           </div>
                         </div>
                         {debtTotal && Number(debtPaid) > 0 && (
-                          <p className="text-xs text-ink">
+                          <p className="text-xs text-yellow-600">
                             ⚠️ Reste dû après acompte : {fmt(Number(debtTotal) - Number(debtPaid))}
                           </p>
                         )}
-                        <p className="text-xs text-jokko-deep">
+                        <p className="text-xs text-emerald-600">
                           💡 Si acompte &gt; 0, il sera automatiquement décaissé de la caisse si elle est ouverte.
                         </p>
                         <div className="flex gap-2">
                           <button onClick={() => handleAddDebt(s.id)}
-                            className="rounded-full bg-red-500 px-4 py-2 text-xs font-medium text-white hover:bg-red-600">
+                            className="rounded-xl bg-red-500 px-4 py-2 text-xs font-medium text-white hover:bg-red-600">
                             Enregistrer la dette
                           </button>
                           <button onClick={() => setShowDebtForm(null)}
-                            className="rounded-full border border-ink/20 px-4 py-2 text-xs text-ink/75">Annuler</button>
+                            className="rounded-xl border border-gray-300 px-4 py-2 text-xs text-gray-700">Annuler</button>
                         </div>
                       </div>
                     )}
@@ -606,21 +606,21 @@ export default function Suppliers() {
                     {/* Liste des dettes */}
                     {s.supplierDebts?.length ? (
                       <div>
-                        <p className="text-xs font-semibold uppercase text-ink/45 mb-2">Dettes ({s.supplierDebts.length})</p>
+                        <p className="text-xs font-semibold uppercase text-gray-400 mb-2">Dettes ({s.supplierDebts.length})</p>
                         <div className="space-y-2">
                           {s.supplierDebts.map((d: SupplierDebt) => (
-                            <div key={d.id} className="flex items-center justify-between rounded-xl bg-paper px-4 py-3">
+                            <div key={d.id} className="flex items-center justify-between rounded-xl bg-white px-4 py-3">
                               <div>
-                                <p className="text-sm font-medium text-ink/80">
+                                <p className="text-sm font-medium text-slate-800">
                                   Total : {fmt(d.totalAmount)}
-                                  {d.note && <span className="ml-2 text-xs text-ink/45">— {d.note}</span>}
+                                  {d.note && <span className="ml-2 text-xs text-gray-400">— {d.note}</span>}
                                 </p>
-                                <p className="text-xs text-ink/60 mt-0.5">
-                                  Payé : {fmt(d.paidAmount)} • Reste : <span className={d.remaining > 0 ? "text-red-600 font-medium" : "text-jokko-deep font-medium"}>{fmt(d.remaining)}</span>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                  Payé : {fmt(d.paidAmount)} • Reste : <span className={d.remaining > 0 ? "text-red-600 font-medium" : "text-emerald-600 font-medium"}>{fmt(d.remaining)}</span>
                                 </p>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className={`rounded-full px-2 py-1 text-xs font-medium ${d.status === "PAID" ? "bg-jokko/10 text-jokko-deep" : d.status === "PARTIAL" ? "bg-sun/20 text-ink" : "bg-red-100 text-red-700"}`}>
+                                <span className={`rounded-full px-2 py-1 text-xs font-medium ${d.status === "PAID" ? "bg-emerald-100 text-emerald-700" : d.status === "PARTIAL" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>
                                   {d.status === "PAID" ? "Soldée" : d.status === "PARTIAL" ? "Partielle" : "Non payée"}
                                 </span>
                                 {d.status !== "PAID" && (
@@ -632,7 +632,7 @@ export default function Suppliers() {
                                       }
                                       openPayment(s.id, d);
                                     }}
-                                    className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium text-white transition ${cashOpen ? "bg-jokko hover:bg-jokko-deep" : "bg-ink/40 cursor-not-allowed"}`}>
+                                    className={`flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-medium text-white transition ${cashOpen ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-400 cursor-not-allowed"}`}>
                                     <CreditCard size={12} /> Payer
                                   </button>
                                 )}
@@ -642,7 +642,7 @@ export default function Suppliers() {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm text-ink/45">Aucune dette enregistrée.</p>
+                      <p className="text-sm text-gray-400">Aucune dette enregistrée.</p>
                     )}
                   </div>
                 )}
@@ -650,23 +650,23 @@ export default function Suppliers() {
             );
           })}
           {supplierTotalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 rounded-3xl border border-ink/10 bg-paper px-5 py-4">
+            <div className="flex items-center justify-center gap-4 rounded-2xl bg-white px-5 py-4 shadow-sm">
               <button
                 type="button"
                 disabled={supplierPage === 1}
                 onClick={() => setSupplierPage((page) => page - 1)}
-                className="rounded-full border border-ink/20 px-4 py-2 text-sm disabled:opacity-40"
+                className="rounded-xl border border-gray-300 px-4 py-2 text-sm disabled:opacity-40"
               >
                 ← Précédent
               </button>
-              <span className="text-sm text-ink/60">
+              <span className="text-sm text-gray-500">
                 Page {supplierPage} / {supplierTotalPages}
               </span>
               <button
                 type="button"
                 disabled={supplierPage === supplierTotalPages}
                 onClick={() => setSupplierPage((page) => page + 1)}
-                className="rounded-full border border-ink/20 px-4 py-2 text-sm disabled:opacity-40"
+                className="rounded-xl border border-gray-300 px-4 py-2 text-sm disabled:opacity-40"
               >
                 Suivant →
               </button>
@@ -675,58 +675,58 @@ export default function Suppliers() {
         </div>
       )}
       {historySupplier && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4">
-          <div className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-paper shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-white shadow-xl">
             <div className="flex items-start justify-between border-b px-5 py-4">
               <div>
-                <h2 className="text-lg font-bold text-ink">
+                <h2 className="text-lg font-bold text-slate-900">
                   Historique des achats — {historySupplier.name}
                 </h2>
-                <p className="mt-1 text-sm text-ink/60">
+                <p className="mt-1 text-sm text-gray-500">
                   Détail des approvisionnements enregistrés
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setHistorySupplier(null)}
-                className="rounded-full p-1 text-ink/45 hover:bg-ink/5 hover:text-ink/70"
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
               >
                 <X size={20} />
               </button>
             </div>
             <div className="space-y-5 p-5">
               <div className="grid grid-cols-1 gap-3 text-center sm:grid-cols-3">
-                <div className="rounded-xl bg-cream p-3">
-                  <p className="text-xs text-ink/45">Total achats</p>
-                  <p className="font-bold text-ink">
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <p className="text-xs text-gray-400">Total achats</p>
+                  <p className="font-bold text-slate-900">
                     {fmt(historySupplier.totalPurchases)}
                   </p>
                 </div>
-                <div className="rounded-xl bg-cream p-3">
-                  <p className="text-xs text-ink/45">Total payé</p>
-                  <p className="font-bold text-jokko-deep">
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <p className="text-xs text-gray-400">Total payé</p>
+                  <p className="font-bold text-emerald-700">
                     {fmt(historySupplier.totalPaid)}
                   </p>
                 </div>
-                <div className="rounded-xl bg-cream p-3">
-                  <p className="text-xs text-ink/45">Reste dû</p>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <p className="text-xs text-gray-400">Reste dû</p>
                   <p className="font-bold text-red-600">
                     {fmt(historySupplier.totalDebt ?? 0)}
                   </p>
                 </div>
               </div>
               {historyLoading ? (
-                <p className="py-8 text-center text-sm text-ink/45">
+                <p className="py-8 text-center text-sm text-gray-400">
                   Chargement de l’historique...
                 </p>
               ) : historySupplier.stockMovements.length === 0 ? (
-                <p className="py-8 text-center text-sm text-ink/45">
+                <p className="py-8 text-center text-sm text-gray-400">
                   Aucun approvisionnement enregistré.
                 </p>
               ) : (
                 <div className="overflow-x-auto rounded-xl border">
                   <table className="w-full min-w-[700px] text-left text-sm">
-                    <thead className="border-b bg-cream text-xs text-ink/60">
+                    <thead className="border-b bg-slate-50 text-xs text-gray-500">
                       <tr>
                         <th className="px-4 py-3">Date</th>
                         <th className="px-4 py-3">Produit</th>
@@ -739,13 +739,13 @@ export default function Suppliers() {
                     <tbody>
                       {historySupplier.stockMovements.map((movement) => (
                         <tr key={movement.id} className="border-b last:border-0">
-                          <td className="px-4 py-3 text-ink/70">
+                          <td className="px-4 py-3 text-gray-600">
                             {new Date(movement.createdAt).toLocaleDateString("fr-FR")}
                           </td>
-                          <td className="px-4 py-3 font-medium text-ink/80">
+                          <td className="px-4 py-3 font-medium text-slate-800">
                             {movement.product.name}
                           </td>
-                          <td className="px-4 py-3 text-ink/70">
+                          <td className="px-4 py-3 text-gray-600">
                             {{
                               ENTRY: "Entrée",
                               OUT: "Sortie",
@@ -753,13 +753,13 @@ export default function Suppliers() {
                               ADJUST: "Ajustement",
                             }[movement.type] || movement.type}
                           </td>
-                          <td className="px-4 py-3 text-ink/70">
+                          <td className="px-4 py-3 text-gray-600">
                             {movement.quantity}
                           </td>
-                          <td className="px-4 py-3 text-ink/70">
+                          <td className="px-4 py-3 text-gray-600">
                             {movement.unitCost == null ? "—" : fmt(movement.unitCost)}
                           </td>
-                          <td className="px-4 py-3 font-medium text-ink/80">
+                          <td className="px-4 py-3 font-medium text-slate-800">
                             {movement.unitCost == null
                               ? "—"
                               : fmt(movement.unitCost * movement.quantity)}
@@ -776,11 +776,11 @@ export default function Suppliers() {
                     type="button"
                     disabled={historyPage === 1 || historyLoading}
                     onClick={() => changeHistoryPage(historyPage - 1)}
-                    className="rounded-full border px-3 py-1.5 text-xs disabled:opacity-40"
+                    className="rounded-lg border px-3 py-1.5 text-xs disabled:opacity-40"
                   >
                     ← Précédent
                   </button>
-                  <span className="text-xs text-ink/60">
+                  <span className="text-xs text-gray-500">
                     Page {historyPage} /{" "}
                     {historySupplier.stockMovementsPagination.totalPages}
                   </span>
@@ -791,7 +791,7 @@ export default function Suppliers() {
                       historyLoading
                     }
                     onClick={() => changeHistoryPage(historyPage + 1)}
-                    className="rounded-full border px-3 py-1.5 text-xs disabled:opacity-40"
+                    className="rounded-lg border px-3 py-1.5 text-xs disabled:opacity-40"
                   >
                     Suivant →
                   </button>

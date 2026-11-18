@@ -15,7 +15,7 @@ import type { Client, Product, Sale } from "../types/index";
 import { printInvoice as doPrint } from "../utils/printInvoice";
 import { showModal } from "../components/upgradeModal";
 
-const fmt = (v: number) => `${v.toLocaleString("fr-FR").replace(/\u202f/g, " ")} FCFA`;
+const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
 type EditCartItem = {
   productId: number;
@@ -26,8 +26,8 @@ type EditCartItem = {
 };
 
 const statusBadge: Record<string, string> = {
-  PAID: "bg-jokko/10 text-jokko-deep",
-  PARTIAL: "bg-sun/20 text-ink",
+  PAID: "bg-emerald-100 text-emerald-700",
+  PARTIAL: "bg-yellow-100 text-yellow-700",
   UNPAID: "bg-red-100 text-red-700",
 };
 const statusLabel: Record<string, string> = {
@@ -322,17 +322,17 @@ export default function Invoices() {
           {
             label: "Total factures",
             value: stats.totalInvoices,
-            color: "text-ink",
+            color: "text-slate-900",
           },
           {
             label: "Chiffre d'affaires",
             value: fmt(stats.totalRevenue),
-            color: "text-ink",
+            color: "text-slate-900",
           },
           {
             label: "Montant encaissé",
             value: fmt(stats.totalCollected),
-            color: "text-jokko-deep",
+            color: "text-emerald-600",
           },
           {
             label: "Reste à encaisser",
@@ -340,20 +340,20 @@ export default function Invoices() {
             color: "text-red-600",
           },
         ].map((s) => (
-          <div key={s.label} className="rounded-3xl border border-ink/10 bg-paper p-5">
-            <p className="text-sm text-ink/60">{s.label}</p>
+          <div key={s.label} className="rounded-2xl bg-white p-5 shadow-sm">
+            <p className="text-sm text-gray-500">{s.label}</p>
             <p className={`mt-2 text-xl font-bold ${s.color}`}>{s.value}</p>
           </div>
         ))}
       </div>
 
       {/* Barre de recherche */}
-      <div className="rounded-3xl border border-ink/10 bg-paper p-4 space-y-3">
+      <div className="rounded-2xl bg-white p-4 shadow-sm space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-50">
             <Search
               size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/45"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
             <input
               type="text"
@@ -363,7 +363,7 @@ export default function Invoices() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="w-full rounded-xl border border-ink/20 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-jokko"
+              className="w-full rounded-xl border border-gray-300 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-emerald-500"
             />
           </div>
           <select
@@ -372,7 +372,7 @@ export default function Invoices() {
               setStatus(e.target.value);
               setPage(1);
             }}
-            className="rounded-xl border border-ink/20 px-4 py-2.5 text-sm outline-none focus:border-jokko"
+            className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
           >
             <option value="">Tous statuts</option>
             <option value="PAID">Payées</option>
@@ -381,7 +381,7 @@ export default function Invoices() {
           </select>
           <button
             onClick={() => setShowFilters((v) => !v)}
-            className="flex items-center gap-2 rounded-full border border-ink/20 px-4 py-2.5 text-sm text-ink/75 hover:bg-cream"
+            className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
           >
             <Filter size={15} />
             Filtres dates
@@ -391,7 +391,7 @@ export default function Invoices() {
         {showFilters && (
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <div>
-              <label className="mb-1 block text-xs text-ink/60">
+              <label className="mb-1 block text-xs text-gray-500">
                 Date de début
               </label>
               <input
@@ -401,11 +401,11 @@ export default function Invoices() {
                   setDateFrom(e.target.value);
                   setPage(1);
                 }}
-                className="rounded-xl border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
+                className="rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-ink/60">
+              <label className="mb-1 block text-xs text-gray-500">
                 Date de fin
               </label>
               <input
@@ -415,7 +415,7 @@ export default function Invoices() {
                   setDateTo(e.target.value);
                   setPage(1);
                 }}
-                className="rounded-xl border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
+                className="rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
               />
             </div>
             {(dateFrom || dateTo) && (
@@ -425,7 +425,7 @@ export default function Invoices() {
                   setDateTo("");
                   setPage(1);
                 }}
-                className="mt-4 rounded-full border border-ink/20 px-3 py-2 text-xs text-ink/70 hover:bg-cream"
+                className="mt-4 rounded-xl border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50"
               >
                 Effacer dates
               </button>
@@ -436,13 +436,13 @@ export default function Invoices() {
 
       {/* Modal paiement */}
       {payingId && payingInvoice && (
-        <div className="rounded-3xl border border-ink/10 bg-paper p-6 border-l-4 border-jokko">
+        <div className="rounded-2xl bg-white p-6 shadow-sm border-l-4 border-emerald-500">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-bold text-ink">
+              <h3 className="text-lg font-bold text-slate-900">
                 Enregistrer un paiement — {payingInvoice.invoiceNumber}
               </h3>
-              <p className="text-sm text-ink/60 mt-0.5">
+              <p className="text-sm text-gray-500 mt-0.5">
                 Client :{" "}
                 {payingInvoice.client?.name || payingInvoice.customerName} •
                 Reste :{" "}
@@ -457,12 +457,12 @@ export default function Invoices() {
                 setPayingInvoice(null);
               }}
             >
-              <X size={20} className="text-ink/45 hover:text-ink/70" />
+              <X size={20} className="text-gray-400 hover:text-gray-600" />
             </button>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Montant reçu (FCFA)
               </label>
               <input
@@ -471,11 +471,11 @@ export default function Invoices() {
                 max={payingInvoice.remaining}
                 value={payAmount}
                 onChange={(e) => setPayAmount(e.target.value)}
-                className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Mode de paiement
               </label>
               <PaymentMethodSelect
@@ -485,14 +485,14 @@ export default function Invoices() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Note (optionnel)
               </label>
               <input
                 type="text"
                 value={payNote}
                 onChange={(e) => setPayNote(e.target.value)}
-                className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                 placeholder="Ex: Versement espèces..."
               />
             </div>
@@ -500,7 +500,7 @@ export default function Invoices() {
               <button
                 onClick={handlePayment}
                 disabled={paySubmitting}
-                className="w-full rounded-full bg-jokko py-3 text-sm font-medium text-white hover:bg-jokko-deep disabled:opacity-60 transition"
+                className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 transition"
               >
                 {paySubmitting
                   ? "Enregistrement..."
@@ -508,7 +508,7 @@ export default function Invoices() {
               </button>
             </div>
           </div>
-          <p className="mt-3 text-xs text-jokko-deep">
+          <p className="mt-3 text-xs text-emerald-600">
             💡 Ce paiement sera automatiquement enregistré dans la caisse si
             elle est ouverte.
           </p>
@@ -518,24 +518,24 @@ export default function Invoices() {
       {/* Modal modification facture */}
       {editingInvoice && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-paper p-6 shadow-2xl">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between mb-5">
               <div>
-                <h3 className="text-xl font-bold text-ink">
+                <h3 className="text-xl font-bold text-slate-900">
                   Modifier — {editingInvoice.invoiceNumber}
                 </h3>
-                <p className="text-sm text-ink/60 mt-0.5">
+                <p className="text-sm text-gray-500 mt-0.5">
                   Modification possible tant qu'aucun paiement n'a été reçu.
                 </p>
               </div>
               <button onClick={() => setEditingInvoice(null)}>
-                <X size={20} className="text-ink/45 hover:text-ink/70" />
+                <X size={20} className="text-gray-400 hover:text-gray-600" />
               </button>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-ink/75">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Client enregistré
                 </label>
                 <select
@@ -543,7 +543,7 @@ export default function Invoices() {
                   onChange={(e) =>
                     setEditClientId(e.target.value ? Number(e.target.value) : "")
                   }
-                  className="w-full rounded-xl border border-ink/20 px-4 py-2.5 text-sm outline-none focus:border-jokko"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
                 >
                   <option value="">— Aucun —</option>
                   {clients.map((c) => (
@@ -554,14 +554,14 @@ export default function Invoices() {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-ink/75">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Ou nom client passager
                 </label>
                 <input
                   type="text"
                   value={editCustomerName}
                   onChange={(e) => setEditCustomerName(e.target.value)}
-                  className="w-full rounded-xl border border-ink/20 px-4 py-2.5 text-sm outline-none focus:border-jokko"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
                   placeholder="Nom du client"
                 />
               </div>
@@ -569,16 +569,16 @@ export default function Invoices() {
 
             {/* Lignes articles */}
             <div className="mb-4">
-              <p className="text-xs font-semibold uppercase text-ink/45 mb-2">
+              <p className="text-xs font-semibold uppercase text-gray-400 mb-2">
                 Articles
               </p>
               <div className="space-y-2">
                 {editItems.map((it) => (
                   <div
                     key={it.productId}
-                    className="flex items-center gap-2 rounded-xl bg-cream px-3 py-2"
+                    className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2"
                   >
-                    <span className="flex-1 text-sm font-medium text-ink/80">
+                    <span className="flex-1 text-sm font-medium text-slate-800">
                       {it.productName}
                     </span>
                     <input
@@ -588,7 +588,7 @@ export default function Invoices() {
                       onChange={(e) =>
                         updateEditItemQty(it.productId, Number(e.target.value))
                       }
-                      className="w-20 rounded-lg border border-ink/20 px-2 py-1.5 text-sm text-right outline-none focus:border-jokko"
+                      className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right outline-none focus:border-emerald-500"
                     />
                     <input
                       type="number"
@@ -597,7 +597,7 @@ export default function Invoices() {
                       onChange={(e) =>
                         updateEditItemPrice(it.productId, Number(e.target.value))
                       }
-                      className="w-28 rounded-lg border border-ink/20 px-2 py-1.5 text-sm text-right outline-none focus:border-jokko"
+                      className="w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right outline-none focus:border-emerald-500"
                     />
                     <span className="w-24 text-right text-sm font-semibold">
                       {fmt(it.quantity * it.unitPrice)}
@@ -611,7 +611,7 @@ export default function Invoices() {
                   </div>
                 ))}
                 {editItems.length === 0 && (
-                  <p className="text-sm text-ink/45 italic">
+                  <p className="text-sm text-gray-400 italic">
                     Aucun article — ajoutez-en un ci-dessous.
                   </p>
                 )}
@@ -620,13 +620,13 @@ export default function Invoices() {
               {/* Ajout d'un article */}
               <div className="mt-3 flex items-end gap-2">
                 <div className="flex-1">
-                  <label className="mb-1 block text-xs text-ink/60">
+                  <label className="mb-1 block text-xs text-gray-500">
                     Ajouter un produit
                   </label>
                   <select
                     value={editAddProductId}
                     onChange={(e) => setEditAddProductId(Number(e.target.value))}
-                    className="w-full rounded-xl border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
                   >
                     <option value={0}>— Choisir un produit —</option>
                     {products.map((p) => (
@@ -637,18 +637,18 @@ export default function Invoices() {
                   </select>
                 </div>
                 <div className="w-24">
-                  <label className="mb-1 block text-xs text-ink/60">Qté</label>
+                  <label className="mb-1 block text-xs text-gray-500">Qté</label>
                   <input
                     type="number"
                     min={1}
                     value={editAddQty}
                     onChange={(e) => setEditAddQty(Number(e.target.value))}
-                    className="w-full rounded-xl border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
                   />
                 </div>
                 <button
                   onClick={addEditItem}
-                  className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                  className="flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:opacity-90"
                 >
                   <Plus size={14} /> Ajouter
                 </button>
@@ -656,20 +656,20 @@ export default function Invoices() {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-ink/75">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Note (optionnel)
               </label>
               <input
                 type="text"
                 value={editNote}
                 onChange={(e) => setEditNote(e.target.value)}
-                className="w-full rounded-xl border border-ink/20 px-4 py-2.5 text-sm outline-none focus:border-jokko"
+                className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
               />
             </div>
 
-            <div className="mt-4 flex items-center justify-between rounded-xl bg-cream px-4 py-3">
-              <span className="text-sm text-ink/60">Nouveau total</span>
-              <span className="text-lg font-bold text-ink">
+            <div className="mt-4 flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+              <span className="text-sm text-gray-500">Nouveau total</span>
+              <span className="text-lg font-bold text-slate-900">
                 {fmt(editTotal)}
               </span>
             </div>
@@ -678,13 +678,13 @@ export default function Invoices() {
               <button
                 onClick={handleUpdateSale}
                 disabled={editSubmitting}
-                className="flex-1 rounded-full bg-jokko py-3 text-sm font-medium text-white hover:bg-jokko-deep disabled:opacity-60 transition"
+                className="flex-1 rounded-xl bg-emerald-600 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 transition"
               >
                 {editSubmitting ? "Enregistrement..." : "✓ Enregistrer les modifications"}
               </button>
               <button
                 onClick={() => setEditingInvoice(null)}
-                className="rounded-full border border-ink/20 px-5 py-3 text-sm text-ink/75 hover:bg-cream"
+                className="rounded-xl border border-gray-300 px-5 py-3 text-sm text-gray-700 hover:bg-gray-50"
               >
                 Annuler
               </button>
@@ -696,14 +696,14 @@ export default function Invoices() {
       {/* Modal détail facture */}
       {detailInvoice && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-paper p-6 shadow-2xl">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between mb-5">
               <div>
-                <h3 className="text-xl font-bold text-ink">
+                <h3 className="text-xl font-bold text-slate-900">
                   {detailInvoice.invoiceNumber}
                 </h3>
-                <p className="text-sm text-ink/60 mt-0.5">
-                  {new Date(detailInvoice.createdAt).toLocaleString("fr-FR").replace(/\u202f/g, " ")}
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {new Date(detailInvoice.createdAt).toLocaleString("fr-FR")}
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -713,21 +713,21 @@ export default function Invoices() {
                   {statusLabel[detailInvoice.status]}
                 </span>
                 <button onClick={() => setDetailInvoice(null)}>
-                  <X size={20} className="text-ink/45 hover:text-ink/70" />
+                  <X size={20} className="text-gray-400 hover:text-gray-600" />
                 </button>
               </div>
             </div>
 
             {/* Client */}
-            <div className="rounded-xl bg-cream px-4 py-3 mb-4">
-              <p className="text-xs text-ink/45">Client</p>
-              <p className="font-semibold text-ink">
+            <div className="rounded-xl bg-slate-50 px-4 py-3 mb-4">
+              <p className="text-xs text-gray-400">Client</p>
+              <p className="font-semibold text-slate-900">
                 {detailInvoice.client?.name ||
                   detailInvoice.customerName ||
                   "Client non précisé"}
               </p>
               {detailInvoice.client?.phone && (
-                <p className="text-sm text-ink/60">
+                <p className="text-sm text-gray-500">
                   {detailInvoice.client.phone}
                 </p>
               )}
@@ -737,7 +737,7 @@ export default function Invoices() {
             <div className="overflow-x-auto">
             <table className="w-full min-w-100 text-sm mb-4">
               <thead>
-                <tr className="border-b text-ink/60 text-xs">
+                <tr className="border-b text-gray-500 text-xs">
                   <th className="pb-2 text-left">Produit</th>
                   <th className="pb-2 text-right">Qté</th>
                   <th className="pb-2 text-right">P.U</th>
@@ -760,16 +760,16 @@ export default function Invoices() {
             </div>
 
             {/* Totaux */}
-            <div className="rounded-xl bg-cream p-4 space-y-2 text-sm mb-4">
+            <div className="rounded-xl bg-slate-50 p-4 space-y-2 text-sm mb-4">
               <div className="flex justify-between">
-                <span className="text-ink/60">Total</span>
+                <span className="text-gray-500">Total</span>
                 <span className="font-bold">
                   {fmt(detailInvoice.totalAmount)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-ink/60">Payé</span>
-                <span className="font-bold text-jokko-deep">
+                <span className="text-gray-500">Payé</span>
+                <span className="font-bold text-emerald-600">
                   {fmt(detailInvoice.paidAmount)}
                 </span>
               </div>
@@ -786,25 +786,25 @@ export default function Invoices() {
             {/* Historique paiements */}
             {detailInvoice.payments.length > 0 && (
               <div className="mb-4">
-                <p className="text-xs font-semibold uppercase text-ink/45 mb-2">
+                <p className="text-xs font-semibold uppercase text-gray-400 mb-2">
                   Historique des paiements
                 </p>
                 <div className="space-y-2">
                   {detailInvoice.payments.map((p) => (
                     <div
                       key={p.id}
-                      className="flex items-center justify-between rounded-xl bg-jokko/10 px-4 py-2.5"
+                      className="flex items-center justify-between rounded-xl bg-emerald-50 px-4 py-2.5"
                     >
                       <div>
-                        <p className="text-sm font-medium text-jokko-deep">
+                        <p className="text-sm font-medium text-emerald-800">
                           {fmt(p.amount)}
                         </p>
-                        <p className="text-xs text-jokko-deep">
-                          {new Date(p.paidAt).toLocaleString("fr-FR").replace(/\u202f/g, " ")}
+                        <p className="text-xs text-emerald-600">
+                          {new Date(p.paidAt).toLocaleString("fr-FR")}
                         </p>
                       </div>
                       {p.note && (
-                        <p className="text-xs text-ink/60">{p.note}</p>
+                        <p className="text-xs text-gray-500">{p.note}</p>
                       )}
                     </div>
                   ))}
@@ -823,39 +823,39 @@ export default function Invoices() {
                         : detailInvoice.id,
                     )
                   }
-                  className="flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+                  className="flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
                 >
                   <Printer size={15} /> Imprimer ▾
                 </button>
                 {printMenuFor === detailInvoice.id && (
-                  <div className="absolute left-0 top-12 z-10 w-44 rounded-xl bg-paper shadow-lg border border-ink/10 overflow-hidden">
+                  <div className="absolute left-0 top-12 z-10 w-44 rounded-xl bg-white shadow-lg border border-gray-200 overflow-hidden">
                     <button
                       onClick={() => {
                         printA4(detailInvoice);
                         setPrintMenuFor(null);
                       }}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-sm text-ink/75 hover:bg-cream transition"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-slate-50 transition"
                     >
                       <Printer size={14} />
                       <div className="text-left">
                         <p className="font-medium">Format A4</p>
-                        <p className="text-xs text-ink/45">
+                        <p className="text-xs text-gray-400">
                           Facture professionnelle
                         </p>
                       </div>
                     </button>
-                    <div className="border-t border-ink/10" />
+                    <div className="border-t border-gray-100" />
                     <button
                       onClick={() => {
                         printThermal(detailInvoice);
                         setPrintMenuFor(null);
                       }}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-sm text-ink/75 hover:bg-cream transition"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-slate-50 transition"
                     >
                       <Printer size={14} />
                       <div className="text-left">
                         <p className="font-medium">Ticket thermique</p>
-                        <p className="text-xs text-ink/45">
+                        <p className="text-xs text-gray-400">
                           Imprimante de caisse 80mm
                         </p>
                       </div>
@@ -870,7 +870,7 @@ export default function Invoices() {
                     setDetailInvoice(null);
                     openEdit(inv);
                   }}
-                  className="flex items-center gap-2 rounded-full border border-ink/20 px-5 py-2.5 text-sm text-ink/75 hover:bg-cream"
+                  className="flex items-center gap-2 rounded-xl border border-gray-300 px-5 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                 >
                   <Pencil size={15} /> Modifier
                 </button>
@@ -881,14 +881,14 @@ export default function Invoices() {
                     setDetailInvoice(null);
                     openPayment(detailInvoice);
                   }}
-                  className="flex items-center gap-2 rounded-full bg-jokko px-5 py-2.5 text-sm font-medium text-white hover:bg-jokko-deep"
+                  className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
                 >
                   <CreditCard size={15} /> Paiement
                 </button>
               )}
               <button
                 onClick={() => setDetailInvoice(null)}
-                className="rounded-full border border-ink/20 px-5 py-2.5 text-sm text-ink/75 hover:bg-cream"
+                className="rounded-xl border border-gray-300 px-5 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
               >
                 Fermer
               </button>
@@ -898,14 +898,14 @@ export default function Invoices() {
       )}
 
       {/* Liste factures */}
-      <p className="text-sm text-ink/60">{total} facture(s)</p>
+      <p className="text-sm text-gray-500">{total} facture(s)</p>
 
       {loading ? (
-        <div className="rounded-2xl bg-paper p-8 text-center text-ink/45">
+        <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
           Chargement...
         </div>
       ) : !invoices.length ? (
-        <div className="rounded-2xl bg-paper p-8 text-center text-ink/45">
+        <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
           Aucune facture trouvée.
         </div>
       ) : (
@@ -913,13 +913,13 @@ export default function Invoices() {
           {invoices.map((invoice) => (
             <div
               key={invoice.id}
-              className="rounded-3xl border border-ink/10 bg-paper px-5 py-4 hover: transition cursor-pointer"
+              className="rounded-2xl bg-white px-5 py-4 shadow-sm hover:shadow-md transition cursor-pointer"
               onClick={() => setDetailInvoice(invoice)}
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-ink">
+                    <span className="font-bold text-slate-900">
                       {invoice.invoiceNumber}
                     </span>
                     <span
@@ -928,7 +928,7 @@ export default function Invoices() {
                       {statusLabel[invoice.status]}
                     </span>
                   </div>
-                  <p className="text-sm text-ink/60 mt-0.5">
+                  <p className="text-sm text-gray-500 mt-0.5">
                     {invoice.client?.name ||
                       invoice.customerName ||
                       "Client non précisé"}{" "}
@@ -939,12 +939,12 @@ export default function Invoices() {
 
                 <div className="flex flex-wrap items-center gap-4">
                   <div className="text-right text-sm">
-                    <p className="font-bold text-ink">
+                    <p className="font-bold text-slate-900">
                       {fmt(invoice.totalAmount)}
                     </p>
-                    <p className="text-xs text-ink/45">
+                    <p className="text-xs text-gray-400">
                       Payé :{" "}
-                      <span className="text-jokko-deep font-medium">
+                      <span className="text-emerald-600 font-medium">
                         {fmt(invoice.paidAmount)}
                       </span>
                       {invoice.remaining > 0 && (
@@ -970,12 +970,12 @@ export default function Invoices() {
                             printMenuFor === invoice.id ? null : invoice.id,
                           )
                         }
-                        className="flex items-center gap-1.5 rounded-full border border-ink/20 px-3 py-2 text-xs text-ink/75 hover:bg-cream"
+                        className="flex items-center gap-1.5 rounded-xl border border-gray-300 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
                       >
                         <Printer size={13} /> Imprimer ▾
                       </button>
                       {printMenuFor === invoice.id && (
-                        <div className="absolute right-0 top-9 z-20 w-44 rounded-xl bg-paper shadow-lg border border-ink/10 overflow-hidden">
+                        <div className="absolute right-0 top-9 z-20 w-44 rounded-xl bg-white shadow-lg border border-gray-200 overflow-hidden">
                           <button
                             onClick={() => {
                               // if (user?.plan === "FREE") {
@@ -987,7 +987,7 @@ export default function Invoices() {
                               printA4(invoice);
                               setPrintMenuFor(null);
                             }}
-                            className="flex w-full items-center gap-3 px-4 py-3 text-sm transition  text-ink/75 hover:bg-cream"
+                            className="flex w-full items-center gap-3 px-4 py-3 text-sm transition  text-gray-700 hover:bg-slate-50"
                           >
                       
                               <Printer size={13} className="shrink-0" />
@@ -995,23 +995,23 @@ export default function Invoices() {
                               <p className="font-medium flex items-center gap-1.5">
                                 Format A4
                               </p>
-                              <p className="text-xs text-ink/45">
+                              <p className="text-xs text-gray-400">
                                 Facture professionnelle
                               </p>
                             </div>
                           </button>
-                          <div className="border-t border-ink/10" />
+                          <div className="border-t border-gray-100" />
                           <button
                             onClick={() => {
                               printThermal(invoice);
                               setPrintMenuFor(null);
                             }}
-                            className="flex w-full items-center gap-3 px-4 py-3 text-sm text-ink/75 hover:bg-cream transition"
+                            className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-slate-50 transition"
                           >
                             <Printer size={13} />
                             <div className="text-left">
                               <p className="font-medium">Ticket thermique</p>
-                              <p className="text-xs text-ink/45">
+                              <p className="text-xs text-gray-400">
                                 Imprimante 80mm
                               </p>
                             </div>
@@ -1022,7 +1022,7 @@ export default function Invoices() {
                     {canEdit(invoice) && (
                       <button
                         onClick={() => openEdit(invoice)}
-                        className="flex items-center gap-1.5 rounded-full border border-ink/20 px-3 py-2 text-xs text-ink/75 hover:bg-cream"
+                        className="flex items-center gap-1.5 rounded-xl border border-gray-300 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
                       >
                         <Pencil size={13} /> Modifier
                       </button>
@@ -1038,7 +1038,7 @@ export default function Invoices() {
                           }
                           openPayment(invoice);
                         }}
-                        className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium text-white transition ${cashOpen ? "bg-jokko hover:bg-jokko-deep" : "bg-ink/40 cursor-not-allowed"}`}
+                        className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium text-white transition ${cashOpen ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-400 cursor-not-allowed"}`}
                       >
                         <CreditCard size={13} /> Payer
                       </button>
@@ -1052,23 +1052,23 @@ export default function Invoices() {
       )}
 
       {/* Pagination */}
-      <div className="flex items-center justify-between rounded-3xl border border-ink/10 bg-paper px-5 py-3">
+      <div className="flex items-center justify-between rounded-2xl bg-white px-5 py-3 shadow-sm">
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page === 1}
-          className="rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/75 hover:bg-cream disabled:opacity-30 disabled:cursor-not-allowed transition"
+          className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
         >
           ← Précédent
         </button>
-        <span className="text-sm text-ink/60">
-          Page <strong className="text-ink">{page}</strong> sur{" "}
-          <strong className="text-ink">{totalPages}</strong>
-          <span className="ml-2 text-ink/45">({total} au total)</span>
+        <span className="text-sm text-gray-500">
+          Page <strong className="text-slate-900">{page}</strong> sur{" "}
+          <strong className="text-slate-900">{totalPages}</strong>
+          <span className="ml-2 text-gray-400">({total} au total)</span>
         </span>
         <button
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           disabled={page === totalPages}
-          className="rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/75 hover:bg-cream disabled:opacity-30 disabled:cursor-not-allowed transition"
+          className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
         >
           Suivant →
         </button>
