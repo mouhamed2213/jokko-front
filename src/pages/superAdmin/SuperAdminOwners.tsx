@@ -57,7 +57,7 @@ export default function SuperAdminOwners() {
         />
       </div>
 
-      <div className="overflow-hidden rounded-2xl bg-paper shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-ink/10 bg-paper">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -117,7 +117,7 @@ export default function SuperAdminOwners() {
                               key={p}
                               className={`rounded-full px-2 py-0.5 text-xs font-medium ${planBadge[p] ?? "bg-ink/5 text-ink/70"}`}
                             >
-                              {p}
+                              {({ FREE: "Gratuit", BASIC: "Starter", PRO: "Pro", PREMIUM: "Premium" } as Record<string, string>)[p] ?? p}
                             </span>
                           ))}
                         </div>
@@ -151,7 +151,7 @@ export default function SuperAdminOwners() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-ink/10 text-ink/60 transition hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-ink/10 text-ink/60 transition hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft size={14} />
               </button>
@@ -159,7 +159,7 @@ export default function SuperAdminOwners() {
                 type="button"
                 disabled={page >= pagination.totalPages}
                 onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-ink/10 text-ink/60 transition hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-ink/10 text-ink/60 transition hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronRight size={14} />
               </button>

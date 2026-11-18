@@ -139,7 +139,7 @@ export default function SuperAdminShops() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-3 rounded-2xl bg-paper p-4 shadow-sm sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 rounded-3xl border border-ink/10 bg-paper p-4 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search
             size={16}
@@ -179,7 +179,7 @@ export default function SuperAdminShops() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl bg-paper shadow-sm overflow-hidden">
+      <div className="rounded-3xl border border-ink/10 bg-paper overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -324,7 +324,7 @@ export default function SuperAdminShops() {
                           event.stopPropagation();
                           setRenewalShop(shop);
                         }}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-jokko/10 px-3 py-1.5 text-xs font-medium text-jokko-deep transition hover:bg-jokko/15 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-jokko/10 px-3 py-1.5 text-xs font-medium text-jokko-deep transition hover:bg-jokko/15 disabled:cursor-not-allowed disabled:opacity-40"
                         title={!shop.subscription?.endDate || shop.subscription.plan.code === "FREE" ? "Cette boutique ne peut pas être prolongée" : "Prolonger l'abonnement"}
                       >
                         <CalendarPlus size={13} />
@@ -348,7 +348,7 @@ export default function SuperAdminShops() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-ink/10 text-ink/60 transition hover:bg-ink/5 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-ink/10 text-ink/60 transition hover:bg-ink/5 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={14} />
               </button>
@@ -358,7 +358,7 @@ export default function SuperAdminShops() {
                 onClick={() =>
                   setPage((p) => Math.min(pagination.totalPages, p + 1))
                 }
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-ink/10 text-ink/60 transition hover:bg-ink/5 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-ink/10 text-ink/60 transition hover:bg-ink/5 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ChevronRight size={14} />
               </button>
@@ -367,16 +367,16 @@ export default function SuperAdminShops() {
         )}
       </div>
       {renewalShop && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm" onClick={() => !renewing && setRenewalShop(null)}>
-          <div className="w-full max-w-sm rounded-2xl bg-paper p-6 shadow-xl" onClick={(event) => event.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm" onClick={() => !renewing && setRenewalShop(null)}>
+          <div className="w-full max-w-sm rounded-3xl bg-paper p-6 shadow-xl" onClick={(event) => event.stopPropagation()}>
             <h3 className="mb-1 text-lg font-bold text-ink">Prolonger l'abonnement</h3>
             <p className="mb-5 text-sm text-ink/60">Boutique : <span className="font-medium text-ink/75">{renewalShop.name}</span></p>
             <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-ink/45">Nombre de jours</label>
             <input type="number" min={1} step={1} value={renewalDays} onChange={(event) => setRenewalDays(Number(event.target.value))} className="mb-2 w-full rounded-xl border border-ink/10 px-3 py-2.5 text-sm text-ink/75 outline-none focus:border-jokko/100 focus:ring-2 focus:ring-jokko/15" />
             <p className="mb-5 text-xs text-ink/45">Fin actuelle : {renewalShop.subscription?.endDate ? new Date(renewalShop.subscription.endDate).toLocaleDateString("fr-FR") : "—"}</p>
             <div className="flex gap-2">
-              <button type="button" disabled={renewing} onClick={() => setRenewalShop(null)} className="flex-1 rounded-xl border border-ink/10 px-4 py-2.5 text-sm text-ink/75 hover:bg-ink/5 disabled:opacity-50">Annuler</button>
-              <button type="button" disabled={renewing || !Number.isInteger(renewalDays) || renewalDays <= 0} onClick={handleRenewal} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-jokko px-4 py-2.5 text-sm font-semibold text-white hover:bg-jokko-deep disabled:cursor-not-allowed disabled:opacity-50">
+              <button type="button" disabled={renewing} onClick={() => setRenewalShop(null)} className="flex-1 rounded-full border border-ink/10 px-4 py-2.5 text-sm text-ink/75 hover:bg-ink/5 disabled:opacity-50">Annuler</button>
+              <button type="button" disabled={renewing || !Number.isInteger(renewalDays) || renewalDays <= 0} onClick={handleRenewal} className="flex flex-1 items-center justify-center gap-2 rounded-full bg-jokko px-4 py-2.5 text-sm font-semibold text-white hover:bg-jokko-deep disabled:cursor-not-allowed disabled:opacity-50">
                 {renewing && <Loader2 size={14} className="animate-spin" />}
                 Confirmer
               </button>

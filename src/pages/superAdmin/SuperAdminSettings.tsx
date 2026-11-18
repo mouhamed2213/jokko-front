@@ -37,7 +37,7 @@ export default function SuperAdminSettings() {
           <Link
             key={path}
             to={path}
-            className="group flex items-start gap-4 rounded-2xl border border-ink/10 bg-paper p-5 shadow-sm transition hover:border-ink/20 hover:shadow-md"
+            className="group flex items-start gap-4 rounded-3xl border border-ink/10 bg-paper p-5 shadow-sm transition hover:border-ink/20 hover:shadow-md"
           >
             <div className="rounded-xl bg-ink/5 p-3 text-ink/75">
               <Icon size={21} />

@@ -57,7 +57,7 @@ export default function SuperAdminMaintenanceSettings() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-ink/10 bg-paper p-6 shadow-sm space-y-5">
+      <div className="rounded-3xl border border-ink/10 bg-paper p-6 shadow-sm space-y-5">
         <label className="flex cursor-pointer items-center justify-between gap-4">
           <span>
             <span className="block font-semibold text-ink">Activer le mode maintenance</span>
@@ -74,7 +74,7 @@ export default function SuperAdminMaintenanceSettings() {
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-4">
           <p className="text-xs text-ink/60">Le back-office Super Admin reste accessible.</p>
-          <button type="button" onClick={save} disabled={saving || !message.trim()} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50">
+          <button type="button" onClick={save} disabled={saving || !message.trim()} className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50">
             {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
             Enregistrer
           </button>

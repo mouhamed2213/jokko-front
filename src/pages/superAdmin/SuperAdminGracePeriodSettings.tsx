@@ -61,7 +61,7 @@ export default function SuperAdminGracePeriodSettings() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-ink/10 bg-paper p-6 shadow-sm">
+      <div className="rounded-3xl border border-ink/10 bg-paper p-6 shadow-sm">
         <div className="flex items-start gap-3">
           <div className="rounded-xl bg-sun/20 p-3 text-ink">
             <Clock size={22} />
@@ -106,7 +106,7 @@ export default function SuperAdminGracePeriodSettings() {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Save size={16} />
             {saving ? "Enregistrement..." : "Enregistrer"}

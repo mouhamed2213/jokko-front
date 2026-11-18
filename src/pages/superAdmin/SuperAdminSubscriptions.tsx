@@ -99,14 +99,14 @@ export default function SuperAdminSubscriptions() {
           type="button"
           onClick={() => void load()}
           disabled={loading}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-ink/10 bg-paper px-4 py-2.5 text-sm font-medium text-ink/75 hover:bg-cream disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-full border border-ink/10 bg-paper px-4 py-2.5 text-sm font-medium text-ink/75 hover:bg-cream disabled:opacity-60"
         >
           <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
           Actualiser
         </button>
       </div>
 
-      <div className="grid gap-3 rounded-2xl border border-ink/10 bg-paper p-4 md:grid-cols-[minmax(220px,1fr)_180px_160px]">
+      <div className="grid gap-3 rounded-3xl border border-ink/10 bg-paper p-4 md:grid-cols-[minmax(220px,1fr)_180px_160px]">
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/45" />
           <input
@@ -142,7 +142,7 @@ export default function SuperAdminSubscriptions() {
         </select>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-ink/10 bg-paper shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-ink/10 bg-paper shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1050px] text-left text-sm">
             <thead className="bg-cream text-xs uppercase tracking-wide text-ink/60">
@@ -195,7 +195,7 @@ export default function SuperAdminSubscriptions() {
                     <button
                       type="button"
                       onClick={() => navigate(`/admin/shops/${row.shopId}`)}
-                      className="rounded-lg border border-ink/10 px-3 py-1.5 text-xs font-semibold text-ink/75 hover:bg-paper"
+                      className="rounded-full border border-ink/10 px-3 py-1.5 text-xs font-semibold text-ink/75 hover:bg-paper"
                     >
                       Voir
                     </button>
@@ -215,14 +215,14 @@ export default function SuperAdminSubscriptions() {
               type="button"
               disabled={!pagination || page <= 1 || loading}
               onClick={() => setPage((value) => Math.max(1, value - 1))}
-              className="rounded-lg border border-ink/10 p-2 text-ink/70 disabled:opacity-40"
+              className="rounded-full border border-ink/10 p-2 text-ink/70 disabled:opacity-40"
               aria-label="Page précédente"
             ><ChevronLeft size={16} /></button>
             <button
               type="button"
               disabled={!pagination || page >= pagination.totalPages || loading}
               onClick={() => setPage((value) => value + 1)}
-              className="rounded-lg border border-ink/10 p-2 text-ink/70 disabled:opacity-40"
+              className="rounded-full border border-ink/10 p-2 text-ink/70 disabled:opacity-40"
               aria-label="Page suivante"
             ><ChevronRight size={16} /></button>
           </div>

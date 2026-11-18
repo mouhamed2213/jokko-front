@@ -59,7 +59,7 @@ function ShopCard({ shop, onOpen }: { shop: OwnerShop; onOpen: () => void }) {
   const unavailable = archived || parentArchived;
   const s = shop.stats;
   return (
-    <div className={`rounded-2xl bg-paper p-5 shadow-sm ${unavailable ? "opacity-70" : ""}`}>
+    <div className={`rounded-3xl border border-ink/10 bg-paper p-5 ${unavailable ? "opacity-70" : ""}`}>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <Store size={16} className="text-jokko" />
         <h3 className="font-bold text-ink">{shop.name}</h3>
@@ -80,7 +80,7 @@ function ShopCard({ shop, onOpen }: { shop: OwnerShop; onOpen: () => void }) {
         <button
           type="button"
           onClick={onOpen}
-          className="ml-auto rounded-lg border border-ink/10 px-3 py-1 text-xs font-medium text-ink/75 hover:bg-ink/5"
+          className="ml-auto rounded-full border border-ink/10 px-3 py-1 text-xs font-medium text-ink/75 hover:bg-ink/5"
         >
           Voir la boutique
         </button>
@@ -161,7 +161,7 @@ export default function SuperAdminOwnerDetail() {
         <button
           type="button"
           onClick={() => navigate("/admin/owners")}
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-paper shadow-sm hover:bg-ink/5"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-paper shadow-sm hover:bg-ink/5"
         >
           <ArrowLeft size={16} />
         </button>
@@ -198,7 +198,7 @@ export default function SuperAdminOwnerDetail() {
         <Stat label="Produits" value={totals.products} />
       </div>
 
-      <div className="rounded-2xl bg-paper p-5 shadow-sm">
+      <div className="rounded-3xl border border-ink/10 bg-paper p-5">
         <UsageBar item={storesUsage} />
         <p className="mt-2 text-xs text-ink/45">
           Limite du plan de la boutique principale pour les boutiques secondaires actives.

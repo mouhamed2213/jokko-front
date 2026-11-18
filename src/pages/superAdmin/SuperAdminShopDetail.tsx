@@ -129,6 +129,9 @@ const paymentStatusBadge: Record<string, string> = {
 
 const plans = ["FREE", "BASIC", "PRO", "PREMIUM"];
 
+const paymentStatusLabel: Record<string, string> = { SUCCESS: "Réussi", PENDING: "En attente", FAILED: "Échoué", CANCELLED: "Annulé" };
+const providerLabel: Record<string, string> = { WAVE: "Wave", ORANGE_MONEY: "Orange Money", OTHER: "Autre", IN_APP: "Dans l'app" };
+
 function InfoRow({
   icon: Icon,
   label,
@@ -148,21 +151,17 @@ function InfoRow({
 }
 
 function StatBlock({
-  icon: Icon,
   label,
   value,
 }: {
-  icon: any;
+  icon?: any;
   label: string;
   value: string | number;
 }) {
   return (
-    <div className="rounded-xl bg-cream p-3 text-center">
-      <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-paper text-jokko shadow-sm">
-        <Icon size={14} />
-      </div>
-      <p className="text-lg font-bold text-ink">{value}</p>
-      <p className="text-xs text-ink/45">{label}</p>
+    <div className="rounded-2xl bg-cream p-4">
+      <p className="text-2xl font-extrabold tabular-nums tracking-[-0.03em] text-ink">{value}</p>
+      <p className="mt-0.5 text-[10px] font-extrabold uppercase tracking-[0.08em] text-ink/50">{label}</p>
     </div>
   );
 }
@@ -329,7 +328,7 @@ export default function SuperAdminShopDetail() {
         <p>Boutique introuvable.</p>
         <button
           onClick={() => navigate("/admin/shops")}
-          className="rounded-xl bg-jokko px-4 py-2 text-sm font-medium text-white hover:bg-jokko-deep"
+          className="rounded-full bg-jokko px-4 py-2 text-sm font-medium text-white hover:bg-jokko-deep"
         >
           Retour à la liste
         </button>
@@ -343,12 +342,12 @@ export default function SuperAdminShopDetail() {
       <div className="flex items-center gap-3">
         <button
           onClick={() => navigate("/admin/shops")}
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-paper text-ink/60 shadow-sm hover:bg-ink/5"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-paper text-ink/60 shadow-sm hover:bg-ink/5"
         >
           <ArrowLeft size={16} />
         </button>
         <div>
-          <h2 className="text-xl font-bold text-ink">{shop.name}</h2>
+          <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-ink">{shop.name}</h2>
           <p className="text-sm text-ink/60">
             {shop.currentShop === "PRIMARY"
               ? "Boutique principale"
@@ -373,7 +372,7 @@ export default function SuperAdminShopDetail() {
             setConfirmName("");
             setArchiveModalOpen(true);
           }}
-          className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-medium transition ${
+          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
             isArchived
               ? "border-jokko/25 text-jokko-deep hover:bg-jokko/10"
               : "border-red-200 text-red-600 hover:bg-red-50"
@@ -404,12 +403,12 @@ export default function SuperAdminShopDetail() {
         {/* Left column: info + subscription */}
         <div className="flex flex-col gap-5 lg:col-span-1">
           {/* Shop info card */}
-          <div className="rounded-2xl bg-paper p-5 shadow-sm">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-ink">
+          <div className="rounded-3xl border border-ink/10 bg-paper p-5">
+            <h3 className="mb-4 flex items-center gap-2 text-base font-extrabold tracking-tight">
               <Store size={15} /> Informations
             </h3>
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <InfoRow
                   icon={Users}
                   label="Propriétaire"
@@ -419,7 +418,7 @@ export default function SuperAdminShopDetail() {
                   <button
                     type="button"
                     onClick={() => navigate(`/admin/owners/${shop.ownerId}`)}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-jokko/25 px-3 py-1.5 text-xs font-medium text-jokko-deep transition hover:bg-jokko/10"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-jokko/25 px-3 py-1.5 text-xs font-medium text-jokko-deep transition hover:bg-jokko/10"
                     title="Consulter la fiche du propriétaire"
                   >
                     Voir le propriétaire
@@ -451,7 +450,7 @@ export default function SuperAdminShopDetail() {
                     <button
                       key={s.id}
                       onClick={() => navigate(`/admin/shops/${s.id}`)}
-                      className="flex items-center justify-between rounded-lg bg-cream px-3 py-2 text-left text-sm hover:bg-ink/5"
+                      className="flex items-center justify-between rounded-full bg-cream px-3 py-2 text-left text-sm hover:bg-ink/5"
                     >
                       <span className="text-ink/75">{s.name}</span>
                       <span className="text-xs text-ink/45">{s.status}</span>
@@ -463,16 +462,16 @@ export default function SuperAdminShopDetail() {
           </div>
 
           {/* Subscription card */}
-          <div className="rounded-2xl bg-paper p-5 shadow-sm">
+          <div className="rounded-3xl border border-ink/10 bg-paper p-5">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-ink">
+              <h3 className="flex items-center gap-2 text-base font-extrabold tracking-tight">
                 <Crown size={15} /> Abonnement
               </h3>
               <div className="flex gap-2">
                 <button
                   disabled
                   title="Fonctionnalité en cours de développement côté backend"
-                  className="rounded-lg bg-ink/5 px-3 py-1.5 text-xs font-medium text-ink/45 cursor-not-allowed"
+                  className="rounded-full bg-ink/5 px-3 py-1.5 text-xs font-medium text-ink/45 cursor-not-allowed"
                 >
                   Changer le statut
                 </button>
@@ -487,7 +486,7 @@ export default function SuperAdminShopDetail() {
                     setSelectedPlan(shop.subscription?.plan.code ?? "");
                     setPlanModalOpen(true);
                   }}
-                  className="rounded-lg bg-jokko/10 px-3 py-1.5 text-xs font-medium text-jokko hover:bg-jokko/15 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-full bg-jokko px-4 py-2 text-xs font-bold text-white transition hover:bg-jokko-deep disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Changer le plan
                 </button>
@@ -598,12 +597,12 @@ export default function SuperAdminShopDetail() {
         {/* Right column: stats, users, payments, audit log */}
         <div className="flex flex-col gap-5 lg:col-span-2">
           {/* Stats */}
-          <div className="rounded-2xl bg-paper p-5 shadow-sm">
-            <h3 className="mb-4 text-sm font-semibold text-ink">
+          <div className="rounded-3xl border border-ink/10 bg-paper p-5">
+            <h3 className="mb-4 text-base font-extrabold tracking-tight">
               Activité
             </h3>
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-              <StatBlock icon={Users} label="Users" value={shop.counts.users} />
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+              <StatBlock icon={Users} label="Équipe" value={shop.counts.users} />
               <StatBlock
                 icon={Package}
                 label="Produits"
@@ -616,7 +615,7 @@ export default function SuperAdminShopDetail() {
               />
               <StatBlock
                 icon={Truck}
-                label="Fourn."
+                label="Fournisseurs"
                 value={shop.counts.suppliers}
               />
               <StatBlock
@@ -633,8 +632,8 @@ export default function SuperAdminShopDetail() {
           </div>
 
           {/* Users list */}
-          <div className="rounded-2xl bg-paper p-5 shadow-sm">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-ink">
+          <div className="rounded-3xl border border-ink/10 bg-paper p-5">
+            <h3 className="mb-4 flex items-center gap-2 text-base font-extrabold tracking-tight">
               <Users size={15} /> Utilisateurs ({shop.users.length})
             </h3>
             <div className="flex flex-col gap-2">
@@ -662,8 +661,8 @@ export default function SuperAdminShopDetail() {
           </div>
 
           {/* Payment history */}
-          <div className="rounded-2xl bg-paper p-5 shadow-sm">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-ink">
+          <div className="rounded-3xl border border-ink/10 bg-paper p-5">
+            <h3 className="mb-4 flex items-center gap-2 text-base font-extrabold tracking-tight">
               <FileText size={15} /> Historique des paiements
             </h3>
             {shop.subscriptionInherited && shop.primaryShop && (
@@ -699,7 +698,7 @@ export default function SuperAdminShopDetail() {
                         <td className="py-2 text-ink/70">
                           {p.amount.toLocaleString("fr-FR").replace(/\u202f/g, " ")} {p.currency}
                         </td>
-                        <td className="py-2 text-ink/60">{p.provider}</td>
+                        <td className="py-2 text-ink/60">{providerLabel[p.provider] ?? p.provider}</td>
                         <td className="py-2">
                           <span
                             className={`rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -707,7 +706,7 @@ export default function SuperAdminShopDetail() {
                               "bg-ink/5 text-ink/60"
                             }`}
                           >
-                            {p.status}
+                            {paymentStatusLabel[p.status] ?? p.status}
                           </span>
                         </td>
                         <td className="py-2 text-ink/60">
@@ -728,7 +727,7 @@ export default function SuperAdminShopDetail() {
                                     confirmingPaymentId === p.id ||
                                     cancellingPaymentId === p.id
                                   }
-                                  className="rounded-lg bg-jokko/10 px-2.5 py-1.5 text-xs font-medium text-jokko-deep hover:bg-jokko/15 disabled:opacity-50"
+                                  className="rounded-full bg-jokko/10 px-2.5 py-1.5 text-xs font-medium text-jokko-deep hover:bg-jokko/15 disabled:opacity-50"
                                 >
                                   {confirmingPaymentId === p.id
                                     ? "Confirmation..."
@@ -741,7 +740,7 @@ export default function SuperAdminShopDetail() {
                                     confirmingPaymentId === p.id ||
                                     cancellingPaymentId === p.id
                                   }
-                                  className="rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+                                  className="rounded-full bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
                                 >
                                   {cancellingPaymentId === p.id
                                     ? "Annulation..."
@@ -759,8 +758,8 @@ export default function SuperAdminShopDetail() {
           </div>
 
           {/* Audit log */}
-          <div className="rounded-2xl bg-paper p-5 shadow-sm">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-ink">
+          <div className="rounded-3xl border border-ink/10 bg-paper p-5">
+            <h3 className="mb-4 flex items-center gap-2 text-base font-extrabold tracking-tight">
               <History size={15} /> Journal d'audit
             </h3>
             {shop.auditLogs.length === 0 ? (
@@ -791,8 +790,8 @@ export default function SuperAdminShopDetail() {
 
       {/* Archive / restore modal */}
       {archiveModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-paper p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl bg-paper p-6 shadow-xl">
             <h3 className="mb-2 text-lg font-bold text-ink">
               {isArchived ? "Restaurer la boutique" : "Archiver la boutique"}
             </h3>
@@ -827,7 +826,7 @@ export default function SuperAdminShopDetail() {
             <div className="flex gap-2">
               <button
                 onClick={() => setArchiveModalOpen(false)}
-                className="flex-1 rounded-xl border border-ink/10 px-4 py-2.5 text-sm text-ink/75 hover:bg-ink/5"
+                className="flex-1 rounded-full border border-ink/10 px-4 py-2.5 text-sm text-ink/75 hover:bg-ink/5"
               >
                 Annuler
               </button>
@@ -837,7 +836,7 @@ export default function SuperAdminShopDetail() {
                   archiving ||
                   (!isArchived && confirmName.trim() !== shop.name.trim())
                 }
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50 ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50 ${
                   isArchived
                     ? "bg-jokko hover:bg-jokko-deep"
                     : "bg-red-600 hover:bg-red-700"
@@ -853,8 +852,8 @@ export default function SuperAdminShopDetail() {
 
       {/* Plan change modal */}
       {planModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-paper p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-3xl bg-paper p-6 shadow-xl">
             <h3 className="mb-1 text-lg font-bold text-ink">
               Changer le plan
             </h3>
@@ -868,7 +867,7 @@ export default function SuperAdminShopDetail() {
                 <button
                   key={code}
                   onClick={() => setSelectedPlan(code)}
-                  className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-medium transition ${
+                  className={`flex items-center justify-between rounded-full border px-4 py-3 text-sm font-medium transition ${
                     selectedPlan === code
                       ? "border-jokko/100 bg-jokko/10 text-jokko-deep"
                       : "border-ink/10 text-ink/70 hover:bg-ink/5"
@@ -932,7 +931,7 @@ export default function SuperAdminShopDetail() {
             <div className="flex gap-2">
               <button
                 onClick={() => setPlanModalOpen(false)}
-                className="flex-1 rounded-xl border border-ink/10 px-4 py-2.5 text-sm text-ink/75 hover:bg-ink/5"
+                className="flex-1 rounded-full border border-ink/10 px-4 py-2.5 text-sm text-ink/75 hover:bg-ink/5"
               >
                 Annuler
               </button>
@@ -944,7 +943,7 @@ export default function SuperAdminShopDetail() {
                   (selectedPlan === shop.subscription?.plan.code &&
                     !canRenewCurrentPlan)
                 }
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-jokko px-4 py-2.5 text-sm font-semibold text-white hover:bg-jokko-deep disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-jokko px-4 py-2.5 text-sm font-semibold text-white hover:bg-jokko-deep disabled:opacity-50"
               >
                 {changingPlan && <Loader2 size={14} className="animate-spin" />}
                 {selectedPlan === shop.subscription?.plan.code &&

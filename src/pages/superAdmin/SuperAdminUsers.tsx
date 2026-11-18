@@ -107,17 +107,17 @@ export default function SuperAdminUsers() {
           <p className="mt-1 text-sm text-ink/60">Gérez les accès à l'administration de Jokko Business.</p>
         </div>
         <div className="flex gap-2">
-          <button type="button" onClick={() => void loadAdmins(true)} disabled={refreshing} className="inline-flex items-center gap-2 rounded-xl border border-ink/10 px-3 py-2.5 text-sm font-medium text-ink/75 hover:bg-cream">
+          <button type="button" onClick={() => void loadAdmins(true)} disabled={refreshing} className="inline-flex items-center gap-2 rounded-full border border-ink/10 px-3 py-2.5 text-sm font-medium text-ink/75 hover:bg-cream">
             <RefreshCw size={16} className={refreshing ? "animate-spin" : ""} /> Actualiser
           </button>
-          <button type="button" onClick={() => setShowForm((value) => !value)} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">
+          <button type="button" onClick={() => setShowForm((value) => !value)} className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">
             <UserPlus size={16} /> Ajouter un administrateur
           </button>
         </div>
       </header>
 
       {showForm && (
-        <form onSubmit={submitInvitation} className="rounded-2xl border border-ink/10 bg-paper p-5 shadow-sm">
+        <form onSubmit={submitInvitation} className="rounded-3xl border border-ink/10 bg-paper p-5 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <MailPlus className="text-ink/70" size={19} />
             <h2 className="font-semibold text-ink">Inviter un Super Admin</h2>
@@ -132,15 +132,15 @@ export default function SuperAdminUsers() {
             </label>
           </div>
           <div className="mt-5 flex justify-end gap-2">
-            <button type="button" onClick={() => setShowForm(false)} className="rounded-xl border border-ink/10 px-4 py-2.5 text-sm font-medium text-ink/70">Annuler</button>
-            <button type="submit" disabled={submitting || name.trim().length < 2 || !email.trim()} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+            <button type="button" onClick={() => setShowForm(false)} className="rounded-full border border-ink/10 px-4 py-2.5 text-sm font-medium text-ink/70">Annuler</button>
+            <button type="submit" disabled={submitting || name.trim().length < 2 || !email.trim()} className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
               {submitting ? <Loader2 size={16} className="animate-spin" /> : <MailPlus size={16} />} Envoyer l'invitation
             </button>
           </div>
         </form>
       )}
 
-      <div className="rounded-2xl border border-ink/10 bg-paper shadow-sm">
+      <div className="rounded-3xl border border-ink/10 bg-paper shadow-sm">
         <div className="flex items-center justify-between border-b border-ink/10 px-5 py-4">
           <div className="flex items-center gap-2 font-semibold text-ink"><Users size={18} /> Administrateurs ({admins.length})</div>
           <span className="text-xs text-ink/60">Comptes distincts des utilisateurs des boutiques</span>
@@ -167,12 +167,12 @@ export default function SuperAdminUsers() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {(admin.status === "PENDING" || admin.status === "INVITATION_EXPIRED") && (
-                    <button type="button" onClick={() => void resend(admin)} disabled={changingId === admin.id} className="inline-flex items-center gap-2 rounded-lg border border-ink/10 px-3 py-2 text-sm font-medium text-ink/75 hover:bg-cream disabled:opacity-50">
+                    <button type="button" onClick={() => void resend(admin)} disabled={changingId === admin.id} className="inline-flex items-center gap-2 rounded-full border border-ink/10 px-3 py-2 text-sm font-medium text-ink/75 hover:bg-cream disabled:opacity-50">
                       {changingId === admin.id ? <Loader2 size={15} className="animate-spin" /> : <MailPlus size={15} />} Renvoyer l'invitation
                     </button>
                   )}
                   {admin.emailVerifiedAt && admin.id !== currentAdmin?.id && (
-                    <button type="button" onClick={() => void toggleStatus(admin)} disabled={changingId === admin.id} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium disabled:opacity-50 ${admin.isActive ? "border-red-200 text-red-700 hover:bg-red-50" : "border-jokko/25 text-jokko-deep hover:bg-jokko/10"}`}>
+                    <button type="button" onClick={() => void toggleStatus(admin)} disabled={changingId === admin.id} className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium disabled:opacity-50 ${admin.isActive ? "border-red-200 text-red-700 hover:bg-red-50" : "border-jokko/25 text-jokko-deep hover:bg-jokko/10"}`}>
                       {changingId === admin.id ? <Loader2 size={15} className="animate-spin" /> : admin.isActive ? <ShieldOff size={15} /> : <ShieldCheck size={15} />}
                       {admin.isActive ? "Désactiver" : "Réactiver"}
                     </button>
