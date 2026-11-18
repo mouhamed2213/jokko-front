@@ -1,7 +1,7 @@
 // Images de fond des pages publiques.
 // - `hero` : photo déjà utilisée par la landing actuelle (Unsplash).
 // - Les autres pointent vers /public/images/... : déposez-y vos photos.
-//   Tant qu'un fichier est absent, le dégradé de secours (voir `bgImage`) s'affiche.
+//   Tant qu'un fichier est absent, le dégradé neutre de secours s'affiche (teinté en vert par <Photo />).
 export const images = {
   hero: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=2200&q=85",
   pricing: "/images/pages/tarifs.jpg",
@@ -19,5 +19,5 @@ export const images = {
 } as const;
 
 /** Image + dégradé de secours : si l'URL échoue, le dégradé reste visible. */
-export const bgImage = (url: string, fallback = "linear-gradient(135deg,#064e3b,#0f172a)") =>
+export const bgImage = (url: string, fallback = "linear-gradient(135deg,#d3dbd6,#76847d)") =>
   `url('${url}'), ${fallback}`;

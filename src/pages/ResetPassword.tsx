@@ -43,29 +43,29 @@ export default function ResetPassword() {
 
   return (
     <AuthShell>
-      <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-lg">
-        <h1 className="text-2xl font-bold text-slate-900">Nouveau mot de passe</h1>
+      <div className="w-full max-w-md rounded-3xl bg-paper p-8 shadow-lg">
+        <h1 className="text-2xl font-bold text-ink">Nouveau mot de passe</h1>
         {done ? (
           <div className="mt-5 space-y-4">
-            <p className="text-sm text-emerald-700">Votre mot de passe a été modifié. Vous pouvez vous connecter.</p>
-            <Link to="/login" className="inline-flex rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white">Se connecter</Link>
+            <p className="text-sm text-jokko-deep">Votre mot de passe a été modifié. Vous pouvez vous connecter.</p>
+            <Link to="/login" className="inline-flex rounded-xl bg-jokko px-5 py-3 text-sm font-semibold text-white">Se connecter</Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-ink/75">
               Nouveau mot de passe
-              <input type="password" minLength={8} required autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-emerald-500" />
+              <input type="password" minLength={8} required autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} className="mt-2 w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko/100" />
             </label>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-ink/75">
               Confirmer le mot de passe
-              <input type="password" minLength={8} required autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-emerald-500" />
+              <input type="password" minLength={8} required autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} className="mt-2 w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko/100" />
             </label>
-            <button disabled={loading || !token} className="w-full rounded-xl bg-emerald-600 py-3 font-semibold text-white disabled:opacity-60">
+            <button disabled={loading || !token} className="w-full rounded-xl bg-jokko py-3 font-semibold text-white disabled:opacity-60">
               {loading ? "Modification..." : "Enregistrer le mot de passe"}
             </button>
           </form>
         )}
-        <p className="mt-6 text-center text-sm"><Link to="/login" className="font-medium text-emerald-700 hover:underline">Retour à la connexion</Link></p>
+        <p className="mt-6 text-center text-sm"><Link to="/login" className="font-medium text-jokko-deep hover:underline">Retour à la connexion</Link></p>
       </div>
     </AuthShell>
   );

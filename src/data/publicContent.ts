@@ -5,15 +5,15 @@ import {
 } from "lucide-react";
 import { images } from "./publicImages";
 
-export interface Sector { name: string; icon: LucideIcon; image: string; gradient: string; text: string; }
+export interface Sector { name: string; icon: LucideIcon; image: string; text: string; }
 
 export const sectors: Sector[] = [
-  { name: "Boutiques & magasins", icon: Store, image: images.sectors.boutique, gradient: "linear-gradient(135deg,#065f46,#0f172a)", text: "Catalogue, ventes au comptoir et dettes clients suivis au même endroit." },
-  { name: "Supermarchés", icon: ShoppingBasket, image: images.sectors.supermarche, gradient: "linear-gradient(135deg,#1e40af,#0f172a)", text: "Gros volumes de produits, alertes de rupture et valeur du stock." },
-  { name: "Pharmacies", icon: Pill, image: images.sectors.pharmacie, gradient: "linear-gradient(135deg,#0f766e,#0f172a)", text: "Suivez les références en stock et anticipez les ruptures." },
-  { name: "Quincailleries", icon: Hammer, image: images.sectors.quincaillerie, gradient: "linear-gradient(135deg,#9a3412,#0f172a)", text: "Prix détail, demi-gros et gros selon la quantité vendue." },
-  { name: "Restaurants", icon: UtensilsCrossed, image: images.sectors.restaurant, gradient: "linear-gradient(135deg,#9f1239,#0f172a)", text: "Encaissez vite, suivez la caisse et les achats fournisseurs." },
-  { name: "Multi-boutiques", icon: Building2, image: images.sectors.multiboutiques, gradient: "linear-gradient(135deg,#4c1d95,#0f172a)", text: "Plusieurs points de vente pilotés depuis un seul compte." },
+  { name: "Boutiques & magasins", icon: Store, image: images.sectors.boutique, text: "Catalogue, ventes au comptoir et dettes clients suivis au même endroit." },
+  { name: "Supermarchés", icon: ShoppingBasket, image: images.sectors.supermarche, text: "Gros volumes de produits, alertes de rupture et valeur du stock." },
+  { name: "Pharmacies", icon: Pill, image: images.sectors.pharmacie, text: "Suivez les références en stock et anticipez les ruptures." },
+  { name: "Quincailleries", icon: Hammer, image: images.sectors.quincaillerie, text: "Prix détail, demi-gros et gros selon la quantité vendue." },
+  { name: "Restaurants", icon: UtensilsCrossed, image: images.sectors.restaurant, text: "Encaissez vite, suivez la caisse et les achats fournisseurs." },
+  { name: "Multi-boutiques", icon: Building2, image: images.sectors.multiboutiques, text: "Plusieurs points de vente pilotés depuis un seul compte." },
 ];
 
 export interface Feature { icon: LucideIcon; title: string; description: string; points: string[]; }

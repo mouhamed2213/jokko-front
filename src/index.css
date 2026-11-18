@@ -1,1 +1,22 @@
 @import "tailwindcss";
+@import "@fontsource-variable/plus-jakarta-sans";
+
+/* Jetons de marque (déclinaisons « La pièce ») — utilisés par les pages publiques. */
+@theme {
+  --font-brand: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --color-cream: #f5f1e6;
+  --color-paper: #fbf8f1;
+  --color-ink: #0f201a;
+  --color-jokko: #0b7a5a;
+  --color-jokko-deep: #07503b;
+  --color-sun: #f2b035;
+  --animate-marquee: marquee 38s linear infinite;
+  @keyframes marquee {
+    to { transform: translateX(-50%); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+html { scroll-behavior: smooth; }

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
-import logo from "../assets/logooo.svg";
 import { api } from "../services/api";
 import { login } from "../services/index";
 import AuthShell from "../components/public/AuthShell";
@@ -48,12 +47,9 @@ export default function Login() {
 
   return (
     <AuthShell>
-      <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-lg">
+      <div className="w-full max-w-md rounded-3xl bg-paper p-8 shadow-lg">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-50 p-2">
-            <img src={logo} alt="Jokko Business" className="h-full w-full object-contain" />
-          </div>
-          <h1 className="text-3xl font-bold text-slate-900">Jokko Business</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-ink">Connexion</h1>
           <p className="mt-2 text-sm text-gray-500">Connectez-vous à votre espace de gestion</p>
         </div>
 
@@ -63,7 +59,7 @@ export default function Login() {
             <input
               type="email"
               placeholder="admin@boutique.com"
-              className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-jokko/100 focus:ring-2 focus:ring-jokko/15"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -75,7 +71,7 @@ export default function Login() {
             <input
               type="password"
               placeholder="••••••••"
-              className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-jokko/100 focus:ring-2 focus:ring-jokko/15"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -85,19 +81,19 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-xl bg-jokko py-3 text-sm font-medium text-white transition hover:bg-jokko-deep disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Connexion en cours..." : "Se connecter"}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm"><Link to="/forgot-password" className="font-medium text-emerald-600 hover:underline">Mot de passe oublié ?</Link></p>
+        <p className="mt-4 text-center text-sm"><Link to="/forgot-password" className="font-medium text-jokko hover:underline">Mot de passe oublié ?</Link></p>
 
         <p className="mt-6 text-center text-xs text-gray-400">
           Vous n'avez pas de compte ?{" "}
           <Link
             to="/register"
-            className="font-semibold text-emerald-600 hover:underline"
+            className="font-semibold text-jokko hover:underline"
           >
             S'inscrire gratuitement
           </Link>
