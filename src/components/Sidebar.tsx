@@ -28,7 +28,6 @@ import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { NavLink, useLocation } from "react-router-dom";
 import logo from "../assets/brand/icone-app.svg";
-import Logo from "./public/Logo";
 
 import { api } from "../services/api";
 import {
@@ -810,14 +809,6 @@ function SidebarContent({
   return (
     <div className="flex h-full flex-col overflow-hidden bg-ink font-brand text-white">
       <div className="shrink-0 border-b border-white/10 px-5 py-4">
-        {/* Logo Jokko Business */}
-        <div className={`mb-4 flex ${collapsed ? "justify-center" : "justify-start"}`}>
-          {collapsed ? (
-            <img src={logo} alt="Jokko Business" className="h-9 w-9 rounded-lg" />
-          ) : (
-            <Logo variant="sur-encre" className="h-11 w-auto" />
-          )}
-        </div>
         <div className="flex items-center justify-between">
           <div className={`flex items-center gap-3 ${collapsed ? "justify-center w-full" : ""}`}>
             <img
@@ -827,7 +818,7 @@ function SidebarContent({
             />
             {!collapsed && (
               <div className="min-w-0">
-                <h1 className="text-base font-bold truncate max-w-32.5">
+                <h1 className="text-base font-bold truncate max-w-44">
                   {shopName}
                 </h1>
                 <p className="text-xs text-white/50">Gestion commerciale</p>
@@ -1007,7 +998,7 @@ export default function Sidebar() {
 
       <aside
         className={`sticky top-0 hidden h-screen shrink-0 overflow-hidden transition-all duration-200 md:flex ${
-          collapsed ? "w-20" : "w-60"
+          collapsed ? "w-20" : "w-68"
         }`}
       >
         <SidebarContent
@@ -1026,7 +1017,7 @@ export default function Sidebar() {
             className="absolute inset-0 bg-black/40"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="absolute left-0 top-0 h-screen w-60 overflow-hidden shadow-xl">
+          <div className="absolute left-0 top-0 h-screen w-68 overflow-hidden shadow-xl">
             <SidebarContent
               onClose={() => setMobileOpen(false)}
               onUpgradeClick={() => setIsUpgradeModalOpen(true)}
