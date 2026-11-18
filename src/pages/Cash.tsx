@@ -32,7 +32,7 @@ import type {
 import { exportCashReportPDF } from "../utils/exportPDF";
 import { hasFeatures } from "../utils/subscription.checker";
 
-const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
+const fmt = (v: number) => `${v.toLocaleString("fr-FR").replace(/\u202f/g, " ")} FCFA`;
 
 const METHOD_CONFIG: Record<
   string,
@@ -41,38 +41,38 @@ const METHOD_CONFIG: Record<
   CASH: {
     name: "Espèces",
     emoji: "💵",
-    bg: "bg-green-50",
-    text: "text-green-700",
+    bg: "bg-jokko/10",
+    text: "text-jokko-deep",
   },
   WAVE: {
     name: "Wave",
     logo: waveLogo,
-    bg: "bg-blue-50",
-    text: "text-blue-700",
+    bg: "bg-jokko/10",
+    text: "text-jokko-deep",
   },
   ORANGE_MONEY: {
     name: "Orange Money",
     logo: orangeMoneyLogo,
-    bg: "bg-orange-50",
-    text: "text-orange-700",
+    bg: "bg-sun/20",
+    text: "text-ink",
   },
   FREE_MONEY: {
     name: "Free Money",
     emoji: "🟣",
-    bg: "bg-purple-50",
-    text: "text-purple-700",
+    bg: "bg-ink/5",
+    text: "text-ink",
   },
   BANK: {
     name: "Virement",
     emoji: "🏦",
-    bg: "bg-slate-50",
-    text: "text-slate-700",
+    bg: "bg-cream",
+    text: "text-ink/75",
   },
   OTHER: {
     name: "Autre",
     emoji: "📱",
-    bg: "bg-gray-50",
-    text: "text-gray-700",
+    bg: "bg-cream",
+    text: "text-ink/75",
   },
 };
 
@@ -89,13 +89,13 @@ const MethodIcon = ({
       <img
         src={config.logo}
         alt={config.name}
-        className={`${cls} rounded-xl object-contain bg-white p-1 shadow-sm shrink-0 border border-gray-100`}
+        className={`${cls} rounded-xl object-contain bg-paper p-1 shadow-sm shrink-0 border border-ink/10`}
       />
     );
   }
   return (
     <div
-      className={`${cls} rounded-xl ${config.bg} border border-gray-200 flex items-center justify-center shrink-0 text-xl`}
+      className={`${cls} rounded-xl ${config.bg} border border-ink/10 flex items-center justify-center shrink-0 text-xl`}
     >
       {config.emoji}
     </div>
@@ -255,7 +255,7 @@ export default function Cash() {
 
   if (loading)
     return (
-      <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
+      <div className="rounded-2xl bg-paper p-8 text-center text-ink/45">
         Chargement...
       </div>
     );
@@ -266,8 +266,8 @@ export default function Cash() {
     <section className="space-y-6">
       {/* Rapport de clôture */}
       {closureSummary && (
-        <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
-          <div className="bg-emerald-600 px-6 py-4 flex items-center justify-between">
+        <div className="rounded-3xl border border-ink/10 bg-paper overflow-hidden">
+          <div className="bg-jokko px-6 py-4 flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">
               📊 Rapport de clôture
             </h3>
@@ -279,7 +279,7 @@ export default function Cash() {
             </button>
           </div>
           <div className="p-6 space-y-5">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-ink/60">
               {closureSummary.date} • Ouvert à{" "}
               {new Date(closureSummary.openedAt).toLocaleTimeString("fr-FR", {
                 hour: "2-digit",
@@ -296,14 +296,14 @@ export default function Cash() {
                 {
                   label: "Ouverture",
                   value: fmt(closureSummary.openingAmount),
-                  bg: "bg-slate-100",
-                  text: "text-slate-700",
+                  bg: "bg-ink/5",
+                  text: "text-ink/75",
                 },
                 {
                   label: "Entrées",
                   value: fmt(closureSummary.totalIn),
-                  bg: "bg-emerald-100",
-                  text: "text-emerald-700",
+                  bg: "bg-jokko/10",
+                  text: "text-jokko-deep",
                 },
                 {
                   label: "Sorties",
@@ -314,7 +314,7 @@ export default function Cash() {
                 {
                   label: "Clôture",
                   value: fmt(closureSummary.closingAmount),
-                  bg: "bg-slate-900",
+                  bg: "bg-ink",
                   text: "text-white",
                 },
               ].map((s) => (
@@ -333,7 +333,7 @@ export default function Cash() {
             </div>
             {closureSummary.paymentMethodSummary?.length > 0 && (
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink/45 mb-3">
                   Répartition par moyen de paiement
                 </p>
                 <div className="space-y-2">
@@ -353,7 +353,7 @@ export default function Cash() {
                             >
                               {config.name}
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-ink/45">
                               +{fmt(m.totalIn)} entré
                               {m.totalOut > 0
                                 ? ` • -${fmt(m.totalOut)} sorti`
@@ -368,7 +368,7 @@ export default function Cash() {
                     );
                   })}
                 </div>
-                <div className="mt-3 flex items-center justify-between rounded-2xl bg-slate-900 px-5 py-4 text-white">
+                <div className="mt-3 flex items-center justify-between rounded-2xl bg-ink px-5 py-4 text-white">
                   <span className="font-semibold">Total encaissé net</span>
                   <span className="font-bold text-lg">
                     {fmt(closureSummary.totalIn - closureSummary.totalOut)}
@@ -376,7 +376,7 @@ export default function Cash() {
                 </div>
               </div>
             )}
-            <p className="text-xs text-gray-400 text-center">
+            <p className="text-xs text-ink/45 text-center">
               {closureSummary.transactionCount} transaction(s) •{" "}
               {closureSummary.openedBy}
             </p>
@@ -386,22 +386,22 @@ export default function Cash() {
 
       {/* Caisse fermée */}
       {!cashState.open ? (
-        <div className="rounded-2xl bg-white p-8 shadow-sm">
+        <div className="rounded-3xl border border-ink/10 bg-paper p-8">
           <div className="flex flex-col items-center gap-4 text-center">
-            <div className="rounded-full bg-yellow-100 p-5">
-              <Wallet size={32} className="text-yellow-600" />
+            <div className="rounded-full bg-sun/20 p-5">
+              <Wallet size={32} className="text-ink" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-slate-900">
+              <h3 className="text-xl font-bold text-ink">
                 Caisse fermée
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-ink/60">
                 Ouvrez la caisse pour commencer les transactions du jour.
               </p>
             </div>
             <button
               onClick={() => setShowOpenForm(true)}
-              className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-medium text-white hover:bg-emerald-700 transition"
+              className="rounded-full bg-jokko px-6 py-3 text-sm font-medium text-white hover:bg-jokko-deep transition"
             >
               Ouvrir la caisse
             </button>
@@ -410,7 +410,7 @@ export default function Cash() {
             <div className="mt-6 border-t pt-6 max-w-sm mx-auto">
               <form onSubmit={handleOpenCash} className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-ink/75">
                     Montant d'ouverture (FCFA)
                   </label>
                   <input
@@ -418,20 +418,20 @@ export default function Cash() {
                     min="0"
                     value={openAmount}
                     onChange={(e) => setOpenAmount(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
                     placeholder="Ex: 50000"
                     required
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-ink/75">
                     Note (optionnel)
                   </label>
                   <input
                     type="text"
                     value={openNote}
                     onChange={(e) => setOpenNote(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
                     placeholder="Ex: Fonds de caisse matin"
                   />
                 </div>
@@ -439,14 +439,14 @@ export default function Cash() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 rounded-xl bg-emerald-600 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+                    className="flex-1 rounded-full bg-jokko py-3 text-sm font-medium text-white hover:bg-jokko-deep disabled:opacity-60"
                   >
                     {submitting ? "Ouverture..." : "Confirmer l'ouverture"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowOpenForm(false)}
-                    className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700"
+                    className="rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/75"
                   >
                     Annuler
                   </button>
@@ -459,7 +459,7 @@ export default function Cash() {
         <>
           {/* Résumé caisse ouverte */}
           <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-            <div className="rounded-2xl bg-slate-900 p-5 text-white">
+            <div className="rounded-2xl bg-ink p-5 text-white">
               <p className="text-xs text-white/60">Solde actuel</p>
               <p className="mt-2 text-2xl font-bold">
                 {fmt(cr?.currentBalance ?? 0)}
@@ -472,15 +472,15 @@ export default function Cash() {
                 })}
               </p>
             </div>
-            <div className="rounded-2xl bg-white p-5 shadow-sm">
-              <p className="text-xs text-gray-500">Montant d'ouverture</p>
-              <p className="mt-2 text-xl font-bold text-slate-900">
+            <div className="rounded-3xl border border-ink/10 bg-paper p-5">
+              <p className="text-xs text-ink/60">Montant d'ouverture</p>
+              <p className="mt-2 text-xl font-bold text-ink">
                 {fmt(cr?.openingAmount ?? 0)}
               </p>
             </div>
-            <div className="rounded-2xl bg-emerald-50 p-5">
-              <p className="text-xs text-emerald-700">Total encaissements</p>
-              <p className="mt-2 text-xl font-bold text-emerald-800">
+            <div className="rounded-2xl bg-jokko/10 p-5">
+              <p className="text-xs text-jokko-deep">Total encaissements</p>
+              <p className="mt-2 text-xl font-bold text-jokko-deep">
                 {fmt(cr?.totalIn ?? 0)}
               </p>
             </div>
@@ -494,8 +494,8 @@ export default function Cash() {
 
           {/* Répartition par moyen de paiement */}
           {cr?.transactions?.length ? (
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
-              <h3 className="mb-4 text-base font-bold text-slate-900">
+            <div className="rounded-3xl border border-ink/10 bg-paper p-6">
+              <h3 className="mb-4 text-base font-bold text-ink">
                 Encaissements par moyen de paiement
               </h3>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -515,7 +515,7 @@ export default function Cash() {
                           {fmt(m.net)}
                         </p>
                         {m.totalOut > 0 && (
-                          <p className="text-xs text-gray-400 ">
+                          <p className="text-xs text-ink/45 ">
                             +{fmt(m.totalIn)} entré • -{fmt(m.totalOut)} sorti
                           </p>
                         )}
@@ -523,7 +523,7 @@ export default function Cash() {
                     </div>
                   ))}
               </div>
-              <div className="mt-4 flex items-center justify-between rounded-2xl bg-slate-900 px-5 py-4 text-white">
+              <div className="mt-4 flex items-center justify-between rounded-2xl bg-ink px-5 py-4 text-white">
                 <span className="font-semibold">Total encaissé</span>
                 <span className="font-bold text-xl">{fmt(cr.totalIn)}</span>
               </div>
@@ -537,7 +537,7 @@ export default function Cash() {
                 setTxType("IN");
                 setShowTxForm(true);
               }}
-              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition"
+              className="flex items-center gap-2 rounded-full bg-jokko px-5 py-2.5 text-sm font-medium text-white hover:bg-jokko-deep transition"
             >
               <TrendingUp size={16} /> Encaissement manuel
             </button>
@@ -546,20 +546,20 @@ export default function Cash() {
                 setTxType("OUT");
                 setShowTxForm(true);
               }}
-              className="flex items-center gap-2 rounded-xl bg-red-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-600 transition"
+              className="flex items-center gap-2 rounded-full bg-red-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-600 transition"
             >
               <TrendingDown size={16} /> Décaissement manuel
             </button>
             <button
               onClick={handleCloseCash}
-              className="flex items-center gap-2 rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+              className="flex items-center gap-2 rounded-full border border-ink/20 px-5 py-2.5 text-sm font-medium text-ink/75 hover:bg-cream transition"
             >
               🔒 Fermer la caisse
             </button>
             {cr && (
               <button
                 // onClick={() => exportCashReportPDF(cr, user)}
-                className=" hidden items-center gap-2 rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                className=" hidden items-center gap-2 rounded-full border border-ink/20 px-5 py-2.5 text-sm font-medium text-ink/75 hover:bg-cream transition"
               >
                 <Download size={15} /> Rapport PDF
               </button>
@@ -568,15 +568,15 @@ export default function Cash() {
 
           {/* Formulaire transaction manuelle */}
           {showTxForm && (
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
+            <div className="rounded-3xl border border-ink/10 bg-paper p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-slate-900">
+                <h3 className="text-lg font-bold text-ink">
                   {txType === "IN"
                     ? "Encaissement manuel"
                     : "Décaissement manuel"}
                 </h3>
                 <button onClick={() => setShowTxForm(false)}>
-                  <X size={20} className="text-gray-400" />
+                  <X size={20} className="text-ink/45" />
                 </button>
               </div>
               <form
@@ -584,7 +584,7 @@ export default function Cash() {
                 className="grid grid-cols-1 gap-4 sm:grid-cols-3"
               >
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-ink/75">
                     Montant (FCFA)
                   </label>
                   <input
@@ -592,13 +592,13 @@ export default function Cash() {
                     min="1"
                     value={txAmount}
                     onChange={(e) => setTxAmount(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
                     placeholder="Ex: 5000"
                     required
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-ink/75">
                     Mode de paiement
                   </label>
                   <PaymentMethodSelect
@@ -608,14 +608,14 @@ export default function Cash() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-ink/75">
                     Libellé
                   </label>
                   <input
                     type="text"
                     value={txLabel}
                     onChange={(e) => setTxLabel(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-ink/20 px-4 py-3 outline-none focus:border-jokko"
                     placeholder="Ex: Achat fournitures..."
                     required
                   />
@@ -624,14 +624,14 @@ export default function Cash() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className={`rounded-xl px-5 py-2.5 text-sm font-medium text-white disabled:opacity-60 transition ${txType === "IN" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-500 hover:bg-red-600"}`}
+                    className={`rounded-full px-5 py-2.5 text-sm font-medium text-white disabled:opacity-60 transition ${txType === "IN" ? "bg-jokko hover:bg-jokko-deep" : "bg-red-500 hover:bg-red-600"}`}
                   >
                     {submitting ? "Enregistrement..." : "Confirmer"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowTxForm(false)}
-                    className="rounded-xl border border-gray-300 px-5 py-2.5 text-sm text-gray-700"
+                    className="rounded-full border border-ink/20 px-5 py-2.5 text-sm text-ink/75"
                   >
                     Annuler
                   </button>
@@ -641,12 +641,12 @@ export default function Cash() {
           )}
 
           {/* Transactions du jour */}
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <h3 className="mb-4 text-base font-bold text-slate-900">
+          <div className="rounded-3xl border border-ink/10 bg-paper p-6">
+            <h3 className="mb-4 text-base font-bold text-ink">
               Transactions du jour
             </h3>
             {!cr?.transactions?.length ? (
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-ink/45">
                 Aucune transaction pour le moment.
               </p>
             ) : (
@@ -657,28 +657,28 @@ export default function Cash() {
                   return (
                     <div
                       key={tx.id}
-                      className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3"
+                      className="flex items-center justify-between rounded-xl bg-cream px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className={`rounded-full p-1.5 ${tx.type === "IN" ? "bg-emerald-100" : "bg-red-100"}`}
+                          className={`rounded-full p-1.5 ${tx.type === "IN" ? "bg-jokko/10" : "bg-red-100"}`}
                         >
                           {tx.type === "IN" ? (
                             <TrendingUp
                               size={13}
-                              className="text-emerald-600"
+                              className="text-jokko-deep"
                             />
                           ) : (
                             <TrendingDown size={13} className="text-red-600" />
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-800">
+                          <p className="text-sm font-medium text-ink/80">
                             {tx.label}
                           </p>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <MethodIcon method={method} cls="h-4 w-4" />
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-ink/45">
                               {config.name} •{" "}
                               {new Date(tx.createdAt).toLocaleTimeString(
                                 "fr-FR",
@@ -689,7 +689,7 @@ export default function Cash() {
                         </div>
                       </div>
                       <span
-                        className={`text-sm font-bold ${tx.type === "IN" ? "text-emerald-600" : "text-red-600"}`}
+                        className={`text-sm font-bold ${tx.type === "IN" ? "text-jokko-deep" : "text-red-600"}`}
                       >
                         {tx.type === "IN" ? "+" : "-"}
                         {fmt(tx.amount)}
@@ -704,26 +704,26 @@ export default function Cash() {
       )}
 
       {/* Historique journalier */}
-      <div className="rounded-2xl bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-ink/10 bg-paper p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-slate-900">
+          <h3 className="text-lg font-bold text-ink">
             Historique journalier
           </h3>
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-ink/45">
             {historyTotal} session(s)
           </span>
         </div>
         {!history.length ? (
-          <p className="text-sm text-gray-400">Aucun historique disponible.</p>
+          <p className="text-sm text-ink/45">Aucun historique disponible.</p>
         ) : (
           <div className="space-y-3">
             {history.map((session) => (
               <div
                 key={session.id}
-                className="rounded-2xl border border-gray-200 overflow-hidden"
+                className="rounded-2xl border border-ink/10 overflow-hidden"
               >
                 <div
-                  className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 cursor-pointer hover:bg-gray-50 transition"
+                  className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 cursor-pointer hover:bg-cream transition"
                   onClick={() => {
                     if (!hasFeature.exportPdf) {
                       setIsUpgradeModalOpen(true);
@@ -735,7 +735,7 @@ export default function Cash() {
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-semibold text-slate-900">
+                      <p className="font-semibold text-ink">
                         {new Date(session.openedAt).toLocaleDateString(
                           "fr-FR",
                           {
@@ -747,12 +747,12 @@ export default function Cash() {
                         )}
                       </p>
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${session.status === "OPEN" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"}`}
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${session.status === "OPEN" ? "bg-jokko/10 text-jokko-deep" : "bg-ink/5 text-ink/70"}`}
                       >
                         {session.status === "OPEN" ? "En cours" : "Clôturée"}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-ink/45 mt-0.5">
                       Ouvert{" "}
                       {new Date(session.openedAt).toLocaleTimeString("fr-FR", {
                         hour: "2-digit",
@@ -766,14 +766,14 @@ export default function Cash() {
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right text-sm">
-                      <p className="text-gray-400 text-xs">Ouverture</p>
+                      <p className="text-ink/45 text-xs">Ouverture</p>
                       <p className="font-medium">
                         {fmt(session.openingAmount)}
                       </p>
                     </div>
                     <div className="text-right text-sm">
-                      <p className="text-emerald-600 text-xs">+Entrées</p>
-                      <p className="font-medium text-emerald-700">
+                      <p className="text-jokko-deep text-xs">+Entrées</p>
+                      <p className="font-medium text-jokko-deep">
                         {fmt(session.totalIn)}
                       </p>
                     </div>
@@ -784,8 +784,8 @@ export default function Cash() {
                       </p>
                     </div>
                     <div className="text-right text-sm">
-                      <p className="text-gray-400 text-xs">Clôture</p>
-                      <p className="font-bold text-slate-900">
+                      <p className="text-ink/45 text-xs">Clôture</p>
+                      <p className="font-bold text-ink">
                         {session.closingAmount != null
                           ? fmt(session.closingAmount)
                           : fmt((session as any).currentBalance ?? 0)}
@@ -810,33 +810,33 @@ export default function Cash() {
                           });
                         }
                       }}
-                      className={`flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs transition ${
+                      className={`flex items-center gap-1 rounded-full border px-2.5 py-1.5 text-xs transition ${
                         !hasFeature.exportPdf
-                          ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
-                          : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                          ? "border-sun/60 bg-sun/20 text-ink hover:bg-sun/20"
+                          : "border-ink/10 text-ink/70 hover:bg-cream"
                       }`}
                     >
                       {!hasFeature.exportPdf ? (
-                        <Lock size={12} className="text-amber-600" />
+                        <Lock size={12} className="text-ink" />
                       ) : (
                         <Download size={12} />
                       )}
                       <span>PDF</span>
                     </button>
                     {expandedSession === session.id ? (
-                      <ChevronUp size={18} className="text-gray-400" />
+                      <ChevronUp size={18} className="text-ink/45" />
                     ) : (
-                      <ChevronDown size={18} className="text-gray-400" />
+                      <ChevronDown size={18} className="text-ink/45" />
                     )}
                   </div>
                 </div>
 
                 {expandedSession === session.id &&
                   sessionDetail[session.id] && (
-                    <div className="border-t bg-slate-50 px-5 py-4">
+                    <div className="border-t bg-cream px-5 py-4">
                       {sessionDetail[session.id].transactions?.length ? (
                         <div className="mb-4">
-                          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-ink/45 mb-3">
                             Par moyen de paiement
                           </p>
                           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -867,12 +867,12 @@ export default function Cash() {
                           </div>
                         </div>
                       ) : null}
-                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-ink/45 mb-3">
                         Transactions (
                         {sessionDetail[session.id].transactions?.length || 0})
                       </p>
                       {!sessionDetail[session.id].transactions?.length ? (
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-ink/45">
                           Aucune transaction.
                         </p>
                       ) : (
@@ -886,16 +886,16 @@ export default function Cash() {
                               return (
                                 <div
                                   key={tx.id}
-                                  className="flex items-center justify-between rounded-xl bg-white px-4 py-2.5"
+                                  className="flex items-center justify-between rounded-xl bg-paper px-4 py-2.5"
                                 >
                                   <div className="flex items-center gap-3">
                                     <div
-                                      className={`rounded-full p-1 ${tx.type === "IN" ? "bg-emerald-100" : "bg-red-100"}`}
+                                      className={`rounded-full p-1 ${tx.type === "IN" ? "bg-jokko/10" : "bg-red-100"}`}
                                     >
                                       {tx.type === "IN" ? (
                                         <TrendingUp
                                           size={12}
-                                          className="text-emerald-600"
+                                          className="text-jokko-deep"
                                         />
                                       ) : (
                                         <TrendingDown
@@ -905,7 +905,7 @@ export default function Cash() {
                                       )}
                                     </div>
                                     <div>
-                                      <p className="text-xs font-medium text-slate-800">
+                                      <p className="text-xs font-medium text-ink/80">
                                         {tx.label}
                                       </p>
                                       <div className="flex items-center gap-1 mt-0.5">
@@ -913,7 +913,7 @@ export default function Cash() {
                                           method={method}
                                           cls="h-3 w-3"
                                         />
-                                        <p className="text-xs text-gray-400">
+                                        <p className="text-xs text-ink/45">
                                           {config.name} •{" "}
                                           {new Date(
                                             tx.createdAt,
@@ -926,7 +926,7 @@ export default function Cash() {
                                     </div>
                                   </div>
                                   <span
-                                    className={`text-xs font-bold ${tx.type === "IN" ? "text-emerald-600" : "text-red-600"}`}
+                                    className={`text-xs font-bold ${tx.type === "IN" ? "text-jokko-deep" : "text-red-600"}`}
                                   >
                                     {tx.type === "IN" ? "+" : "-"}
                                     {fmt(tx.amount)}
@@ -948,11 +948,11 @@ export default function Cash() {
             <button
               onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
               disabled={historyPage === 1}
-              className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+              className="rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/75 hover:bg-cream disabled:opacity-40"
             >
               ← Précédent
             </button>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-ink/60">
               Page {historyPage} / {historyTotalPages}
             </span>
             <button
@@ -960,7 +960,7 @@ export default function Cash() {
                 setHistoryPage((p) => Math.min(historyTotalPages, p + 1))
               }
               disabled={historyPage === historyTotalPages}
-              className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+              className="rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/75 hover:bg-cream disabled:opacity-40"
             >
               Suivant →
             </button>

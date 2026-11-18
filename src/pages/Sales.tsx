@@ -31,7 +31,7 @@ import type {
 } from "../types/index";
 import { showModal } from "../components/upgradeModal";
 
-const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
+const fmt = (v: number) => `${v.toLocaleString("fr-FR").replace(/\u202f/g, " ")} FCFA`;
 
 type CartItem = {
   productId: number;
@@ -45,8 +45,8 @@ type CartItem = {
 type PriceTier = "detail" | "semiWholesale" | "wholesale";
 
 const statusBadge: Record<string, string> = {
-  PAID: "bg-emerald-100 text-emerald-700",
-  PARTIAL: "bg-yellow-100 text-yellow-700",
+  PAID: "bg-jokko/10 text-jokko-deep",
+  PARTIAL: "bg-sun/20 text-ink",
   UNPAID: "bg-red-100 text-red-700",
 };
 const statusLabel: Record<string, string> = {
@@ -380,21 +380,21 @@ export default function Sales() {
       )}
 
       {isLimitReachedApproche && !isLimitReached && (
-        <div className="rounded-2xl bg-yellow-50 border border-yellow-200 px-5 py-4 flex items-center justify-between gap-4">
+        <div className="rounded-2xl bg-sun/20 border border-sun/60 px-5 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="text-2xl">⚠️</span>
             <div>
-              <p className="font-semibold text-yellow-800">
+              <p className="font-semibold text-ink">
                 Plus que {(maxLimit as number) - salesCount} ventes disponibles ce mois
               </p>
-              <p className="text-sm text-yellow-700 mt-0.5">
+              <p className="text-sm text-ink mt-0.5">
                 Vous approchez de la limite de votre abonnement ({maxLimit} ventes/mois).
               </p>
             </div>
           </div>
           <a
             href="/settings/upgrade"
-            className="shrink-0 rounded-xl bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600 transition"
+            className="shrink-0 rounded-xl bg-sun px-4 py-2 text-sm font-medium text-white hover:bg-sun transition"
           >
             Passer au plan Basic →
           </a>
@@ -426,15 +426,15 @@ export default function Sales() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Nouvelle vente</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-xl font-bold text-ink">Nouvelle vente</h1>
+          <p className="text-sm text-ink/60 mt-0.5">
             Sélectionnez des produits pour les ajouter au panier.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setShowRecentModal(true)}
-          className="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-gray-50"
+          className="flex items-center gap-2 rounded-full border border-ink/20 bg-paper px-4 py-2.5 text-sm font-medium text-ink/75 transition hover:bg-cream"
         >
           <History size={16} />
           Voir les dernières ventes
@@ -453,14 +453,14 @@ export default function Sales() {
             <div className="relative flex-1 min-w-45">
               <Search
                 size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/45"
               />
               <input
                 type="text"
                 placeholder="Rechercher un produit..."
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
-                className="w-full rounded-xl border border-gray-300 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-emerald-500"
+                className="w-full rounded-xl border border-ink/20 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-jokko"
               />
             </div>
             <select
@@ -468,7 +468,7 @@ export default function Sales() {
               onChange={(e) =>
                 setCategoryFilter(e.target.value ? Number(e.target.value) : "")
               }
-              className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+              className="rounded-xl border border-ink/20 px-4 py-2.5 text-sm outline-none focus:border-jokko"
             >
               <option value="">Toutes les catégories</option>
               {categories.map((cat) => (
@@ -480,11 +480,11 @@ export default function Sales() {
           </div>
 
           {loadingProducts ? (
-            <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
+            <div className="rounded-2xl bg-paper p-8 text-center text-ink/45">
               Chargement des produits...
             </div>
           ) : !filteredProducts.length ? (
-            <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
+            <div className="rounded-2xl bg-paper p-8 text-center text-ink/45">
               Aucun produit trouvé.
             </div>
           ) : (
@@ -495,9 +495,9 @@ export default function Sales() {
                 return (
                   <div
                     key={p.id}
-                    className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                    className="group relative overflow-hidden rounded-3xl border border-ink/10 bg-paper transition hover:border-jokko/25 hover:"
                   >
-                    <div className="h-24 w-full bg-slate-100 overflow-hidden">
+                    <div className="h-24 w-full bg-ink/5 overflow-hidden">
                       {p.imageUrl ? (
                         <img
                           src={p.imageUrl}
@@ -505,33 +505,33 @@ export default function Sales() {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-2xl font-bold text-slate-300">
+                        <div className="flex h-full items-center justify-center text-2xl font-bold text-ink/35">
                           {p.name.charAt(0).toUpperCase()}
                         </div>
                       )}
                       {inCartQty > 0 && (
-                        <span className="absolute right-2 top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-600 px-1.5 text-xs font-bold text-white shadow">
+                        <span className="absolute right-2 top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-jokko px-1.5 text-xs font-bold text-white shadow">
                           {inCartQty}
                         </span>
                       )}
                     </div>
                     <div className="px-3 py-2.5">
                       <p
-                        className="text-sm font-semibold text-slate-800 truncate"
+                        className="text-sm font-semibold text-ink/80 truncate"
                         title={p.name}
                       >
                         {p.name}
                       </p>
-                      <p className="text-sm font-bold text-emerald-600">
-                        {p.salePrice.toLocaleString("fr-FR")} F
+                      <p className="text-sm font-bold text-jokko-deep">
+                        {p.salePrice.toLocaleString("fr-FR").replace(/\u202f/g, " ")} F
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-ink/45">
                         {p.quantity} en stock
                       </p>
                       <button
                         type="button"
                         onClick={() => openAddModal(p)}
-                        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-700"
+                        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-full bg-jokko py-1.5 text-xs font-medium text-white transition hover:bg-jokko-deep"
                       >
                         <Plus size={13} /> Ajouter au panier
                       </button>
@@ -548,20 +548,20 @@ export default function Sales() {
           <div className="h-fit space-y-4 lg:sticky lg:top-4">
             <form
               onSubmit={handleCreateSale}
-              className="space-y-4 rounded-2xl bg-white p-5 shadow-sm"
+              className="space-y-4 rounded-3xl border border-ink/10 bg-paper p-5"
             >
               <div className="flex items-center justify-between">
-                <h3 className="flex items-center gap-2 text-base font-bold text-slate-900">
-                  <ShoppingCart size={18} className="text-emerald-600" />
+                <h3 className="flex items-center gap-2 text-base font-bold text-ink">
+                  <ShoppingCart size={18} className="text-jokko-deep" />
                   Panier
-                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                  <span className="rounded-full bg-jokko/10 px-2 py-0.5 text-xs font-semibold text-jokko-deep">
                     {cartQty} article(s)
                   </span>
                 </h3>
                 <button
                   type="button"
                   onClick={resetCartAndClient}
-                  className="text-xs text-gray-400 hover:text-red-500"
+                  className="text-xs text-ink/45 hover:text-red-500"
                   title="Vider le panier"
                 >
                   Vider
@@ -573,10 +573,10 @@ export default function Sales() {
                 {cart.map((item) => (
                   <div
                     key={item.productId}
-                    className="rounded-xl border border-gray-200 p-2.5"
+                    className="rounded-xl border border-ink/10 p-2.5"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-medium text-slate-800 leading-tight">
+                      <p className="text-sm font-medium text-ink/80 leading-tight">
                         {item.productName}
                       </p>
                       <button
@@ -588,13 +588,13 @@ export default function Sales() {
                       </button>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
-                      <div className="flex items-center rounded-lg border border-gray-300">
+                      <div className="flex items-center rounded-lg border border-ink/20">
                         <button
                           type="button"
                           onClick={() =>
                             updateCartQty(item.productId, item.quantity - 1)
                           }
-                          className="px-2 py-1 text-gray-500 hover:text-slate-900"
+                          className="px-2 py-1 text-ink/60 hover:text-ink"
                         >
                           <Minus size={12} />
                         </button>
@@ -606,7 +606,7 @@ export default function Sales() {
                           onChange={(e) =>
                             updateCartQty(item.productId, Number(e.target.value))
                           }
-                          className="w-10 border-x border-gray-300 py-1 text-center text-sm outline-none"
+                          className="w-10 border-x border-ink/20 py-1 text-center text-sm outline-none"
                         />
                         <button
                           type="button"
@@ -614,7 +614,7 @@ export default function Sales() {
                             updateCartQty(item.productId, item.quantity + 1)
                           }
                           disabled={item.quantity >= item.stock}
-                          className="px-2 py-1 text-gray-500 hover:text-slate-900 disabled:opacity-30"
+                          className="px-2 py-1 text-ink/60 hover:text-ink disabled:opacity-30"
                         >
                           <Plus size={12} />
                         </button>
@@ -626,30 +626,30 @@ export default function Sales() {
                         onChange={(e) =>
                           updateCartPrice(item.productId, Number(e.target.value))
                         }
-                        className="w-full rounded-lg border border-gray-300 px-2 py-1 text-right text-sm outline-none focus:border-emerald-500"
+                        className="w-full rounded-lg border border-ink/20 px-2 py-1 text-right text-sm outline-none focus:border-jokko"
                       />
                     </div>
-                    <p className="mt-1 text-right text-xs font-semibold text-slate-600">
+                    <p className="mt-1 text-right text-xs font-semibold text-ink/70">
                       = {fmt(item.unitPrice * item.quantity)}
                     </p>
                   </div>
                 ))}
               </div>
 
-              <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-                <span className="text-sm font-semibold text-slate-700">
+              <div className="flex items-center justify-between border-t border-ink/10 pt-3">
+                <span className="text-sm font-semibold text-ink/75">
                   Total panier
                 </span>
-                <span className="text-lg font-bold text-emerald-700">
+                <span className="text-lg font-bold text-jokko-deep">
                   {fmt(cartTotal)}
                 </span>
               </div>
 
               {/* Paiement */}
-              <div className="space-y-3 border-t border-gray-100 pt-3">
+              <div className="space-y-3 border-t border-ink/10 pt-3">
                 <div>
                   <div className="mb-1 flex items-center justify-between">
-                    <label className="block text-xs font-medium text-gray-700">
+                    <label className="block text-xs font-medium text-ink/75">
                       Montant payé
                     </label>
                     {paidAmountTouched && paidAmount !== cartTotal && (
@@ -659,7 +659,7 @@ export default function Sales() {
                           setPaidAmountTouched(false);
                           setPaidAmount(cartTotal);
                         }}
-                        className="text-xs text-emerald-700 hover:underline"
+                        className="text-xs text-jokko-deep hover:underline"
                       >
                         Payer la totalité
                       </button>
@@ -674,15 +674,15 @@ export default function Sales() {
                       setPaidAmountTouched(true);
                       setPaidAmount(Number(e.target.value));
                     }}
-                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
                   />
-                  <p className="mt-1 text-xs text-gray-400">
+                  <p className="mt-1 text-xs text-ink/45">
                     {paidAmount >= cartTotal ? (
-                      <span className="text-emerald-600 font-medium">
+                      <span className="text-jokko-deep font-medium">
                         Vente payée intégralement
                       </span>
                     ) : paidAmount > 0 ? (
-                      <span className="text-yellow-600 font-medium">
+                      <span className="text-ink font-medium">
                         Paiement partiel — reste {fmt(cartTotal - paidAmount)}
                       </span>
                     ) : (
@@ -694,7 +694,7 @@ export default function Sales() {
                 </div>
                 {paidAmount > 0 && (
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-700">
+                    <label className="mb-1 block text-xs font-medium text-ink/75">
                       Méthode de paiement
                     </label>
                     <PaymentMethodSelect
@@ -707,9 +707,9 @@ export default function Sales() {
               </div>
 
               {/* Client / note */}
-              <div className="space-y-3 border-t border-gray-100 pt-3">
+              <div className="space-y-3 border-t border-ink/10 pt-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-700">
+                  <label className="mb-1 block text-xs font-medium text-ink/75">
                     Client enregistré
                   </label>
                   <input
@@ -724,11 +724,11 @@ export default function Sales() {
                       setCustomerName("");
                       setClientSearch(event.target.value);
                     }}
-                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
                     placeholder="Rechercher par nom, téléphone ou email..."
                   />
                   {!clientId && clientSearch.trim() && (
-                    <div className="mt-2 max-h-32 overflow-y-auto rounded-xl border border-gray-200 bg-white">
+                    <div className="mt-2 max-h-32 overflow-y-auto rounded-xl border border-ink/10 bg-paper">
                       {clients.length ? (
                         clients.map((client) => (
                           <button
@@ -739,14 +739,14 @@ export default function Sales() {
                               setClientSearch("");
                               setCustomerName("");
                             }}
-                            className="block w-full border-b border-gray-100 px-3 py-2 text-left text-sm hover:bg-emerald-50"
+                            className="block w-full border-b border-ink/10 px-3 py-2 text-left text-sm hover:bg-jokko/10"
                           >
                             <span className="font-medium">{client.name}</span>
-                            <span className="ml-2 text-gray-500">{client.phone}</span>
+                            <span className="ml-2 text-ink/60">{client.phone}</span>
                           </button>
                         ))
                       ) : (
-                        <p className="px-3 py-2 text-sm text-gray-400">
+                        <p className="px-3 py-2 text-sm text-ink/45">
                           Aucun client trouvé
                         </p>
                       )}
@@ -756,14 +756,14 @@ export default function Sales() {
                     <button
                       type="button"
                       onClick={() => setClientId("")}
-                      className="mt-1 text-xs text-emerald-700 hover:underline"
+                      className="mt-1 text-xs text-jokko-deep hover:underline"
                     >
                       Changer de client
                     </button>
                   )}
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-700">
+                  <label className="mb-1 block text-xs font-medium text-ink/75">
                     Ou Client Passager...
                   </label>
                   <input
@@ -773,20 +773,20 @@ export default function Sales() {
                       setCustomerName(e.target.value);
                       if (e.target.value) setClientId("");
                     }}
-                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
                     placeholder="Nom du client..."
                     disabled={!!clientId}
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-700">
+                  <label className="mb-1 block text-xs font-medium text-ink/75">
                     Note
                   </label>
                   <input
                     type="text"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
                     placeholder="Optionnel..."
                   />
                 </div>
@@ -795,7 +795,7 @@ export default function Sales() {
               <button
                 type="submit"
                 disabled={submitting || !cart.length}
-                className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                className="w-full rounded-full bg-jokko py-3 text-sm font-medium text-white transition hover:bg-jokko-deep disabled:opacity-60"
               >
                 {submitting ? "Enregistrement..." : "Valider la vente"}
               </button>
@@ -806,19 +806,19 @@ export default function Sales() {
 
       {/* Modal Ajouter au panier */}
       {modalProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-3xl bg-paper p-6 shadow-xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900">
+              <h3 className="text-lg font-bold text-ink">
                 Ajouter au panier
               </h3>
               <button type="button" onClick={closeAddModal}>
-                <X size={20} className="text-gray-400 hover:text-gray-600" />
+                <X size={20} className="text-ink/45 hover:text-ink/70" />
               </button>
             </div>
 
             <div className="mt-4 flex items-center gap-3">
-              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-ink/5">
                 {modalProduct.imageUrl ? (
                   <img
                     src={modalProduct.imageUrl}
@@ -826,16 +826,16 @@ export default function Sales() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-lg font-bold text-slate-300">
+                  <div className="flex h-full items-center justify-center text-lg font-bold text-ink/35">
                     {modalProduct.name.charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
               <div>
-                <p className="font-semibold text-slate-900">
+                <p className="font-semibold text-ink">
                   {modalProduct.name}
                 </p>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-ink/45">
                   {modalProduct.quantity} en stock
                 </p>
               </div>
@@ -843,7 +843,7 @@ export default function Sales() {
 
             <div className="mt-5 grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs text-gray-600">
+                <label className="mb-1 block text-xs text-ink/70">
                   Quantité
                 </label>
                 <input
@@ -852,11 +852,11 @@ export default function Sales() {
                   max={modalProduct.quantity}
                   value={modalQty}
                   onChange={(e) => handleModalQtyChange(Number(e.target.value))}
-                  className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-ink/20 px-3 py-2 text-sm outline-none focus:border-jokko"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs text-gray-600">
+                <label className="mb-1 block text-xs text-ink/70">
                   Prix (FCFA)
                 </label>
                 <input
@@ -864,12 +864,12 @@ export default function Sales() {
                   min={0}
                   value={modalPrice}
                   onChange={(e) => setModalPrice(Number(e.target.value))}
-                  className={`w-full rounded-xl border px-3 py-2 text-sm outline-none focus:border-emerald-500 ${
+                  className={`w-full rounded-xl border px-3 py-2 text-sm outline-none focus:border-jokko ${
                     modalTier === "wholesale"
-                      ? "border-purple-400 bg-purple-50"
+                      ? "border-ink/40 bg-ink/5"
                       : modalTier === "semiWholesale"
-                        ? "border-blue-400 bg-blue-50"
-                        : "border-gray-300"
+                        ? "border-jokko bg-jokko/10"
+                        : "border-ink/20"
                   }`}
                 />
               </div>
@@ -878,19 +878,19 @@ export default function Sales() {
               <p
                 className={`mt-2 text-xs font-medium ${
                   modalTier === "wholesale"
-                    ? "text-purple-600"
+                    ? "text-ink"
                     : modalTier === "semiWholesale"
-                      ? "text-blue-600"
-                      : "text-gray-400"
+                      ? "text-jokko-deep"
+                      : "text-ink/45"
                 }`}
               >
                 ✓ {modalSuggestion}
               </p>
             )}
 
-            <p className="mt-4 text-right text-sm text-gray-500">
+            <p className="mt-4 text-right text-sm text-ink/60">
               Sous-total :{" "}
-              <span className="font-bold text-emerald-700">
+              <span className="font-bold text-jokko-deep">
                 {fmt(modalQty * modalPrice)}
               </span>
             </p>
@@ -899,14 +899,14 @@ export default function Sales() {
               <button
                 type="button"
                 onClick={confirmAddToCart}
-                className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700"
+                className="flex-1 rounded-full bg-jokko py-2.5 text-sm font-medium text-white transition hover:bg-jokko-deep"
               >
                 Ajouter au panier
               </button>
               <button
                 type="button"
                 onClick={closeAddModal}
-                className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                className="rounded-full border border-ink/20 px-4 py-2.5 text-sm text-ink/75 hover:bg-cream"
               >
                 Annuler
               </button>
@@ -917,36 +917,36 @@ export default function Sales() {
 
       {/* Modal Dernières ventes */}
       {showRecentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-xl">
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-              <h2 className="text-base font-bold text-slate-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4">
+          <div className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-paper shadow-xl">
+            <div className="flex items-center justify-between border-b border-ink/10 px-6 py-4">
+              <h2 className="text-base font-bold text-ink">
                 Dernières ventes
               </h2>
               <button type="button" onClick={() => setShowRecentModal(false)}>
-                <X size={20} className="text-gray-400 hover:text-gray-600" />
+                <X size={20} className="text-ink/45 hover:text-ink/70" />
               </button>
             </div>
 
             <div className="flex-1 space-y-2 overflow-y-auto px-6 py-4">
               {recentLoading ? (
-                <div className="rounded-2xl bg-gray-50 p-8 text-center text-gray-400">
+                <div className="rounded-2xl bg-cream p-8 text-center text-ink/45">
                   Chargement...
                 </div>
               ) : !recentSales.length ? (
-                <div className="rounded-2xl bg-gray-50 p-8 text-center text-gray-400">
+                <div className="rounded-2xl bg-cream p-8 text-center text-ink/45">
                   Aucune vente trouvée.
                 </div>
               ) : (
                 recentSales.map((sale) => (
                   <div
                     key={sale.id}
-                    className="rounded-2xl border border-gray-100 px-4 py-3"
+                    className="rounded-2xl border border-ink/10 px-4 py-3"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-slate-900">
+                          <p className="text-sm font-semibold text-ink">
                             {sale.items
                               .map((item) => item.productName)
                               .join(", ")}
@@ -957,7 +957,7 @@ export default function Sales() {
                             {statusLabel[sale.status]}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-ink/60 mt-0.5">
                           {sale.client?.name ||
                             sale.customerName ||
                             "Client non précisé"}{" "}
@@ -966,13 +966,13 @@ export default function Sales() {
                             "fr-FR",
                           )}
                         </p>
-                        <div className="mt-1 text-xs text-gray-400">
+                        <div className="mt-1 text-xs text-ink/45">
                           {sale.items.reduce(
                             (sum, item) => sum + item.quantity,
                             0,
                           )}{" "}
                           article(s) • Total :{" "}
-                          <strong className="text-slate-700">
+                          <strong className="text-ink/75">
                             {fmt(sale.totalAmount)}
                           </strong>
                         </div>
@@ -981,7 +981,7 @@ export default function Sales() {
                         onClick={() => {
                           window.location.href = `/invoices?search=${encodeURIComponent(sale.invoiceNumber || String(sale.id))}`;
                         }}
-                        className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100"
+                        className="rounded-full border border-jokko/25 bg-jokko/10 px-3 py-1.5 text-xs font-medium text-jokko-deep transition hover:bg-jokko/10"
                       >
                         Voir la facture
                       </button>
@@ -991,10 +991,10 @@ export default function Sales() {
               )}
             </div>
 
-            <div className="border-t border-gray-100 px-6 py-4">
+            <div className="border-t border-ink/10 px-6 py-4">
               <Link
                 to="/sales/history"
-                className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700"
+                className="flex items-center justify-center gap-2 rounded-xl bg-jokko py-2.5 text-sm font-medium text-white transition hover:bg-jokko-deep"
               >
                 Voir tout l'historique →
               </Link>
