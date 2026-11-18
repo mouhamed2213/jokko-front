@@ -2,9 +2,9 @@ import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import logo from "../assets/logooo.svg";
 import { registerShop } from "../services/index";
 import type { PlanCode } from "../types";
+import AuthShell from "../components/public/AuthShell";
 
 const SENEGAL_REGIONS = [
   "Dakar",
@@ -181,17 +181,10 @@ export default function Register() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
-      <div className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-lg">
+    <AuthShell>
+      <div className="w-full max-w-lg rounded-3xl bg-paper p-8 shadow-lg">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-50 p-2">
-            <img
-              src={logo}
-              alt="Jokko Business"
-              className="h-full w-full object-contain"
-            />
-          </div>
-          <h1 className="text-3xl font-bold text-slate-900">
+          <h1 className="text-3xl font-bold text-ink">
             Créer votre compte
           </h1>
           <p className="mt-2 text-sm text-gray-500">
@@ -212,7 +205,7 @@ export default function Register() {
                 className={`w-full rounded-xl border px-4 py-3 outline-none transition focus:ring-2 ${
                   errors.shopName
                     ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-                    : "border-gray-300 focus:border-emerald-500 focus:ring-emerald-100"
+                    : "border-gray-300 focus:border-jokko/100 focus:ring-jokko/15"
                 }`}
                 value={form.shopName}
                 onChange={(e) => handleChange("shopName", e.target.value)}
@@ -235,7 +228,7 @@ export default function Register() {
                 className={`w-full rounded-xl border px-4 py-3 outline-none transition focus:ring-2 ${
                   errors.ownerName
                     ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-                    : "border-gray-300 focus:border-emerald-500 focus:ring-emerald-100"
+                    : "border-gray-300 focus:border-jokko/100 focus:ring-jokko/15"
                 }`}
                 value={form.ownerName}
                 onChange={(e) => handleChange("ownerName", e.target.value)}
@@ -258,7 +251,7 @@ export default function Register() {
                 className={`w-full rounded-xl border px-4 py-3 outline-none transition focus:ring-2 ${
                   errors.email
                     ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-                    : "border-gray-300 focus:border-emerald-500 focus:ring-emerald-100"
+                    : "border-gray-300 focus:border-jokko/100 focus:ring-jokko/15"
                 }`}
                 value={form.email}
                 onChange={(e) => handleChange("email", e.target.value)}
@@ -281,7 +274,7 @@ export default function Register() {
                 className={`w-full rounded-xl border px-4 py-3 outline-none transition focus:ring-2 ${
                   errors.phone
                     ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-                    : "border-gray-300 focus:border-emerald-500 focus:ring-emerald-100"
+                    : "border-gray-300 focus:border-jokko/100 focus:ring-jokko/15"
                 }`}
                 value={form.phone}
                 onChange={(e) => handleChange("phone", e.target.value)}
@@ -299,7 +292,7 @@ export default function Register() {
                 Région (Sénégal)
               </label>
               <select
-                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 appearance-none cursor-pointer"
+                className="w-full rounded-xl border border-gray-300 bg-paper px-4 py-3 outline-none transition focus:border-jokko/100 focus:ring-2 focus:ring-jokko/15 appearance-none cursor-pointer"
                 value={form.address}
                 onChange={(e) => handleChange("address", e.target.value)}
               >
@@ -324,7 +317,7 @@ export default function Register() {
                   className={`w-full rounded-xl border pl-4 pr-11 py-3 outline-none transition focus:ring-2 ${
                     errors.adminPassword
                       ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-                      : "border-gray-300 focus:border-emerald-500 focus:ring-emerald-100"
+                      : "border-gray-300 focus:border-jokko/100 focus:ring-jokko/15"
                   }`}
                   value={form.adminPassword}
                   onChange={(e) =>
@@ -358,7 +351,7 @@ export default function Register() {
                   className={`w-full rounded-xl border pl-4 pr-11 py-3 outline-none transition focus:ring-2 ${
                     errors.confirmPassword
                       ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-                      : "border-gray-300 focus:border-emerald-500 focus:ring-emerald-100"
+                      : "border-gray-300 focus:border-jokko/100 focus:ring-jokko/15"
                   }`}
                   value={form.confirmPassword}
                   onChange={(e) =>
@@ -388,7 +381,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 shadow-md"
+            className="w-full rounded-xl bg-jokko py-3 text-sm font-medium text-white transition hover:bg-jokko-deep disabled:cursor-not-allowed disabled:opacity-60 shadow-md"
           >
             {loading ? "Création en cours..." : "Créer mon compte"}
           </button>
@@ -398,12 +391,12 @@ export default function Register() {
           Déjà un compte ?{" "}
           <Link
             to="/login"
-            className="font-semibold text-emerald-600 hover:underline"
+            className="font-semibold text-jokko hover:underline"
           >
             Se connecter
           </Link>
         </p>
       </div>
-    </div>
+    </AuthShell>
   );
 }

@@ -4,7 +4,7 @@ import FooterPublic from "../components/FooterPublic";
 
 export default function PublicLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-white font-sans antialiased text-slate-900">
+    <div className="flex min-h-screen flex-col bg-cream font-brand text-ink antialiased">
       <HeaderPublic />
       <main className="grow"><Outlet /></main>
       <FooterPublic />

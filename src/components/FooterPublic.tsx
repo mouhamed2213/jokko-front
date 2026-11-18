@@ -1,53 +1,55 @@
 import { ArrowUpRight, Mail, MapPin, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SUPPORT_EMAIL } from "../services";
-import logo from "../assets/jb_logo.jpg";
+import Logo from "./public/Logo";
+
+const link = "transition hover:text-sun";
 
 export default function FooterPublic() {
   return (
-    <footer className="bg-slate-950 text-slate-300">
-      <div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 sm:px-8 lg:grid-cols-[1.5fr_1fr_1fr_1.2fr] lg:py-16">
+    <footer className="relative overflow-hidden bg-jokko text-white">
+      {/* Grande courbe de la marque en filigrane */}
+      <svg aria-hidden viewBox="0 0 200 200" className="pointer-events-none overflow-visible absolute -right-16 -top-10 h-[34rem] w-[34rem] text-white/[0.07]">
+        <path d="M120 10V120A70 70 0 0 1 50 190H40" fill="none" stroke="currentColor" strokeWidth="46" strokeLinecap="round" />
+      </svg>
+      <div className="relative mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[1.6fr_1fr_1fr_1.3fr] lg:py-20">
         <div>
-          <Link to="/" className="mb-5 inline-flex items-center gap-3">
-            <img src={logo} alt="" className="h-11 w-11 rounded-xl bg-white object-contain p-1" />
-            <span className="text-lg font-extrabold tracking-tight text-white">Jokko Business</span>
-          </Link>
-          <p className="max-w-sm text-sm leading-7 text-slate-400">
-            Une solution de gestion commerciale pour organiser vos ventes, suivre vos stocks et piloter votre boutique au quotidien.
+          <Link to="/" aria-label="Jokko Business — accueil"><Logo variant="sur-vert" className="h-14 w-auto" /></Link>
+          <p className="mt-6 max-w-sm text-sm leading-7 text-white/80">
+            Ventes, stock, caisse, clients et fournisseurs : l'essentiel pour piloter une boutique au quotidien.
           </p>
-          <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">Pensé pour les commerces d'ici</p>
         </div>
 
-        <div>
-          <h2 className="mb-5 text-xs font-extrabold uppercase tracking-[0.18em] text-white">Découvrir</h2>
-          <ul className="space-y-3 text-sm">
-            <li><Link className="transition hover:text-white" to="/">Accueil</Link></li>
-            <li><Link className="transition hover:text-white" to="/#features">Fonctionnalités</Link></li>
-            <li><Link className="transition hover:text-white" to="/tarifs">Tarifs</Link></li>
-            <li><Link className="transition hover:text-white" to="/help">Guide d'utilisation</Link></li>
+        <nav aria-label="Découvrir">
+          <h2 className="mb-5 text-xs font-extrabold uppercase tracking-[0.18em] text-sun">Découvrir</h2>
+          <ul className="space-y-3 text-sm text-white/85">
+            <li><Link className={link} to="/">Accueil</Link></li>
+            <li><Link className={link} to="/#features">Fonctionnalités</Link></li>
+            <li><Link className={link} to="/tarifs">Tarifs</Link></li>
+            <li><Link className={link} to="/help">Guide d'utilisation</Link></li>
           </ul>
-        </div>
+        </nav>
 
-        <div>
-          <h2 className="mb-5 text-xs font-extrabold uppercase tracking-[0.18em] text-white">Votre espace</h2>
-          <ul className="space-y-3 text-sm">
-            <li><Link className="transition hover:text-white" to="/register">Créer un compte</Link></li>
-            <li><Link className="transition hover:text-white" to="/login">Se connecter</Link></li>
-            <li><Link className="transition hover:text-white" to="/contact">Contacter l'équipe</Link></li>
+        <nav aria-label="Votre espace">
+          <h2 className="mb-5 text-xs font-extrabold uppercase tracking-[0.18em] text-sun">Votre espace</h2>
+          <ul className="space-y-3 text-sm text-white/85">
+            <li><Link className={link} to="/register">Créer un compte</Link></li>
+            <li><Link className={link} to="/login">Se connecter</Link></li>
+            <li><Link className={link} to="/contact">Contacter l'équipe</Link></li>
           </ul>
-        </div>
+        </nav>
 
         <div>
-          <h2 className="mb-5 text-xs font-extrabold uppercase tracking-[0.18em] text-white">Nous contacter</h2>
-          <ul className="space-y-4 text-sm">
-            <li className="flex items-start gap-3"><Phone size={17} className="mt-0.5 shrink-0 text-emerald-400" /><a href="tel:+221783333838" className="transition hover:text-white">+221 78 333 38 38</a></li>
-            <li className="flex items-start gap-3"><Mail size={17} className="mt-0.5 shrink-0 text-emerald-400" /><a href={`mailto:${SUPPORT_EMAIL}`} className="break-all transition hover:text-white">{SUPPORT_EMAIL}</a></li>
-            <li className="flex items-start gap-3"><MapPin size={17} className="mt-0.5 shrink-0 text-emerald-400" /><span>Dakar, Sénégal</span></li>
+          <h2 className="mb-5 text-xs font-extrabold uppercase tracking-[0.18em] text-sun">Nous contacter</h2>
+          <ul className="space-y-4 text-sm text-white/85">
+            <li className="flex items-start gap-3"><Phone size={17} className="mt-0.5 shrink-0 text-sun" /><a href="tel:+221783333838" className={link}>+221 78 333 38 38</a></li>
+            <li className="flex items-start gap-3"><Mail size={17} className="mt-0.5 shrink-0 text-sun" /><a href={`mailto:${SUPPORT_EMAIL}`} className={`break-all ${link}`}>{SUPPORT_EMAIL}</a></li>
+            <li className="flex items-start gap-3"><MapPin size={17} className="mt-0.5 shrink-0 text-sun" /><span>Dakar, Sénégal</span></li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+      <div className="relative border-t border-white/15">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-6 text-xs text-white/65 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <span>© {new Date().getFullYear()} Jokko Business. Tous droits réservés.</span>
           <span className="inline-flex items-center gap-1">Une gestion plus claire, chaque jour <ArrowUpRight size={13} /></span>
         </div>

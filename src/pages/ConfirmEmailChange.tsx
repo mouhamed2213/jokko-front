@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { confirmAccountEmailChange } from "../services";
+import AuthShell from "../components/public/AuthShell";
 
 export default function ConfirmEmailChange() {
   const [params] = useSearchParams();
@@ -33,15 +34,15 @@ export default function ConfirmEmailChange() {
   }, [token]);
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-lg">
-        <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full ${state === "success" ? "bg-emerald-100 text-emerald-700" : state === "error" ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-600"}`}>
+    <AuthShell>
+      <div className="w-full max-w-md rounded-3xl bg-paper p-8 text-center shadow-lg">
+        <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full ${state === "success" ? "bg-jokko/15 text-jokko-deep" : state === "error" ? "bg-red-100 text-red-700" : "bg-ink/5 text-ink/70"}`}>
           {state === "loading" ? "…" : state === "success" ? "✓" : "!"}
         </div>
-        <h1 className="mt-5 text-2xl font-bold text-slate-900">Changement d'adresse email</h1>
-        <p className="mt-3 text-sm text-slate-600">{message}</p>
-        <Link to="/login" className="mt-6 inline-flex rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white">Se connecter</Link>
+        <h1 className="mt-5 text-2xl font-bold text-ink">Changement d'adresse email</h1>
+        <p className="mt-3 text-sm text-ink/70">{message}</p>
+        <Link to="/login" className="mt-6 inline-flex rounded-xl bg-jokko px-5 py-3 text-sm font-semibold text-white">Se connecter</Link>
       </div>
-    </div>
+    </AuthShell>
   );
 }
