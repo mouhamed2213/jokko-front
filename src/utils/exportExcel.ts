@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 import type { AuthUser } from "../types/auth";
 import type { Client, Sale, StockMovement, Supplier } from "../types/index";

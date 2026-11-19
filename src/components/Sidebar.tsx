@@ -1,6 +1,5 @@
 import {
   BarChart3,
-  Boxes,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -10,7 +9,6 @@ import {
   EyeOff,
   FileText,
   LayoutDashboard,
-  LockKeyhole,
   Mail,
   Menu,
   Package,

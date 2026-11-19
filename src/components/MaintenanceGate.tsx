@@ -5,14 +5,14 @@ import { getMaintenanceStatus } from "../services";
 export default function MaintenanceGate({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const isAdminArea = location.pathname.startsWith("/admin") || location.pathname.startsWith("/super-admin");
-  const [state, setState] = useState<"checking" | "ready" | "maintenance">("checking");
+  const [state, setState] = useState<"checking" | "ready" | "maintenance">(
+    isAdminArea ? "ready" : "checking"
+  );
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (isAdminArea) {
-      setState("ready");
-      return;
-    }
+    if (isAdminArea) return;
+
     let active = true;
     getMaintenanceStatus()
       .then((status) => {

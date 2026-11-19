@@ -38,7 +38,6 @@ export function SuperAdminGuard({ children }: Props) {
     if (!hasToken) return;
 
     let cancelled = false;
-    setState("checking");
 
     getSuperAdminMe()
       .then((profile) => {
@@ -82,7 +81,10 @@ export function SuperAdminGuard({ children }: Props) {
         <p>Impossible de vérifier la session. Vérifiez votre connexion.</p>
         <button
           type="button"
-          onClick={() => setAttempt((n) => n + 1)}
+          onClick={() => {
+            setState("checking");
+            setAttempt((n) => n + 1);
+          }}
           className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:opacity-90"
         >
           Réessayer
