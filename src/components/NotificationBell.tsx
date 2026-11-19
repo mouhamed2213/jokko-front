@@ -2,7 +2,6 @@ import {
   AlertTriangle,
   Ban,
   Bell,
-  Crown,
   Wifi,
   WifiOff,
   X,
@@ -17,7 +16,6 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const user = getStoredUser();
-  const plan = user?.plan;
 
   const navigate = useNavigate();
 
