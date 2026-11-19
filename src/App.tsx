@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
@@ -5,43 +6,55 @@ import ProtectedRoute, { SuperAdminGuard, SubscriptionGuard } from "./components
 import DashboardLayout from "./layouts/DashboardLayout";
 import SuperAdminLayout from "./layouts/SuperAdminLayout";
 import PublicLayout from "./layouts/PublicLayout";
-import Cash from "./pages/Cash";
-import Clients from "./pages/Clients";
-import Dashboard from "./pages/Dashboard";
-import Analytics from "./pages/Analytics";
-import HelpPage from "./pages/HelpPage";
-import HelpArticlePage from "./pages/HelpArticlePage";
-import Invoices from "./pages/Invoices";
-import LandingPage from "./pages/LandingPage";
-import Login from "./pages/Login";
-import Products from "./pages/Products";
-import Register from "./pages/Register";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import VerifyEmail from "./pages/VerifyEmail";
-import ConfirmEmailChange from "./pages/ConfirmEmailChange";
-import AccountSecurity from "./pages/AccountSecurity";
-import ContactPage from "./pages/ContactPage";
-import PricingPage from "./pages/PricingPage";
-import Sales from "./pages/Sales";
-import SalesHistory from "./pages/SalesHistory";
-import Settings from "./pages/Settings";
-import Stock from "./pages/Stock";
-import SuperAdminLogin from "./pages/superAdmin/SuperAdminLogin";
-import Suppliers from "./pages/Suppliers";
-import Users from "./pages/Users";
-import SuperAdminDashboard from "./pages/superAdmin/SuperAdminDashboard";
-import SuperAdminShops from "./pages/superAdmin/SuperAdminShops";
-import SuperAdminOwners from "./pages/superAdmin/SuperAdminOwners";
-import SuperAdminOwnerDetail from "./pages/superAdmin/SuperAdminOwnerDetail";
-import SuperAdminShopDetail from "./pages/superAdmin/SuperAdminShopDetail";
-import SuperAdminSettings from "./pages/superAdmin/SuperAdminSettings";
-import SuperAdminMaintenanceSettings from "./pages/superAdmin/SuperAdminMaintenanceSettings";
-import SuperAdminUsers from "./pages/superAdmin/SuperAdminUsers";
-import SuperAdminSubscriptions from "./pages/superAdmin/SuperAdminSubscriptions";
-import SuperAdminGracePeriodSettings from "./pages/superAdmin/SuperAdminGracePeriodSettings";
-import AcceptSuperAdminInvitation from "./pages/AcceptSuperAdminInvitation";
 import MaintenanceGate from "./components/MaintenanceGate";
+
+// Public pages (lazy loaded)
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
+const ConfirmEmailChange = lazy(() => import("./pages/ConfirmEmailChange"));
+const HelpPage = lazy(() => import("./pages/HelpPage"));
+const HelpArticlePage = lazy(() => import("./pages/HelpArticlePage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
+const PricingPage = lazy(() => import("./pages/PricingPage"));
+
+// Boutique & Dashboard pages (lazy loaded)
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Products = lazy(() => import("./pages/Products"));
+const Clients = lazy(() => import("./pages/Clients"));
+const Suppliers = lazy(() => import("./pages/Suppliers"));
+const Stock = lazy(() => import("./pages/Stock"));
+const Sales = lazy(() => import("./pages/Sales"));
+const SalesHistory = lazy(() => import("./pages/SalesHistory"));
+const Invoices = lazy(() => import("./pages/Invoices"));
+const Cash = lazy(() => import("./pages/Cash"));
+const Users = lazy(() => import("./pages/Users"));
+const Settings = lazy(() => import("./pages/Settings"));
+const AccountSecurity = lazy(() => import("./pages/AccountSecurity"));
+
+// Super Admin pages (lazy loaded)
+const SuperAdminLogin = lazy(() => import("./pages/superAdmin/SuperAdminLogin"));
+const AcceptSuperAdminInvitation = lazy(() => import("./pages/AcceptSuperAdminInvitation"));
+const SuperAdminDashboard = lazy(() => import("./pages/superAdmin/SuperAdminDashboard"));
+const SuperAdminShops = lazy(() => import("./pages/superAdmin/SuperAdminShops"));
+const SuperAdminShopDetail = lazy(() => import("./pages/superAdmin/SuperAdminShopDetail"));
+const SuperAdminOwners = lazy(() => import("./pages/superAdmin/SuperAdminOwners"));
+const SuperAdminOwnerDetail = lazy(() => import("./pages/superAdmin/SuperAdminOwnerDetail"));
+const SuperAdminSubscriptions = lazy(() => import("./pages/superAdmin/SuperAdminSubscriptions"));
+const SuperAdminSettings = lazy(() => import("./pages/superAdmin/SuperAdminSettings"));
+const SuperAdminMaintenanceSettings = lazy(() => import("./pages/superAdmin/SuperAdminMaintenanceSettings"));
+const SuperAdminGracePeriodSettings = lazy(() => import("./pages/superAdmin/SuperAdminGracePeriodSettings"));
+const SuperAdminUsers = lazy(() => import("./pages/superAdmin/SuperAdminUsers"));
+
+const PageLoader = () => (
+  <div className="flex min-h-[50vh] items-center justify-center">
+    <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+  </div>
+);
 
 export default function App() {
   return (
@@ -54,7 +67,8 @@ export default function App() {
         }}
       />
       <MaintenanceGate>
-        <Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
           {/* Public routes */}
           <Route path="/super-admin/login" element={<SuperAdminLogin />} />
           <Route path="/super-admin/accept-invitation" element={<AcceptSuperAdminInvitation />} />
@@ -125,6 +139,7 @@ export default function App() {
             <Route path="/account/security" element={<AccountSecurity />} />
           </Route>
         </Routes>
+        </Suspense>
       </MaintenanceGate>
     </BrowserRouter>
   );
