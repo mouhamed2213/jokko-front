@@ -219,8 +219,101 @@ export default function Products() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.purchasePrice || !form.salePrice) {
-      return toast.error("Nom, prix d'achat et prix de vente obligatoires");
+    const purchasePrice = Number(form.purchasePrice);
+    const salePrice = Number(form.salePrice);
+    const quantity = Number(form.quantity);
+
+    if (
+      !form.name.trim() ||
+      Number.isNaN(purchasePrice) ||
+      purchasePrice < 0 ||
+      Number.isNaN(salePrice) ||
+      salePrice <= 0
+    ) {
+      return toast.error(
+        "Nom obligatoire, prix d'achat ≥ 0 et prix de vente > 0",
+      );
+    }
+
+    if (salePrice < purchasePrice) {
+      return toast.error(
+        "Le prix de vente ne peut pas être inférieur au prix d'achat",
+      );
+    }
+
+    if (!editingId && (!Number.isInteger(quantity) || quantity < 0)) {
+      return toast.error("La quantité initiale doit être un entier ≥ 0");
+    }
+
+    // Validation des paliers tarifaires
+    const hasSemiPrice = form.semiWholesalePrice !== "";
+    const hasSemiQty = form.semiWholesaleMinQty !== "";
+    const semiPrice = hasSemiPrice ? Number(form.semiWholesalePrice) : null;
+    const semiQty = hasSemiQty ? Number(form.semiWholesaleMinQty) : null;
+
+    if (hasSemiPrice !== hasSemiQty) {
+      return toast.error(
+        "Le palier Demi-gros requiert une quantité minimum et un prix",
+      );
+    }
+    if (semiPrice !== null && semiQty !== null) {
+      if (!Number.isInteger(semiQty) || semiQty < 2) {
+        return toast.error("La quantité minimum Demi-gros doit être ≥ 2");
+      }
+      if (semiPrice <= 0 || semiPrice >= salePrice) {
+        return toast.error(
+          "Le prix Demi-gros doit être inférieur au prix de vente détail",
+        );
+      }
+      if (semiPrice < purchasePrice) {
+        return toast.error(
+          "Le prix Demi-gros ne peut pas être inférieur au prix d'achat",
+        );
+      }
+    }
+
+    const hasWholePrice = form.wholesalePrice !== "";
+    const hasWholeQty = form.wholesaleMinQty !== "";
+    const wholePrice = hasWholePrice ? Number(form.wholesalePrice) : null;
+    const wholeQty = hasWholeQty ? Number(form.wholesaleMinQty) : null;
+
+    if (hasWholePrice !== hasWholeQty) {
+      return toast.error(
+        "Le palier Gros requiert une quantité minimum et un prix",
+      );
+    }
+    if (wholePrice !== null && wholeQty !== null) {
+      if (!Number.isInteger(wholeQty) || wholeQty < 2) {
+        return toast.error("La quantité minimum Gros doit être ≥ 2");
+      }
+      if (wholePrice <= 0 || wholePrice >= salePrice) {
+        return toast.error(
+          "Le prix Gros doit être inférieur au prix de vente détail",
+        );
+      }
+      if (wholePrice < purchasePrice) {
+        return toast.error(
+          "Le prix Gros ne peut pas être inférieur au prix d'achat",
+        );
+      }
+    }
+
+    if (
+      semiPrice !== null &&
+      semiQty !== null &&
+      wholePrice !== null &&
+      wholeQty !== null
+    ) {
+      if (wholeQty <= semiQty) {
+        return toast.error(
+          "La quantité minimum Gros doit être supérieure à celle du Demi-gros",
+        );
+      }
+      if (wholePrice >= semiPrice) {
+        return toast.error(
+          "Le prix Gros doit être inférieur au prix Demi-gros",
+        );
+      }
     }
 
     if (
@@ -247,46 +340,47 @@ export default function Products() {
 
     setSubmitting(true);
     try {
-      // 1. Instancier le FormData
       const formDataToSend = new FormData();
 
-      // 2. Champs principaux du produit
-      formDataToSend.append("name", form.name);
-      if (form.description)
+      formDataToSend.append("name", form.name.trim());
+      if (editingId) {
+        // En édition, on envoie explicitement les chaînes vides pour permettre d'effacer un champ optionnel.
         formDataToSend.append("description", form.description);
-      if (form.reference) formDataToSend.append("reference", form.reference);
-      if (form.categoryId)
+        formDataToSend.append("reference", form.reference);
         formDataToSend.append("categoryId", String(form.categoryId));
-      // La quantité ne peut être modifiée qu'à la création : toute variation
-      // ultérieure doit passer par une Entrée/Sortie de stock (traçabilité).
-      if (!editingId && form.quantity)
-        formDataToSend.append("quantity", String(form.quantity));
+      } else {
+        if (form.description)
+          formDataToSend.append("description", form.description);
+        if (form.reference) formDataToSend.append("reference", form.reference);
+        if (form.categoryId)
+          formDataToSend.append("categoryId", String(form.categoryId));
+        if (form.quantity)
+          formDataToSend.append("quantity", String(form.quantity));
+      }
 
-      formDataToSend.append("purchasePrice", String(form.purchasePrice));
-      formDataToSend.append("salePrice", String(form.salePrice));
+      formDataToSend.append("purchasePrice", String(purchasePrice));
+      formDataToSend.append("salePrice", String(salePrice));
       formDataToSend.append("alertThreshold", String(form.alertThreshold));
 
-      // Niveaux tarifaires optionnels
-      if (form.semiWholesalePrice)
+      // Niveaux tarifaires : envoyés même vides en édition pour permettre leur suppression
+      if (editingId || form.semiWholesalePrice !== "")
         formDataToSend.append(
           "semiWholesalePrice",
           String(form.semiWholesalePrice),
         );
-      if (form.semiWholesaleMinQty)
+      if (editingId || form.semiWholesaleMinQty !== "")
         formDataToSend.append(
           "semiWholesaleMinQty",
           String(form.semiWholesaleMinQty),
         );
-      if (form.wholesalePrice)
+      if (editingId || form.wholesalePrice !== "")
         formDataToSend.append("wholesalePrice", String(form.wholesalePrice));
-      if (form.wholesaleMinQty)
+      if (editingId || form.wholesaleMinQty !== "")
         formDataToSend.append("wholesaleMinQty", String(form.wholesaleMinQty));
 
-      // 3. Ajouter l'image sous la clé "image" (correspond à upload.single("image"))
       if (selectedFile) {
         formDataToSend.append("image", selectedFile);
-      } else if (form.imageUrl) {
-        // Fallback si l'utilisateur a renseigné une URL directe sans fichier
+      } else if (editingId || form.imageUrl) {
         formDataToSend.append("imageUrl", form.imageUrl);
       }
 

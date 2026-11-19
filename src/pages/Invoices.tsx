@@ -29,11 +29,13 @@ const statusBadge: Record<string, string> = {
   PAID: "bg-emerald-100 text-emerald-700",
   PARTIAL: "bg-yellow-100 text-yellow-700",
   UNPAID: "bg-red-100 text-red-700",
+  CANCELLED: "bg-slate-200 text-slate-600 line-through",
 };
 const statusLabel: Record<string, string> = {
   PAID: "Payée",
   PARTIAL: "Partielle",
   UNPAID: "Non réglée",
+  CANCELLED: "Annulée",
 };
 
 export default function Invoices() {

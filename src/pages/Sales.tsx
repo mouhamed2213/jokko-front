@@ -21,7 +21,7 @@ import {
   getSuggestedPrice,
 } from "../services/index";
 import PaymentMethodSelect from "../components/Paymentmethodselect";
-import { getStoredUser } from "../types/auth";
+import { getStoredUser, isAdmin } from "../types/auth";
 import type {
   Category,
   Client,
@@ -40,23 +40,59 @@ type CartItem = {
   quantity: number;
   unitPrice: number;
   stock: number;
+  salePrice: number;
+  semiWholesalePrice?: number | null;
+  semiWholesaleMinQty?: number | null;
+  wholesalePrice?: number | null;
+  wholesaleMinQty?: number | null;
+  priceOverridden?: boolean;
 };
 
 type PriceTier = "detail" | "semiWholesale" | "wholesale";
+
+function computeTierPrice(
+  product: {
+    salePrice: number;
+    semiWholesalePrice?: number | null;
+    semiWholesaleMinQty?: number | null;
+    wholesalePrice?: number | null;
+    wholesaleMinQty?: number | null;
+  },
+  quantity: number,
+): { price: number; tier: PriceTier } {
+  if (
+    product.wholesalePrice &&
+    product.wholesaleMinQty &&
+    quantity >= product.wholesaleMinQty
+  ) {
+    return { price: product.wholesalePrice, tier: "wholesale" };
+  }
+  if (
+    product.semiWholesalePrice &&
+    product.semiWholesaleMinQty &&
+    quantity >= product.semiWholesaleMinQty
+  ) {
+    return { price: product.semiWholesalePrice, tier: "semiWholesale" };
+  }
+  return { price: product.salePrice, tier: "detail" };
+}
 
 const statusBadge: Record<string, string> = {
   PAID: "bg-emerald-100 text-emerald-700",
   PARTIAL: "bg-yellow-100 text-yellow-700",
   UNPAID: "bg-red-100 text-red-700",
+  CANCELLED: "bg-slate-200 text-slate-600 line-through",
 };
 const statusLabel: Record<string, string> = {
   PAID: "Payée",
   PARTIAL: "Partielle",
   UNPAID: "Non réglée",
+  CANCELLED: "Annulée",
 };
 
 export default function Sales() {
   const user = getStoredUser();
+  const admin = isAdmin();
 
   // Données de référence
   const [products, setProducts] = useState<Product[]>([]);
@@ -197,11 +233,14 @@ export default function Sales() {
   const filteredProducts = products
     .filter((p) => p.quantity > 0)
     .filter((p) => !categoryFilter || p.categoryId === categoryFilter)
-    .filter(
-      (p) =>
-        !productSearch ||
-        p.name.toLowerCase().includes(productSearch.toLowerCase()),
-    );
+    .filter((p) => {
+      if (!productSearch.trim()) return true;
+      const q = productSearch.trim().toLowerCase();
+      return (
+        p.name.toLowerCase().includes(q) ||
+        (p.reference?.toLowerCase().includes(q) ?? false)
+      );
+    });
 
   const updatePriceSuggestion = (tier: PriceTier, tiers: any) => {
     if (tier === "wholesale" && tiers.wholesale) {
@@ -240,24 +279,39 @@ export default function Sales() {
   };
 
   const confirmAddToCart = () => {
-    if (!modalProduct || modalQty <= 0 || modalPrice <= 0) {
+    if (!modalProduct || !Number.isInteger(modalQty) || modalQty <= 0 || modalPrice <= 0) {
       return toast.error("Quantité et prix invalides");
     }
     const alreadyInCart =
       cart.find((c) => c.productId === modalProduct.id)?.quantity || 0;
-    if (alreadyInCart + modalQty > modalProduct.quantity) {
+    const totalQty = alreadyInCart + modalQty;
+    if (totalQty > modalProduct.quantity) {
       return toast.error(
         `Stock insuffisant (${modalProduct.quantity} disponibles)`,
       );
     }
+
+    const tierForModalQty = computeTierPrice(modalProduct, modalQty);
+    const adminOverrode = admin && modalPrice !== tierForModalQty.price;
+    const tierForTotalQty = computeTierPrice(modalProduct, totalQty);
+    const resolvedUnitPrice = adminOverrode ? modalPrice : tierForTotalQty.price;
+
     setCart((prev) => {
       const existing = prev.findIndex((c) => c.productId === modalProduct.id);
       if (existing >= 0) {
         const updated = [...prev];
+        const prevItem = updated[existing];
+        const nextOverridden = adminOverrode || prevItem.priceOverridden;
+        const nextPrice = adminOverrode
+          ? modalPrice
+          : prevItem.priceOverridden
+            ? prevItem.unitPrice
+            : tierForTotalQty.price;
         updated[existing] = {
-          ...updated[existing],
-          quantity: updated[existing].quantity + modalQty,
-          unitPrice: modalPrice,
+          ...prevItem,
+          quantity: totalQty,
+          unitPrice: nextPrice,
+          priceOverridden: nextOverridden,
         };
         return updated;
       }
@@ -268,8 +322,14 @@ export default function Sales() {
           productName: modalProduct.name,
           imageUrl: modalProduct.imageUrl,
           quantity: modalQty,
-          unitPrice: modalPrice,
+          unitPrice: resolvedUnitPrice,
           stock: modalProduct.quantity,
+          salePrice: modalProduct.salePrice,
+          semiWholesalePrice: modalProduct.semiWholesalePrice,
+          semiWholesaleMinQty: modalProduct.semiWholesaleMinQty,
+          wholesalePrice: modalProduct.wholesalePrice,
+          wholesaleMinQty: modalProduct.wholesaleMinQty,
+          priceOverridden: adminOverrode,
         },
       ];
     });
@@ -280,17 +340,25 @@ export default function Sales() {
   const updateCartQty = (productId: number, quantity: number) => {
     if (quantity <= 0) return removeFromCart(productId);
     setCart((prev) =>
-      prev.map((c) =>
-        c.productId === productId
-          ? { ...c, quantity: Math.min(quantity, c.stock) }
-          : c,
-      ),
+      prev.map((c) => {
+        if (c.productId !== productId) return c;
+        const nextQty = Math.min(quantity, c.stock);
+        const nextPrice = c.priceOverridden
+          ? c.unitPrice
+          : computeTierPrice(c, nextQty).price;
+        return { ...c, quantity: nextQty, unitPrice: nextPrice };
+      }),
     );
   };
 
   const updateCartPrice = (productId: number, unitPrice: number) => {
+    if (!admin) return;
     setCart((prev) =>
-      prev.map((c) => (c.productId === productId ? { ...c, unitPrice } : c)),
+      prev.map((c) =>
+        c.productId === productId
+          ? { ...c, unitPrice, priceOverridden: true }
+          : c,
+      ),
     );
   };
 
@@ -322,6 +390,11 @@ export default function Sales() {
       return toast.error("Client ou nom du client requis");
     if (paidAmount < 0 || paidAmount > cartTotal) {
       return toast.error("Montant payé invalide");
+    }
+    if (paidAmount < cartTotal && !clientId) {
+      return toast.error(
+        "Sélectionnez un client enregistré pour une vente partielle ou à crédit.",
+      );
     }
     setSubmitting(true);
     try {
@@ -392,12 +465,13 @@ export default function Sales() {
               </p>
             </div>
           </div>
-          <a
-            href="/settings/upgrade"
+          <button
+            type="button"
+            onClick={() => setIsUpgradeModalOpen(true)}
             className="shrink-0 rounded-xl bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600 transition"
           >
-            Passer au plan Basic →
-          </a>
+            Changer de forfait →
+          </button>
         </div>
       )}
 
@@ -415,12 +489,13 @@ export default function Sales() {
               </p>
             </div>
           </div>
-          <a
-            href="/settings/upgrade"
+          <button
+            type="button"
+            onClick={() => setIsUpgradeModalOpen(true)}
             className="shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
           >
-            Upgrader maintenant →
-          </a>
+            Changer de forfait →
+          </button>
         </div>
       )}
 
@@ -621,12 +696,21 @@ export default function Sales() {
                       </div>
                       <input
                         type="number"
-                        min={0}
+                        min={1}
                         value={item.unitPrice}
+                        readOnly={!admin}
+                        disabled={!admin}
+                        title={
+                          admin
+                            ? "Prix unitaire modifiable"
+                            : "Tarif appliqué automatiquement selon le palier"
+                        }
                         onChange={(e) =>
                           updateCartPrice(item.productId, Number(e.target.value))
                         }
-                        className="w-full rounded-lg border border-gray-300 px-2 py-1 text-right text-sm outline-none focus:border-emerald-500"
+                        className={`w-full rounded-lg border border-gray-300 px-2 py-1 text-right text-sm outline-none focus:border-emerald-500 ${
+                          !admin ? "bg-gray-100 text-gray-600 cursor-not-allowed" : ""
+                        }`}
                       />
                     </div>
                     <p className="mt-1 text-right text-xs font-semibold text-slate-600">
@@ -861,15 +945,26 @@ export default function Sales() {
                 </label>
                 <input
                   type="number"
-                  min={0}
+                  min={1}
                   value={modalPrice}
-                  onChange={(e) => setModalPrice(Number(e.target.value))}
+                  readOnly={!admin}
+                  disabled={!admin}
+                  title={
+                    admin
+                      ? "Prix unitaire modifiable"
+                      : "Tarif appliqué automatiquement selon le palier"
+                  }
+                  onChange={(e) => {
+                    if (admin) setModalPrice(Number(e.target.value));
+                  }}
                   className={`w-full rounded-xl border px-3 py-2 text-sm outline-none focus:border-emerald-500 ${
-                    modalTier === "wholesale"
-                      ? "border-purple-400 bg-purple-50"
-                      : modalTier === "semiWholesale"
-                        ? "border-blue-400 bg-blue-50"
-                        : "border-gray-300"
+                    !admin
+                      ? "border-gray-200 bg-gray-100 text-gray-600 cursor-not-allowed"
+                      : modalTier === "wholesale"
+                        ? "border-purple-400 bg-purple-50"
+                        : modalTier === "semiWholesale"
+                          ? "border-blue-400 bg-blue-50"
+                          : "border-gray-300"
                   }`}
                 />
               </div>

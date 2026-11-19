@@ -226,7 +226,7 @@ export type Sale = {
   totalAmount: number;
   paidAmount: number;
   remaining: number;
-  status: "PAID" | "PARTIAL" | "UNPAID";
+  status: "PAID" | "PARTIAL" | "UNPAID" | "CANCELLED";
   note?: string | null;
   createdAt: string;
   updatedAt: string;

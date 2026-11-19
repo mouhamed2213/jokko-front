@@ -24,19 +24,25 @@ function buildA4(invoice: Sale, shopName: string, logoUrl?: string): string {
       ? "#059669"
       : invoice.status === "PARTIAL"
         ? "#d97706"
-        : "#dc2626";
+        : invoice.status === "CANCELLED"
+          ? "#64748b"
+          : "#dc2626";
   const statusBg =
     invoice.status === "PAID"
       ? "#d1fae5"
       : invoice.status === "PARTIAL"
         ? "#fef3c7"
-        : "#fee2e2";
+        : invoice.status === "CANCELLED"
+          ? "#e2e8f0"
+          : "#fee2e2";
   const statusText =
     invoice.status === "PAID"
       ? "PAYÉE"
       : invoice.status === "PARTIAL"
         ? "PARTIELLE"
-        : "NON RÉGLÉE";
+        : invoice.status === "CANCELLED"
+          ? "ANNULÉE"
+          : "NON RÉGLÉE";
 
   const itemRows = invoice.items
     .map((item, i) => {
