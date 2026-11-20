@@ -5,35 +5,30 @@ import { getMaintenanceStatus } from "../services";
 export default function MaintenanceGate({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const isAdminArea = location.pathname.startsWith("/admin") || location.pathname.startsWith("/super-admin");
-  const [state, setState] = useState<"checking" | "ready" | "maintenance">(
-    isAdminArea ? "ready" : "checking"
-  );
+  const [maintenance, setMaintenance] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (isAdminArea) return;
+    if (isAdminArea) {
+      setMaintenance(false);
+      return;
+    }
 
     let active = true;
     getMaintenanceStatus()
       .then((status) => {
         if (!active) return;
         setMessage(status.message);
-        setState(status.enabled ? "maintenance" : "ready");
+        setMaintenance(Boolean(status.enabled));
       })
       .catch(() => {
-        // Le backend applique aussi le blocage aux API. Une erreur réseau
-        // sur le statut ne doit pas rendre l'espace d'administration inaccessible.
-        if (active) setState("ready");
+        if (active) setMaintenance(false);
       });
     return () => { active = false; };
-  }, [isAdminArea, location.pathname]);
+  }, [isAdminArea]);
 
-  if (isAdminArea) return <>{children}</>;
-  if (state === "checking") {
-    return <div className="flex min-h-screen items-center justify-center bg-slate-950 text-sm text-white/70">Vérification de la disponibilité...</div>;
-  }
-  if (state === "maintenance") {
-    return (
+  if (isAdminArea || !maintenance) return <>{children}</>;
+  return (
       <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 py-12 text-white">
         <section className="w-full max-w-xl text-center">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-400/10 text-amber-300">
@@ -49,6 +44,4 @@ export default function MaintenanceGate({ children }: { children: React.ReactNod
         </section>
       </main>
     );
-  }
-  return <>{children}</>;
 }

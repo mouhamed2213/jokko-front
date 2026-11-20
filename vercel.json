@@ -1,6 +1,15 @@
-
 {
-    "rewrites": [
-        {"source": "/(.*)", "destination": "/"}
-    ]
+  "redirects": [
+    {
+      "source": "/home",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!robots\\.txt|sitemap\\.xml|site\\.webmanifest|favicon\\.ico|favicon\\.svg|assets/).*)",
+      "destination": "/index.html"
+    }
+  ]
 }
