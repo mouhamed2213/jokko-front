@@ -699,11 +699,19 @@ export default function Sales() {
               Aucun produit trouvé.
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+            <div
+              className={`grid grid-cols-2 gap-4 ${
+                cart.length
+                  ? "sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
+                  : "sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5"
+              }`}
+            >
               {filteredProducts.map((p) => {
                 const productUnit: PackagingUnit = p.unitType || "PIECE";
                 const unitsPerPack = p.unitsPerPack || 1;
                 const isPack = productUnit !== "PIECE";
+                const isLowStock =
+                  p.quantity > 0 && p.quantity <= p.alertThreshold;
                 const inCartLines = cart.filter((c) => c.productId === p.id);
                 const inCartCount = inCartLines.reduce(
                   (sum, c) => sum + c.quantity,
@@ -728,69 +736,105 @@ export default function Sales() {
                 return (
                   <div
                     key={p.id}
-                    className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                    className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm transition-all hover:border-emerald-300 hover:shadow-md"
                   >
-                    <div className="relative h-24 w-full bg-slate-100 overflow-hidden">
+                    {/* Zone photo équilibrée (h-32 / sm:h-36) sans rognage */}
+                    <div className="relative h-32 sm:h-36 w-full shrink-0 overflow-hidden bg-slate-100 flex items-center justify-center p-2.5">
                       {p.imageUrl ? (
-                        <img
-                          src={p.imageUrl}
-                          alt={p.name}
-                          className="h-full w-full object-cover"
-                        />
+                        <>
+                          <img
+                            src={p.imageUrl}
+                            alt=""
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-0 h-full w-full scale-125 object-cover opacity-25 blur-md"
+                          />
+                          <img
+                            src={p.imageUrl}
+                            alt={p.name}
+                            className="relative z-10 h-full w-full object-contain drop-shadow-xs transition-transform duration-300 group-hover:scale-105"
+                          />
+                        </>
                       ) : (
-                        <div className="flex h-full items-center justify-center text-2xl font-bold text-slate-300">
+                        <span className="text-3xl font-extrabold text-slate-300">
                           {p.name.charAt(0).toUpperCase()}
-                        </div>
+                        </span>
                       )}
+
                       {/* Type d'enregistrement du produit */}
                       <span
-                        className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-tight shadow-sm backdrop-blur-xs ${unitBadge.cls}`}
+                        className={`absolute left-2.5 top-2.5 z-20 rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-tight shadow-xs backdrop-blur-xs ${unitBadge.cls}`}
                       >
                         {unitBadge.label}
                       </span>
+
                       {inCartCount > 0 && (
-                        <span className="absolute right-2 top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-600 px-1.5 text-xs font-bold text-white shadow">
+                        <span className="absolute right-2.5 top-2.5 z-20 flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-600 px-1.5 text-xs font-bold text-white shadow">
                           {inCartCount}
                         </span>
                       )}
                     </div>
-                    <div className="px-3 py-2.5">
-                      <p
-                        className="text-sm font-semibold text-slate-800 truncate"
-                        title={p.name}
-                      >
-                        {p.name}
-                      </p>
-                      {isPack && p.packSalePrice ? (
-                        <div>
-                          <p className="text-sm font-bold text-emerald-600">
-                            {p.packSalePrice.toLocaleString("fr-FR")} F{" "}
-                            <span className="text-[10px] font-medium text-slate-500">
-                              / {unitLabel(productUnit)}
+
+                    {/* Contenu équilibré et aligné */}
+                    <div className="flex flex-1 flex-col justify-between gap-2.5 p-3.5">
+                      <div className="space-y-1">
+                        <p
+                          className="text-sm font-semibold text-slate-800 line-clamp-2 leading-snug"
+                          title={p.name}
+                        >
+                          {p.name}
+                        </p>
+
+                        {isPack && p.packSalePrice ? (
+                          <div className="pt-0.5">
+                            <p className="text-base font-bold text-emerald-700 leading-tight">
+                              {p.packSalePrice.toLocaleString("fr-FR")} F{" "}
+                              <span className="text-[11px] font-medium text-slate-500">
+                                / {unitLabel(productUnit)}
+                              </span>
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {p.salePrice.toLocaleString("fr-FR")} F / pièce
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="pt-0.5 text-base font-bold text-emerald-700 leading-tight">
+                            {p.salePrice.toLocaleString("fr-FR")} F{" "}
+                            <span className="text-[11px] font-medium text-slate-500">
+                              / pièce
                             </span>
                           </p>
-                          <p className="text-[11px] text-slate-500">
-                            {p.salePrice.toLocaleString("fr-FR")} F / pièce
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-sm font-bold text-emerald-600">
-                          {p.salePrice.toLocaleString("fr-FR")} F{" "}
-                          <span className="text-[10px] font-medium text-slate-500">
-                            / pièce
+                        )}
+                      </div>
+
+                      <div className="space-y-2 pt-1 border-t border-slate-100">
+                        <p
+                          className={`text-xs font-medium truncate ${
+                            isLowStock ? "text-amber-600" : "text-slate-500"
+                          }`}
+                          title={formatStockDisplay(
+                            p.quantity,
+                            productUnit,
+                            unitsPerPack,
+                          )}
+                        >
+                          Stock :{" "}
+                          <span className="font-semibold">
+                            {formatStockDisplay(
+                              p.quantity,
+                              productUnit,
+                              unitsPerPack,
+                            )}
                           </span>
                         </p>
-                      )}
-                      <p className="text-xs text-gray-400 mt-0.5 truncate" title={formatStockDisplay(p.quantity, productUnit, unitsPerPack)}>
-                        {formatStockDisplay(p.quantity, productUnit, unitsPerPack)}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => openAddModal(p)}
-                        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-700"
-                      >
-                        <Plus size={13} /> Ajouter au panier
-                      </button>
+
+                        <button
+                          type="button"
+                          onClick={() => openAddModal(p)}
+                          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 active:scale-[0.98]"
+                        >
+                          <Plus size={14} /> Ajouter au panier
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
