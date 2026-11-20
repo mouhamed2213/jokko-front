@@ -42,6 +42,7 @@ import {
   type AnalyticsOverview,
 } from "../services";
 import type { PlanCode, SubscriptionInfo } from "../types";
+import { isAdmin } from "../types/auth";
 import { hasFeature } from "../utils/subscription.checker";
 
 ChartJS.register(
@@ -515,19 +516,23 @@ export default function Analytics() {
           </label>
           <button type="button" onClick={() => { setStartDate(defaultStart); setEndDate(defaultEnd); setPage(1); void load({ startDate: defaultStart, endDate: defaultEnd, limit: 50, page: 1, pageSize: 20 }); }} title="Réinitialiser la période" className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-100"><RotateCcw size={18} /></button>
           <button disabled={Boolean(dateError)} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">Actualiser</button>
-          {subscription && hasFeature(subscription, "MULTI_STORE") && subscription.plan.code === "PREMIUM" && (
-            <button
-              type="button"
-              onClick={() => setMultiStoreMode((enabled) => !enabled)}
-              className={`rounded-xl border px-3 py-2 text-sm font-semibold ${
-                multiStoreMode
-                  ? "border-emerald-600 bg-emerald-50 text-emerald-700"
-                  : "border-slate-200 text-slate-600"
-              }`}
-            >
-              {multiStoreMode ? "Vue boutique active" : "Vue consolidée"}
-            </button>
-          )}
+          {section === "overview" &&
+            isAdmin() &&
+            subscription &&
+            hasFeature(subscription, "MULTI_STORE") &&
+            subscription.plan.code === "PREMIUM" && (
+              <button
+                type="button"
+                onClick={() => setMultiStoreMode((enabled) => !enabled)}
+                className={`rounded-xl border px-3 py-2 text-sm font-semibold ${
+                  multiStoreMode
+                    ? "border-emerald-600 bg-emerald-50 text-emerald-700"
+                    : "border-slate-200 text-slate-600"
+                }`}
+              >
+                {multiStoreMode ? "Vue boutique active" : "Vue consolidée"}
+              </button>
+            )}
         </form>
       </div>
 
@@ -803,6 +808,118 @@ export default function Analytics() {
               <Kpi title="Alertes stock" value={((multiStoreMode ? multiStoreData?.consolidated.outOfStockProducts : data?.kpis.outOfStockProducts) ?? 0) + ((multiStoreMode ? multiStoreData?.consolidated.lowStockProducts : data?.kpis.lowStockProducts) ?? 0)} icon={<AlertTriangle size={18} />} />
             </div>
           </div>
+          {multiStoreMode && multiStoreData && multiStoreData.shops.length > 0 && (
+            <div className="rounded-2xl bg-white p-5 shadow-sm">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="font-semibold text-slate-900">
+                    Comparatif par boutique
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Détail des performances de chacune de vos {multiStoreData.shops.length} boutique(s) active(s) sur la période
+                  </p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="border-b border-slate-100 text-xs uppercase text-slate-400">
+                    <tr>
+                      <th className="py-2.5 pr-3">Boutique</th>
+                      <th className="py-2.5 px-3">Chiffre d'affaires</th>
+                      <th className="py-2.5 px-3 text-center">Variation</th>
+                      <th className="py-2.5 px-3 text-center">Ventes</th>
+                      <th className="py-2.5 px-3 text-right">Encaissé</th>
+                      <th className="py-2.5 px-3 text-right">Créances</th>
+                      <th className="py-2.5 px-3 text-right">Valeur stock</th>
+                      <th className="py-2.5 pl-3 text-center">Alertes stock</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {[...multiStoreData.shops]
+                      .sort((a, b) => b.overview.kpis.revenue - a.overview.kpis.revenue)
+                      .map(({ shop, overview }) => {
+                        const kpis = overview.kpis;
+                        const share =
+                          multiStoreData.consolidated.revenue > 0
+                            ? Math.round(
+                                (kpis.revenue / multiStoreData.consolidated.revenue) * 100,
+                              )
+                            : 0;
+                        const change = overview.comparison?.revenueChange;
+                        const stockAlerts =
+                          (kpis.outOfStockProducts ?? 0) + (kpis.lowStockProducts ?? 0);
+                        return (
+                          <tr key={shop.id} className="hover:bg-slate-50/60">
+                            <td className="py-2.5 pr-3 font-semibold text-slate-800 whitespace-nowrap">
+                              {shop.name}
+                            </td>
+                            <td className="py-2.5 px-3 min-w-48">
+                              <div className="flex items-center gap-2">
+                                <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                                  <div
+                                    className="h-full rounded-full bg-emerald-500"
+                                    style={{ width: `${share}%` }}
+                                  />
+                                </div>
+                                <span className="font-semibold text-slate-900 whitespace-nowrap">
+                                  {formatMoney(kpis.revenue)}
+                                </span>
+                                <span className="text-xs text-slate-400 whitespace-nowrap">
+                                  ({share}%)
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                              {change === null || change === undefined ? (
+                                <span className="text-xs text-slate-400">N/D</span>
+                              ) : (
+                                <span
+                                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                                    change >= 0
+                                      ? "bg-emerald-50 text-emerald-700"
+                                      : "bg-rose-50 text-rose-700"
+                                  }`}
+                                >
+                                  {change >= 0 ? "+" : ""}
+                                  {change}%
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-2.5 px-3 text-center text-slate-700">
+                              {kpis.salesCount}
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-medium text-emerald-700 whitespace-nowrap">
+                              {formatMoney(kpis.collected)}
+                            </td>
+                            <td
+                              className={`py-2.5 px-3 text-right font-medium whitespace-nowrap ${
+                                kpis.receivables > 0 ? "text-amber-600" : "text-slate-400"
+                              }`}
+                            >
+                              {formatMoney(kpis.receivables)}
+                            </td>
+                            <td className="py-2.5 px-3 text-right text-slate-700 whitespace-nowrap">
+                              {formatMoney(kpis.stockValue)}
+                            </td>
+                            <td className="py-2.5 pl-3 text-center">
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                                  stockAlerts > 0
+                                    ? "bg-amber-50 text-amber-700"
+                                    : "bg-slate-100 text-slate-500"
+                                }`}
+                              >
+                                {stockAlerts}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <DetailSection section={section} detail={detail} onNavigate={navigate} onPageChange={setPage} />
