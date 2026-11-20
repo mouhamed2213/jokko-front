@@ -5,12 +5,14 @@ import {
   Search,
   ShoppingCart,
   Trash2,
+  UserPlus,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
+  createClient,
   createSale,
   getCategories,
   getClients,
@@ -96,8 +98,14 @@ export default function Sales() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [clientId, setClientId] = useState<number | "">("");
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [clientSearch, setClientSearch] = useState("");
   const [customerName, setCustomerName] = useState("");
+  const [showQuickClientForm, setShowQuickClientForm] = useState(false);
+  const [quickClientName, setQuickClientName] = useState("");
+  const [quickClientPhone, setQuickClientPhone] = useState("");
+  const [quickClientAddress, setQuickClientAddress] = useState("");
+  const [creatingClient, setCreatingClient] = useState(false);
   const [note, setNote] = useState("");
   const [paidAmount, setPaidAmount] = useState(0);
   const [paidAmountTouched, setPaidAmountTouched] = useState(false);
@@ -452,12 +460,56 @@ export default function Sales() {
   const resetCartAndClient = () => {
     setCart([]);
     setClientId("");
+    setSelectedClient(null);
     setClientSearch("");
     setCustomerName("");
+    setShowQuickClientForm(false);
+    setQuickClientName("");
+    setQuickClientPhone("");
+    setQuickClientAddress("");
     setNote("");
     setPaidAmount(0);
     setPaidAmountTouched(false);
     setPaymentMethod("CASH");
+  };
+
+  const openQuickClientForm = (prefill?: string) => {
+    const seed = (prefill ?? clientSearch ?? customerName).trim();
+    const looksLikePhone = /^[+\d\s-]{6,}$/.test(seed);
+    setQuickClientName(looksLikePhone ? "" : seed);
+    setQuickClientPhone(looksLikePhone ? seed : "");
+    setQuickClientAddress("");
+    setShowQuickClientForm(true);
+  };
+
+  const handleQuickCreateClient = async () => {
+    if (!quickClientName.trim() || !quickClientPhone.trim()) {
+      return toast.error("Le nom et le téléphone du client sont obligatoires");
+    }
+    setCreatingClient(true);
+    try {
+      const created = await createClient({
+        name: quickClientName.trim(),
+        phone: quickClientPhone.trim(),
+        address: quickClientAddress.trim() || undefined,
+      });
+      setClients((prev) => [created, ...prev.filter((c) => c.id !== created.id)]);
+      setSelectedClient(created);
+      setClientId(created.id);
+      setClientSearch("");
+      setCustomerName("");
+      setShowQuickClientForm(false);
+      setQuickClientName("");
+      setQuickClientPhone("");
+      setQuickClientAddress("");
+      toast.success(`Client "${created.name}" créé et sélectionné`);
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Erreur lors de la création du client",
+      );
+    } finally {
+      setCreatingClient(false);
+    }
   };
 
   const handleCreateSale = async (e: React.FormEvent) => {
@@ -649,14 +701,36 @@ export default function Sales() {
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
               {filteredProducts.map((p) => {
-                const inCartQty =
-                  cart.find((c) => c.productId === p.id)?.quantity || 0;
+                const productUnit: PackagingUnit = p.unitType || "PIECE";
+                const unitsPerPack = p.unitsPerPack || 1;
+                const isPack = productUnit !== "PIECE";
+                const inCartLines = cart.filter((c) => c.productId === p.id);
+                const inCartCount = inCartLines.reduce(
+                  (sum, c) => sum + c.quantity,
+                  0,
+                );
+                const unitBadge =
+                  productUnit === "CARTON"
+                    ? {
+                        label: `Carton · ${unitsPerPack} pcs`,
+                        cls: "bg-purple-600/90 text-white",
+                      }
+                    : productUnit === "DOZEN"
+                      ? {
+                          label: "Douzaine · 12 pcs",
+                          cls: "bg-blue-600/90 text-white",
+                        }
+                      : {
+                          label: "Par pièce",
+                          cls: "bg-slate-800/80 text-white",
+                        };
+
                 return (
                   <div
                     key={p.id}
                     className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:border-emerald-300 hover:shadow-md"
                   >
-                    <div className="h-24 w-full bg-slate-100 overflow-hidden">
+                    <div className="relative h-24 w-full bg-slate-100 overflow-hidden">
                       {p.imageUrl ? (
                         <img
                           src={p.imageUrl}
@@ -668,9 +742,15 @@ export default function Sales() {
                           {p.name.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      {inCartQty > 0 && (
+                      {/* Type d'enregistrement du produit */}
+                      <span
+                        className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-tight shadow-sm backdrop-blur-xs ${unitBadge.cls}`}
+                      >
+                        {unitBadge.label}
+                      </span>
+                      {inCartCount > 0 && (
                         <span className="absolute right-2 top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-600 px-1.5 text-xs font-bold text-white shadow">
-                          {inCartQty}
+                          {inCartCount}
                         </span>
                       )}
                     </div>
@@ -681,11 +761,28 @@ export default function Sales() {
                       >
                         {p.name}
                       </p>
-                      <p className="text-sm font-bold text-emerald-600">
-                        {p.salePrice.toLocaleString("fr-FR")} F
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {p.quantity} en stock
+                      {isPack && p.packSalePrice ? (
+                        <div>
+                          <p className="text-sm font-bold text-emerald-600">
+                            {p.packSalePrice.toLocaleString("fr-FR")} F{" "}
+                            <span className="text-[10px] font-medium text-slate-500">
+                              / {unitLabel(productUnit)}
+                            </span>
+                          </p>
+                          <p className="text-[11px] text-slate-500">
+                            {p.salePrice.toLocaleString("fr-FR")} F / pièce
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-sm font-bold text-emerald-600">
+                          {p.salePrice.toLocaleString("fr-FR")} F{" "}
+                          <span className="text-[10px] font-medium text-slate-500">
+                            / pièce
+                          </span>
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-400 mt-0.5 truncate" title={formatStockDisplay(p.quantity, productUnit, unitsPerPack)}>
+                        {formatStockDisplay(p.quantity, productUnit, unitsPerPack)}
                       </p>
                       <button
                         type="button"
@@ -918,58 +1015,155 @@ export default function Sales() {
 
               {/* Client / note */}
               <div className="space-y-3 border-t border-gray-100 pt-3">
+                {paidAmount < cartTotal && !clientId && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 flex items-center justify-between gap-2">
+                    <span>
+                      Vente à crédit : sélectionnez ou créez une fiche client.
+                    </span>
+                    {!showQuickClientForm && (
+                      <button
+                        type="button"
+                        onClick={() => openQuickClientForm()}
+                        className="shrink-0 font-semibold text-emerald-700 hover:underline"
+                      >
+                        + Créer
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-700">
-                    Client enregistré
-                  </label>
-                  <input
-                    type="search"
-                    value={
-                      clientId
-                        ? clients.find((client) => client.id === clientId)?.name || ""
-                        : clientSearch
-                    }
-                    onChange={(event) => {
-                      setClientId("");
-                      setCustomerName("");
-                      setClientSearch(event.target.value);
-                    }}
-                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                    placeholder="Rechercher par nom, téléphone ou email..."
-                  />
-                  {!clientId && clientSearch.trim() && (
-                    <div className="mt-2 max-h-32 overflow-y-auto rounded-xl border border-gray-200 bg-white">
-                      {clients.length ? (
-                        clients.map((client) => (
-                          <button
-                            key={client.id}
-                            type="button"
-                            onClick={() => {
-                              setClientId(client.id);
-                              setClientSearch("");
-                              setCustomerName("");
-                            }}
-                            className="block w-full border-b border-gray-100 px-3 py-2 text-left text-sm hover:bg-emerald-50"
-                          >
-                            <span className="font-medium">{client.name}</span>
-                            <span className="ml-2 text-gray-500">{client.phone}</span>
-                          </button>
-                        ))
-                      ) : (
-                        <p className="px-3 py-2 text-sm text-gray-400">
-                          Aucun client trouvé
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  {clientId && (
+                  <div className="mb-1 flex items-center justify-between">
+                    <label className="block text-xs font-medium text-gray-700">
+                      Client enregistré {paidAmount < cartTotal ? "*" : ""}
+                    </label>
                     <button
                       type="button"
-                      onClick={() => setClientId("")}
-                      className="mt-1 text-xs text-emerald-700 hover:underline"
+                      onClick={() =>
+                        showQuickClientForm
+                          ? setShowQuickClientForm(false)
+                          : openQuickClientForm()
+                      }
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-800"
                     >
-                      Changer de client
+                      <UserPlus size={13} />
+                      {showQuickClientForm ? "Fermer" : "Nouveau client"}
                     </button>
+                  </div>
+
+                  {showQuickClientForm ? (
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 space-y-2">
+                      <p className="text-xs font-semibold text-emerald-900">
+                        Création rapide de client
+                      </p>
+                      <input
+                        type="text"
+                        value={quickClientName}
+                        onChange={(e) => setQuickClientName(e.target.value)}
+                        placeholder="Nom complet *"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                      />
+                      <input
+                        type="tel"
+                        value={quickClientPhone}
+                        onChange={(e) => setQuickClientPhone(e.target.value)}
+                        placeholder="Téléphone *"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                      />
+                      <input
+                        type="text"
+                        value={quickClientAddress}
+                        onChange={(e) => setQuickClientAddress(e.target.value)}
+                        placeholder="Adresse (optionnel)"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                      />
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          type="button"
+                          disabled={creatingClient}
+                          onClick={handleQuickCreateClient}
+                          className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          {creatingClient ? "Création..." : "Créer et sélectionner"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowQuickClientForm(false)}
+                          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-600 hover:bg-gray-50"
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        type="search"
+                        value={
+                          clientId
+                            ? selectedClient?.name ||
+                              clients.find((client) => client.id === clientId)?.name ||
+                              ""
+                            : clientSearch
+                        }
+                        onChange={(event) => {
+                          setClientId("");
+                          setSelectedClient(null);
+                          setCustomerName("");
+                          setClientSearch(event.target.value);
+                        }}
+                        className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                        placeholder="Rechercher par nom, téléphone ou email..."
+                      />
+                      {!clientId && clientSearch.trim() && (
+                        <div className="mt-2 max-h-40 overflow-y-auto rounded-xl border border-gray-200 bg-white">
+                          {clients.length ? (
+                            clients.map((client) => (
+                              <button
+                                key={client.id}
+                                type="button"
+                                onClick={() => {
+                                  setClientId(client.id);
+                                  setSelectedClient(client);
+                                  setClientSearch("");
+                                  setCustomerName("");
+                                }}
+                                className="block w-full border-b border-gray-100 px-3 py-2 text-left text-sm hover:bg-emerald-50"
+                              >
+                                <span className="font-medium">{client.name}</span>
+                                <span className="ml-2 text-gray-500">{client.phone}</span>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="px-3 py-2.5 space-y-2">
+                              <p className="text-xs text-gray-400">
+                                Aucun client trouvé pour « {clientSearch.trim()} »
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => openQuickClientForm(clientSearch)}
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                              >
+                                <UserPlus size={13} />
+                                Créer « {clientSearch.trim()} » maintenant
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {clientId && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setClientId("");
+                            setSelectedClient(null);
+                          }}
+                          className="mt-1 text-xs text-emerald-700 hover:underline"
+                        >
+                          Changer de client
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
                 <div>
@@ -981,11 +1175,18 @@ export default function Sales() {
                     value={customerName}
                     onChange={(e) => {
                       setCustomerName(e.target.value);
-                      if (e.target.value) setClientId("");
+                      if (e.target.value) {
+                        setClientId("");
+                        setSelectedClient(null);
+                      }
                     }}
-                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                    placeholder="Nom du client..."
-                    disabled={!!clientId}
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    placeholder={
+                      paidAmount < cartTotal
+                        ? "Indisponible pour une vente à crédit"
+                        : "Nom du client..."
+                    }
+                    disabled={!!clientId || paidAmount < cartTotal}
                   />
                 </div>
                 <div>
