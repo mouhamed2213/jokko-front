@@ -110,6 +110,7 @@ const PLANS_INFO = [
       "Utilisateurs illimités",
       "Jusqu'à 5 boutiques",
       "Vue consolidée multi-boutiques (analytics & CA)",
+      "Analyse détaillée des bénéfices (par produit, catégorie & facture)",
       "Suivi consolidé des dettes fournisseurs",
     ],
   },

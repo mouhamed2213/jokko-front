@@ -670,6 +670,9 @@ export const getAnalyticsMultiStoreOverview = async (params: {
   };
 };
 
+export const getAnalyticsProfit = async (params?: AnalyticsPeriodParams) =>
+  (await api.get("/analytics/profit", { params })).data;
+
 // create secondary shop
 
 
