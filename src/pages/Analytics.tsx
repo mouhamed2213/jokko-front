@@ -141,7 +141,8 @@ const columnLabels: Record<string, string> = {
   quantity: "Quantité",
   revenue: "Chiffre d'affaires",
   collected: "Encaissé",
-  grossMargin: "Marge brute",
+  grossMargin: "Bénéfice brut",
+  marginRate: "Marge %",
   purchasedAmount: "Montant acheté",
   receivable: "Créance",
   orderCount: "Commandes",
@@ -287,7 +288,9 @@ function AnalyticsFilters({
       ? [
           select("status", "Statut", [["NEW", "Nouveau"], ["FAST", "Rotation rapide"], ["SLOW", "Rotation lente"], ["REGULAR", "Rotation normale"], ["DORMANT", "Dormant"]]),
           select("stockStatus", "État du stock", [["IN_STOCK", "En stock"], ["LOW_STOCK", "Stock faible"], ["OUT_OF_STOCK", "Rupture"]]),
-          select("costSource", "Coût", [["HISTORICAL", "Historique"], ["ESTIMATED", "Estimé"]]),
+          ...(isAdmin()
+            ? [select("costSource", "Coût", [["HISTORICAL", "Historique"], ["ESTIMATED", "Estimé"]])]
+            : []),
         ]
       : section === "stock"
         ? [
@@ -621,6 +624,93 @@ export default function Analytics() {
               icon={<BarChart3 size={18} />}
             />
           </div>
+          {isAdmin() && activeKpis?.grossProfit !== undefined && (
+            <div className="rounded-2xl bg-white p-5 shadow-sm">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="font-semibold text-slate-900">
+                    Rentabilité &amp; Bénéfice
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Calculé sur les ventes non annulées et les sorties de caisse hors achats fournisseurs
+                  </p>
+                </div>
+                {activeKpis.marginRate !== null &&
+                  activeKpis.marginRate !== undefined && (
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                      Taux de marge : {activeKpis.marginRate}%
+                    </span>
+                  )}
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-4">
+                  <p className="text-xs font-medium text-emerald-700">
+                    Bénéfice brut
+                  </p>
+                  <p className="mt-1 text-xl font-bold text-emerald-950">
+                    {formatMoney(activeKpis.grossProfit)}
+                  </p>
+                  <p className="mt-1 text-xs text-emerald-700/80">
+                    Ventes − coût d'achat
+                    {activeComparison?.profitChange !== null &&
+                    activeComparison?.profitChange !== undefined
+                      ? ` · ${activeComparison.profitChange >= 0 ? "+" : ""}${activeComparison.profitChange}%`
+                      : ""}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-medium text-slate-500">
+                    Coût d'achat (CMV)
+                  </p>
+                  <p className="mt-1 text-xl font-bold text-slate-900">
+                    {formatMoney(activeKpis.costOfGoodsSold ?? 0)}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Coût des articles vendus
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-medium text-slate-500">
+                    Autres dépenses
+                  </p>
+                  <p className="mt-1 text-xl font-bold text-slate-900">
+                    {formatMoney(activeKpis.operatingExpenses ?? 0)}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Sorties caisse hors fournisseurs
+                  </p>
+                </div>
+                <div
+                  className={`rounded-xl border p-4 ${
+                    (activeKpis.netProfit ?? 0) >= 0
+                      ? "border-emerald-200 bg-white"
+                      : "border-rose-200 bg-rose-50/60"
+                  }`}
+                >
+                  <p className="text-xs font-medium text-slate-500">
+                    Résultat net
+                  </p>
+                  <p
+                    className={`mt-1 text-xl font-bold ${
+                      (activeKpis.netProfit ?? 0) >= 0
+                        ? "text-emerald-700"
+                        : "text-rose-700"
+                    }`}
+                  >
+                    {formatMoney(activeKpis.netProfit ?? 0)}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Bénéfice brut − autres dépenses
+                  </p>
+                </div>
+              </div>
+              {(activeKpis.itemsWithoutCost ?? 0) > 0 && (
+                <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs text-amber-800">
+                  ⚠️ {activeKpis.itemsWithoutCost} ligne(s) vendue(s) sur cette période avaient un prix d'achat à 0 FCFA. Renseignez les prix d'achat de vos produits pour un bénéfice encore plus précis.
+                </p>
+              )}
+            </div>
+          )}
           <div className="grid gap-5 lg:grid-cols-[1.4fr_0.6fr]">
             <div className="rounded-2xl bg-white p-5 shadow-sm">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -826,6 +916,7 @@ export default function Analytics() {
                     <tr>
                       <th className="py-2.5 pr-3">Boutique</th>
                       <th className="py-2.5 px-3">Chiffre d'affaires</th>
+                      <th className="py-2.5 px-3 text-right">Bénéfice brut</th>
                       <th className="py-2.5 px-3 text-center">Variation</th>
                       <th className="py-2.5 px-3 text-center">Ventes</th>
                       <th className="py-2.5 px-3 text-right">Encaissé</th>
@@ -868,6 +959,17 @@ export default function Analytics() {
                                   ({share}%)
                                 </span>
                               </div>
+                            </td>
+                            <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                              <span className="font-semibold text-emerald-700">
+                                {formatMoney(kpis.grossProfit ?? 0)}
+                              </span>
+                              {kpis.marginRate !== null &&
+                                kpis.marginRate !== undefined && (
+                                  <span className="ml-1 text-xs text-slate-400">
+                                    ({kpis.marginRate}%)
+                                  </span>
+                                )}
                             </td>
                             <td className="py-2.5 px-3 text-center whitespace-nowrap">
                               {change === null || change === undefined ? (
@@ -1482,12 +1584,47 @@ function DetailSection({
     );
   }
   if (section === "products") {
+    const canSeeProfit =
+      isAdmin() && detail.summary?.totalGrossMargin !== undefined;
     return (
       <div className="space-y-4">
+        {canSeeProfit && (
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <Kpi
+              title="CA Produits"
+              value={formatMoney(detail.summary.totalRevenue ?? 0)}
+              icon={<BarChart3 size={18} />}
+            />
+            <Kpi
+              title="Coût d'achat (CMV)"
+              value={formatMoney(detail.summary.totalCostOfGoodsSold ?? 0)}
+              icon={<Boxes size={18} />}
+            />
+            <Kpi
+              title="Bénéfice brut"
+              value={formatMoney(detail.summary.totalGrossMargin ?? 0)}
+              icon={<Wallet size={18} />}
+            />
+            <Kpi
+              title="Taux de marge"
+              value={
+                detail.summary.averageMarginRate !== null &&
+                detail.summary.averageMarginRate !== undefined
+                  ? `${detail.summary.averageMarginRate}%`
+                  : "N/D"
+              }
+              icon={<BarChart3 size={18} />}
+            />
+          </div>
+        )}
         <EntityTable
           rows={detail.products ?? []}
-          columns={["productName", "soldQuantity", "revenue", "grossMargin", "status"]}
-          money={["revenue", "grossMargin"]}
+          columns={
+            canSeeProfit
+              ? ["productName", "soldQuantity", "revenue", "grossMargin", "marginRate", "status"]
+              : ["productName", "soldQuantity", "revenue", "status"]
+          }
+          money={canSeeProfit ? ["revenue", "grossMargin"] : ["revenue"]}
         />
         <Pagination pagination={detail.pagination} onPageChange={onPageChange} />
       </div>
@@ -1638,7 +1775,7 @@ function EntityTable({ rows, columns, money = [] }: { rows: any[]; columns: stri
           <tr>{columns.map((column) => <th key={column} className="px-4 py-3">{columnLabels[column] ?? column}</th>)}</tr>
         </thead>
         <tbody>{rows.map((row, index) => <tr key={row.id ?? row.productId ?? row.customerId ?? index} className="border-b border-slate-50 last:border-0">
-          {columns.map((column) => <td key={column} className="px-4 py-3 text-slate-700">{money.includes(column) ? formatMoney(Number(row[column] ?? 0)) : column.toLowerCase().includes("date") ? formatDateTime(row[column]) : column === "status" || column === "type" || column === "severity" ? readableStatus(row[column]) : String(row[column] ?? "—")}</td>)}
+          {columns.map((column) => <td key={column} className="px-4 py-3 text-slate-700">{money.includes(column) ? formatMoney(Number(row[column] ?? 0)) : column === "marginRate" ? (row[column] === null || row[column] === undefined ? "—" : `${row[column]}%`) : column.toLowerCase().includes("date") ? formatDateTime(row[column]) : column === "status" || column === "type" || column === "severity" ? readableStatus(row[column]) : String(row[column] ?? "—")}</td>)}
         </tr>)}</tbody>
       </table>
     </div>

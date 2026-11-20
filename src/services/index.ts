@@ -509,6 +509,8 @@ export type AnalyticsOverview = {
     revenueChange: number | null;
     previousRevenue?: number;
     previousSalesCount?: number;
+    previousGrossProfit?: number;
+    profitChange?: number | null;
     previousPeriod?: { startDate: string; endDate: string } | null;
   } | null;
   kpis: {
@@ -520,6 +522,12 @@ export type AnalyticsOverview = {
     stockValue: number;
     outOfStockProducts: number;
     lowStockProducts: number;
+    costOfGoodsSold?: number;
+    grossProfit?: number;
+    marginRate?: number | null;
+    operatingExpenses?: number;
+    netProfit?: number;
+    itemsWithoutCost?: number;
   };
 };
 

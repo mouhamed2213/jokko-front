@@ -313,6 +313,12 @@ export type DashboardStats = {
   cashOpen: boolean;
   currentBalance: number | null;
   currentMonthSalesAmount: number;
+  currentMonthCostOfGoodsSold?: number;
+  currentMonthGrossProfit?: number;
+  currentMonthMarginRate?: number | null;
+  currentMonthOperatingExpenses?: number;
+  currentMonthNetProfit?: number;
+  currentMonthItemsWithoutCost?: number;
   topProducts: {
     productId: number | null;
     productName: string;
