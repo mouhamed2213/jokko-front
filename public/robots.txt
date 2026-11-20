@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+
+Disallow: /dashboard
+Disallow: /analytics
+Disallow: /products
+Disallow: /clients
+Disallow: /suppliers
+Disallow: /stock
+Disallow: /sales
+Disallow: /sales-history
+Disallow: /invoices
+Disallow: /cash
+Disallow: /users
+Disallow: /settings
+Disallow: /security
+Disallow: /admin
+Disallow: /super-admin
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /confirm-email-change
+
+Sitemap: https://jokko-business.com/sitemap.xml

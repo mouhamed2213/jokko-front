@@ -1,12 +1,13 @@
 import { lazy, Suspense } from "react";
 import { Toaster } from "react-hot-toast";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Link, Navigate, Route, Routes } from "react-router-dom";
 
 import ProtectedRoute, { SuperAdminGuard, SubscriptionGuard } from "./components/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
 import SuperAdminLayout from "./layouts/SuperAdminLayout";
 import PublicLayout from "./layouts/PublicLayout";
 import MaintenanceGate from "./components/MaintenanceGate";
+import RouteSeo from "./components/RouteSeo";
 
 // Public pages (lazy loaded)
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -56,9 +57,26 @@ const PageLoader = () => (
   </div>
 );
 
+const NotFoundPage = () => (
+  <main className="flex min-h-[60vh] flex-col items-center justify-center px-6 py-16 text-center">
+    <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Erreur 404</p>
+    <h1 className="mt-3 text-3xl font-bold text-slate-900">Page introuvable</h1>
+    <p className="mt-2 max-w-md text-sm text-slate-500">
+      La page que vous recherchez n'existe pas ou a été déplacée.
+    </p>
+    <Link
+      to="/"
+      className="mt-6 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+    >
+      Retour à l'accueil
+    </Link>
+  </main>
+);
+
 export default function App() {
   return (
     <BrowserRouter>
+      <RouteSeo />
       <Toaster
         position="top-right"
         toastOptions={{
@@ -75,7 +93,7 @@ export default function App() {
 
           <Route element={<PublicLayout />}>
             <Route index element={<LandingPage />} />
-            <Route path="/home" element={<LandingPage />} />
+            <Route path="/home" element={<Navigate to="/" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -86,6 +104,7 @@ export default function App() {
             <Route path="/help/:moduleId" element={<HelpArticlePage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/tarifs" element={<PricingPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
 
           {/* Super Admin routes */}
