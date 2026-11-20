@@ -15,7 +15,7 @@ const questions = [
   },
   {
     question: "Les prix sont-ils mensuels ?",
-    answer: "Les montants affichés pour Starter, Pro et Premium correspondent au tarif mensuel en FCFA.",
+    answer: "Les montants affichés pour Starter, Pro et Signature correspondent au tarif mensuel en FCFA.",
   },
   {
     question: "Puis-je changer de formule plus tard ?",

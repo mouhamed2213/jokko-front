@@ -516,7 +516,7 @@ export default function Analytics() {
         <div className="space-y-5">
           {multiStoreMode && multiStoreData && (
             <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
-              <p className="font-semibold text-emerald-900">Vue consolidée Premium</p>
+              <p className="font-semibold text-emerald-900">Vue consolidée Signature</p>
               <p className="mt-1 text-sm text-emerald-800">
                 Données agrégées uniquement pour les boutiques autorisées de votre compte.
               </p>

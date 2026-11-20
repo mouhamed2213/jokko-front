@@ -3,180 +3,129 @@ export const upgradeFeatures = {
   maxUserReached: {
     title: "Multi-utilisateurs",
     description:
-      "Le plan Free est limité à un seul utilisateur. Passez au plan supérieur pour ajouter des collaborateurs.",
-
-    requiredPlan: "Starter • Pro • Premium",
-
+      "Vous avez atteint le nombre maximum d'utilisateurs de votre formule (1 en Gratuit, 3 en Starter, 5 en Pro, illimité en Signature).",
+    requiredPlan: "Starter • Pro • Signature",
     benefits: [
-      "Ajouter plusieurs utilisateurs",
-      "Gestion des rôles",
-      "Inviter des collaborateurs",
+      "Jusqu'à 3 utilisateurs en Starter, 5 en Pro",
+      "Utilisateurs illimités avec le forfait Signature",
+      "Gestion des rôles (Admin / Employé)",
     ],
-
     cta: "Découvrir les plans",
-
     redirect: "/settings",
   },
 
   // EXPORT AND HISTORY FOR CASH
   cashExportAndhistoique: {
-    title: "Historique des Ventes & Rapports PDF",
-    description: `
-    La consultation détaillée et l'export au format PDF des sessions de caisse archivées sont réservés aux
-    utilisateurs des plans supérieurs.`,
-    requiredPlan: "Starter • Pro • Premium",
-
+    title: "Historique de Caisse & Exports",
+    description:
+      "Passez au forfait supérieur pour étendre vos capacités d'exploitation et de suivi financier.",
+    requiredPlan: "Starter • Pro • Signature",
     benefits: [
-      `Historique complet et exports PDF illimités`,
-      " Historique des caisses cloturer",
+      "Historique complet des sessions de caisse",
+      "Exports PDF et Excel sans limite",
     ],
-
     cta: "Découvrir les plans",
-
     redirect: "/settings",
   },
 
   // Max product reached
   maxProductReached: {
-    title: "Limite de Catalogue Atteinte",
-    description: `Ce plan est limité à un maximum de produits.\n  Passez au plan supérieur pour continuer à agrandir votre catalogue.`,
-    requiredPlan: "Starter • Pro • Premium",
-
+    title: "Limite de catalogue atteinte",
+    description:
+      "Le forfait Gratuit est limité à 20 produits actifs. Passez au forfait Starter pour un catalogue illimité.",
+    requiredPlan: "Starter • Pro • Signature",
     benefits: [
-      `Ajouter jusqu'a 600 produits avec le plan Starter`,
-      `Nombre de produits illimités a partir du  plan Pro`,
-      "Ajouter le fournisseur de votre produit  plan Pro",
-      "Alertes de stock pour ne jamais manquer d'articles",
+      "Produits illimités dès le forfait Starter",
+      "Ventes illimitées sans plafond mensuel",
+      "Jusqu'à 5 fournisseurs en Starter, illimités dès Pro",
     ],
-
     cta: "Découvrir les plans",
-
     redirect: "/settings",
   },
 
-
-  // Max product reached
+  // Supplier quota / management
   supplierFeatures: {
-    title: "Gestion fournisseur",
-    description: `La gestion des fournisseurs est disponible a partir du plan Pro `,
-    requiredPlan: "Pro • Premium",
-
+    title: "Capacité fournisseurs",
+    description:
+      "Le nombre de fournisseurs dépend de votre formule (2 en Gratuit, 5 en Starter, illimité dès Pro).",
+    requiredPlan: "Starter • Pro • Signature",
     benefits: [
-      `Gestion fournisseurs complète`,
-      `Liason de vos produit avec vo fournisseur`,
-      `Suivis des dette vise a vis vos fournisseurs`
+      "Jusqu'à 5 fournisseurs avec Starter",
+      "Fournisseurs illimités dès le forfait Pro",
+      "Suivi complet des approvisionnements et dettes",
     ],
-
     cta: "Découvrir les plans",
-
     redirect: "/settings",
   },
 
-  // MAX USER
   maxProductsReached: {
     title: "Limite de produits atteinte",
-    description: "Vous avez atteint le nombre maximal de produits autorisés.",
-
-    requiredPlan: "Starter • Pro • Premium",
-
+    description: "Le forfait Gratuit est limité à 20 produits actifs.",
+    requiredPlan: "Starter • Pro • Signature",
     benefits: [
-      "Ajouter davantage de produits",
-      "Gestion avancée du stock",
-      "Aucune limite selon votre plan",
+      "Produits illimités dès le forfait Starter",
+      "Ventes illimitées par mois",
+      "Jusqu'à 3 utilisateurs en Starter",
     ],
-
     cta: "Découvrir les plans",
-
     redirect: "/settings",
   },
-
 
   // DATA EXPORT
   exportPdfOrExcel: {
     title: "Export de données",
-    description: `L'exportation de vos base de données au format Excel ou PDF 
-    est disponible à partire du plan Starter.
-
-    `,
-
-    requiredPlan: "Starter • Pro • Premium",
-
+    description:
+      "Exportez vos données (Clients, Stocks, Ventes, Factures) aux formats PDF et Excel.",
+    requiredPlan: "Starter • Pro • Signature",
     benefits: [
-      ` Export de données illimité   (Clients, Stocks, Ventes, Historique...)`,
+      "Exports PDF et Excel illimités",
     ],
-
     cta: "Découvrir les plans",
-
     redirect: "/settings",
   },
 
-
   // Invoice
   invoiceFeatures: {
-    title: "Facturation Professionnelle A4",
-    description: `La génération et l'impression des factures 
-    au format officiel A4 est disponible  à partire du plan Starter.`,
-
-    requiredPlan: "Starter Pro • Premium",
-
+    title: "Facturation professionnelle A4",
+    description:
+      "Générez et imprimez vos factures au format A4 et vos tickets thermiques.",
+    requiredPlan: "Starter • Pro • Signature",
     benefits: [
-      ` Factures Format A4`,
+      "Factures format A4 & tickets de caisse",
     ],
-
     cta: "Découvrir les plans",
-
     redirect: "/settings",
   },
 
   // Supplier analytics (ADVANCED_REPORTS)
   supplierAnalytics: {
     title: "Performance fournisseurs",
-    description: `Le classement des fournisseurs et le detail des produits
-    livres par chacun sont disponibles à partir du plan Pro.`,
-
-    requiredPlan: "Pro • Premium",
-
+    description:
+      "Le classement des fournisseurs et le détail des produits livrés par chacun sont disponibles à partir du forfait Pro.",
+    requiredPlan: "Pro • Signature",
     benefits: [
-      "Classement des fournisseurs par volume ou dette",
+      "Classement des fournisseurs par volume d'achats ou dette",
       "Détail des produits livrés par chaque fournisseur",
+      "Analytics & rapports avancés inclus",
     ],
-
     cta: "Découvrir les plans",
-
     redirect: "/settings",
   },
 
   // Consolidated suppliers across shops (MULTI_STORE)
   multiStoreSuppliers: {
-    title: "Vue consolidée multi-boutique",
-    description: `La vue consolidée des fournisseurs sur l'ensemble de vos
-    boutiques est disponible à partir du plan Pro.`,
-
-    requiredPlan: "Pro • Premium",
-
+    title: "Vue consolidée multi-boutiques",
+    description:
+      "La vue consolidée des fournisseurs et des analytics sur l'ensemble de vos boutiques est incluse dans le forfait Signature.",
+    requiredPlan: "Signature",
     benefits: [
-      "Dette fournisseur totale sur toutes vos boutiques",
-      "Détail boutique par boutique",
-      "Chaque boutique garde sa propre comptabilité",
+      "Jusqu'à 5 boutiques et utilisateurs illimités",
+      "Dette fournisseur totale consolidée sur tout le réseau",
+      "Analytics multi-boutiques consolidés",
     ],
-
     cta: "Découvrir les plans",
-
     redirect: "/settings",
   },
-
-
-
-
-
-
-
-
-
-
-
-
-
 } as const;
 
 export type UpgradeFeature = keyof typeof upgradeFeatures;

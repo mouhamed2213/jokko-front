@@ -1,6 +1,8 @@
 // Source unique des formules affichées sur les pages publiques (Landing + Tarifs).
+// Les limites et fonctionnalités reflètent exactement celles appliquées par le serveur (seed-db.ts).
 export interface PublicPlan {
   id: "free" | "starter" | "pro" | "premium";
+  code: "FREE" | "BASIC" | "PRO" | "PREMIUM";
   name: string;
   eyebrow: string;
   price: string;
@@ -14,67 +16,82 @@ export interface PublicPlan {
 export const plans: PublicPlan[] = [
   {
     id: "free",
+    code: "FREE",
     name: "Gratuit",
-    eyebrow: "Pour commencer",
+    eyebrow: "Pour démarrer",
     price: "0",
     period: "FCFA",
-    summary: "Découvrez Jokko Business et organisez les opérations essentielles de votre boutique.",
+    summary:
+      "Testez Jokko Business en conditions réelles et organisez l'essentiel de votre boutique.",
     features: [
-      "Gestion des produits et des ventes",
-      "Suivi des clients et de leurs dettes",
-      "Caisse journalière",
-      "Tickets de caisse",
+      "1 utilisateur · 1 boutique",
+      "Jusqu'à 20 produits",
+      "Jusqu'à 10 ventes par mois",
+      "Clients illimités & suivi des créances",
+      "Jusqu'à 2 fournisseurs",
+      "Caisse journalière & alertes stock",
+      "Factures, tickets & exports PDF / Excel",
     ],
     action: "Créer mon compte",
     highlighted: false,
   },
   {
     id: "starter",
+    code: "BASIC",
     name: "Starter",
     eyebrow: "Pour structurer son activité",
     price: "6 500",
     period: "FCFA / mois",
-    summary: "Structurez la gestion quotidienne de votre boutique et gagnez en visibilité.",
+    summary:
+      "Levez les limites de catalogue et de ventes pour gérer votre boutique au quotidien en équipe.",
     features: [
-      "Tout le nécessaire pour gérer les ventes et les produits",
-      "Alertes de stock faible et de rupture",
-      "Factures et exports PDF / Excel",
-      "Suivi des fournisseurs",
-      "Gestion d'une équipe",
+      "Tout le forfait Gratuit, plus :",
+      "Jusqu'à 3 utilisateurs · 1 boutique",
+      "Produits illimités",
+      "Ventes illimitées",
+      "Clients illimités",
+      "Jusqu'à 5 fournisseurs",
     ],
     action: "Choisir Starter",
     highlighted: true,
   },
   {
     id: "pro",
+    code: "PRO",
     name: "Pro",
-    eyebrow: "Pour accompagner la croissance",
+    eyebrow: "Pour piloter sa croissance",
     price: "14 000",
     period: "FCFA / mois",
-    summary: "Accompagnez le développement de votre commerce et de vos points de vente.",
+    summary:
+      "Analysez vos marges, gérez tous vos fournisseurs sans limite et ouvrez un second point de vente.",
     features: [
-      "Les fonctionnalités de Starter",
-      "Rapports et statistiques avancés",
-      "Gestion de plusieurs boutiques",
-      "Équipe élargie",
-      "Gestion des fournisseurs",
+      "Tout le forfait Starter, plus :",
+      "Jusqu'à 5 utilisateurs",
+      "Jusqu'à 2 boutiques",
+      "Fournisseurs illimités",
+      "Analytics & rapports avancés",
+      "Classement & performance fournisseurs",
     ],
     action: "Choisir Pro",
     highlighted: false,
   },
   {
     id: "premium",
-    name: "Premium",
-    eyebrow: "Pour les organisations établies",
+    code: "PREMIUM",
+    name: "Signature",
+    eyebrow: "Pour les réseaux multi-boutiques",
     price: "22 000",
     period: "FCFA / mois",
-    summary: "Une formule destinée aux structures qui pilotent plusieurs boutiques et des équipes plus larges.",
+    summary:
+      "Centralisez jusqu'à 5 boutiques avec une équipe illimitée et une vision consolidée de votre réseau.",
     features: [
-      "Les fonctionnalités de Pro",
-      "Gestion de plusieurs boutiques",
-      "Une capacité d’équipe adaptée aux structures plus importantes",
+      "Tout le forfait Pro, plus :",
+      "Utilisateurs illimités",
+      "Jusqu'à 5 boutiques",
+      "Vue consolidée multi-boutiques (analytics & CA)",
+      "Suivi consolidé des dettes fournisseurs",
     ],
-    action: "Choisir Premium",
+    action: "Choisir Signature",
     highlighted: false,
   },
 ];

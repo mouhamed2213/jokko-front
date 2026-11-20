@@ -36,7 +36,7 @@ export default function ConsolidatedSuppliersTab({
         </div>
         <p className="font-semibold text-slate-900">
           La vue consolidée multi-boutique est réservée aux plans Pro et
-          Premium
+          Signature
         </p>
         <p className="max-w-md text-sm text-slate-500">
           Voyez la dette fournisseur totale sur toutes vos boutiques, chacune
