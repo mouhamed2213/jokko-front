@@ -8,6 +8,7 @@ import {
   ChevronRight,
   RotateCcw,
   PackageSearch,
+  TrendingUp,
   Users,
   Wallet,
 } from "lucide-react";
@@ -35,6 +36,7 @@ import {
   getAnalyticsOverview,
   getAnalyticsMultiStoreOverview,
   getAnalyticsProducts,
+  getAnalyticsProfit,
   getAnalyticsSales,
   getAnalyticsStock,
   getAnalyticsTrends,
@@ -42,6 +44,7 @@ import {
   type AnalyticsOverview,
 } from "../services";
 import type { PlanCode, SubscriptionInfo } from "../types";
+import { isAdmin } from "../types/auth";
 import { hasFeature } from "../utils/subscription.checker";
 
 ChartJS.register(
@@ -63,9 +66,15 @@ type Section =
   | "customers"
   | "cash"
   | "trends"
-  | "insights";
+  | "insights"
+  | "profit";
 
-const sections: Array<{ id: Section; label: string; icon: React.ReactNode }> = [
+const sections: Array<{
+  id: Section;
+  label: string;
+  icon: React.ReactNode;
+  adminOnly?: boolean;
+}> = [
   { id: "overview", label: "Vue générale", icon: <BarChart3 size={16} /> },
   { id: "sales", label: "Ventes", icon: <CreditCard size={16} /> },
   { id: "products", label: "Produits", icon: <PackageSearch size={16} /> },
@@ -73,7 +82,8 @@ const sections: Array<{ id: Section; label: string; icon: React.ReactNode }> = [
   { id: "customers", label: "Clients", icon: <Users size={16} /> },
   { id: "cash", label: "Trésorerie", icon: <Wallet size={16} /> },
   { id: "trends", label: "Tendances", icon: <BarChart3 size={16} /> },
-  { id: "insights", label: "Insights", icon: <Lightbulb size={16} /> },
+  { id: "insights", label: "Alertes & Conseils", icon: <Lightbulb size={16} /> },
+  { id: "profit", label: "Bénéfices", icon: <TrendingUp size={16} />, adminOnly: true },
 ];
 
 const minimumPlan: Record<Section, PlanCode> = {
@@ -85,6 +95,14 @@ const minimumPlan: Record<Section, PlanCode> = {
   customers: "BASIC",
   trends: "BASIC",
   insights: "PRO",
+  profit: "PREMIUM",
+};
+
+const planDisplayNames: Record<PlanCode, string> = {
+  FREE: "Gratuit",
+  BASIC: "Starter",
+  PRO: "Pro",
+  PREMIUM: "Signature",
 };
 
 const planRank: Record<PlanCode, number> = { FREE: 0, BASIC: 1, PRO: 2, PREMIUM: 3 };
@@ -116,6 +134,12 @@ const statusLabels: Record<string, string> = {
   WARNING: "Alerte",
   IN: "Entrée",
   OUT: "Sortie",
+  CASH: "Espèces",
+  WAVE: "Wave",
+  ORANGE_MONEY: "Orange Money",
+  MOBILE_MONEY: "Mobile Money",
+  CARD: "Carte",
+  BANK_TRANSFER: "Virement",
 };
 
 const columnLabels: Record<string, string> = {
@@ -126,7 +150,9 @@ const columnLabels: Record<string, string> = {
   soldQuantity: "Quantité vendue",
   quantity: "Quantité",
   revenue: "Chiffre d'affaires",
-  grossMargin: "Marge brute",
+  collected: "Encaissé",
+  grossMargin: "Bénéfice brut",
+  marginRate: "Marge %",
   purchasedAmount: "Montant acheté",
   receivable: "Créance",
   orderCount: "Commandes",
@@ -272,7 +298,9 @@ function AnalyticsFilters({
       ? [
           select("status", "Statut", [["NEW", "Nouveau"], ["FAST", "Rotation rapide"], ["SLOW", "Rotation lente"], ["REGULAR", "Rotation normale"], ["DORMANT", "Dormant"]]),
           select("stockStatus", "État du stock", [["IN_STOCK", "En stock"], ["LOW_STOCK", "Stock faible"], ["OUT_OF_STOCK", "Rupture"]]),
-          select("costSource", "Coût", [["HISTORICAL", "Historique"], ["ESTIMATED", "Estimé"]]),
+          ...(isAdmin()
+            ? [select("costSource", "Coût", [["HISTORICAL", "Historique"], ["ESTIMATED", "Estimé"]])]
+            : []),
         ]
       : section === "stock"
         ? [
@@ -314,6 +342,19 @@ export default function Analytics() {
   const [multiStoreData, setMultiStoreData] = useState<Awaited<ReturnType<typeof getAnalyticsMultiStoreOverview>> | null>(null);
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<Record<string, string>>({});
+  const [overviewViewMode, setOverviewViewMode] = useState<
+    "bars" | "summary" | "line"
+  >(() => {
+    const saved = localStorage.getItem("analytics_overview_chart_mode");
+    return saved === "summary" || saved === "line" || saved === "bars"
+      ? saved
+      : "bars";
+  });
+
+  const changeOverviewViewMode = (mode: "bars" | "summary" | "line") => {
+    setOverviewViewMode(mode);
+    localStorage.setItem("analytics_overview_chart_mode", mode);
+  };
 
   const params = useMemo(() => ({ startDate, endDate, limit: 50, page, pageSize: 20, ...filters }), [startDate, endDate, page, filters]);
   const dateError =
@@ -331,8 +372,8 @@ export default function Analytics() {
     if (sectionLocked) {
       setError(
         section === "insights"
-          ? "Les insights automatiques nécessitent le plan PRO et les rapports avancés."
-          : `Cette analyse est disponible à partir du plan ${minimumPlan[section]}.`,
+          ? "Les alertes et conseils automatiques nécessitent le plan Pro et les rapports avancés."
+          : `Cette analyse est disponible à partir du plan ${planDisplayNames[minimumPlan[section]]}.`,
       );
       setLoading(false);
       return;
@@ -364,6 +405,7 @@ export default function Analytics() {
           cash: () => getAnalyticsCash(requestedParams),
           trends: () => getAnalyticsTrends(requestedParams),
           insights: () => getAnalyticsInsights(requestedParams),
+          profit: () => getAnalyticsProfit(requestedParams),
         };
         setDetail(await loaders[section]());
       }
@@ -385,28 +427,72 @@ export default function Analytics() {
 
   useEffect(() => {
     if (subscription) void load();
-  }, [section, subscription, multiStoreMode, page]);
+  }, [section, subscription, multiStoreMode, page, filters]);
 
-  const overviewChart = data
+  const activeKpis = multiStoreMode ? multiStoreData?.consolidated : data?.kpis;
+  const activeComparison = multiStoreMode
+    ? (multiStoreData?.comparison ?? null)
+    : (data?.comparison ?? null);
+  const currentRevenue = activeKpis?.revenue ?? 0;
+  const previousRevenue = activeComparison?.previousRevenue ?? 0;
+  const hasPreviousData = activeComparison?.previousRevenue !== undefined;
+  const revenueDelta = currentRevenue - previousRevenue;
+
+  // Ordre chronologique exact : Période précédente (gauche) -> Période actuelle (droite)
+  const overviewChartLabels = ["Période précédente", "Période actuelle"];
+  const overviewBarChart = activeKpis
     ? {
-        labels: ["Période sélectionnée", "Période précédente"],
+        labels: overviewChartLabels,
         datasets: [
           {
-            label: "Chiffre d'affaires",
-            data: [
-              data.kpis.revenue,
-              data.comparison?.revenueChange === null
-                ? 0
-                : data.kpis.revenue / (1 + (data.comparison?.revenueChange ?? 0) / 100),
-            ],
-            borderColor: "#059669",
-            backgroundColor: "rgba(5, 150, 105, 0.12)",
-            fill: true,
-            tension: 0.35,
+            label: "Chiffre d'affaires (FCFA)",
+            data: [previousRevenue, currentRevenue],
+            backgroundColor: ["#cbd5e1", "#059669"],
+            borderRadius: 10,
+            maxBarThickness: 72,
           },
         ],
       }
     : null;
+
+  const overviewLineChart = activeKpis
+    ? {
+        labels: overviewChartLabels,
+        datasets: [
+          {
+            label: "Chiffre d'affaires (FCFA)",
+            data: [previousRevenue, currentRevenue],
+            borderColor: "#059669",
+            backgroundColor: "rgba(5, 150, 105, 0.12)",
+            pointBackgroundColor: ["#64748b", "#059669"],
+            pointRadius: 5,
+            fill: true,
+            tension: 0.3,
+          },
+        ],
+      }
+    : null;
+
+  const overviewChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx: any) => formatMoney(Number(ctx.raw) || 0),
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: (value: any) =>
+            `${Number(value).toLocaleString("fr-FR")} F`,
+        },
+      },
+    },
+  };
 
   return (
     <section className="space-y-5">
@@ -422,7 +508,8 @@ export default function Analytics() {
           className="flex flex-wrap items-end gap-2"
           onSubmit={(event) => {
             event.preventDefault();
-            load();
+            setPage(1);
+            void load({ ...params, page: 1 });
           }}
         >
           <label className="text-xs font-medium text-slate-500">
@@ -443,24 +530,30 @@ export default function Analytics() {
           </label>
           <button type="button" onClick={() => { setStartDate(defaultStart); setEndDate(defaultEnd); setPage(1); void load({ startDate: defaultStart, endDate: defaultEnd, limit: 50, page: 1, pageSize: 20 }); }} title="Réinitialiser la période" className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-100"><RotateCcw size={18} /></button>
           <button disabled={Boolean(dateError)} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">Actualiser</button>
-          {subscription && hasFeature(subscription, "MULTI_STORE") && subscription.plan.code === "PREMIUM" && (
-            <button
-              type="button"
-              onClick={() => setMultiStoreMode((enabled) => !enabled)}
-              className={`rounded-xl border px-3 py-2 text-sm font-semibold ${
-                multiStoreMode
-                  ? "border-emerald-600 bg-emerald-50 text-emerald-700"
-                  : "border-slate-200 text-slate-600"
-              }`}
-            >
-              {multiStoreMode ? "Vue boutique active" : "Vue consolidée"}
-            </button>
-          )}
+          {section === "overview" &&
+            isAdmin() &&
+            subscription &&
+            hasFeature(subscription, "MULTI_STORE") &&
+            subscription.plan.code === "PREMIUM" && (
+              <button
+                type="button"
+                onClick={() => setMultiStoreMode((enabled) => !enabled)}
+                className={`rounded-xl border px-3 py-2 text-sm font-semibold ${
+                  multiStoreMode
+                    ? "border-emerald-600 bg-emerald-50 text-emerald-700"
+                    : "border-slate-200 text-slate-600"
+                }`}
+              >
+                {multiStoreMode ? "Vue boutique active" : "Vue consolidée"}
+              </button>
+            )}
         </form>
       </div>
 
       <div className="flex gap-2 overflow-x-auto border-b border-slate-200 pb-2">
-        {sections.map((item) => (
+        {sections
+          .filter((item) => !item.adminOnly || isAdmin())
+          .map((item) => (
           <button
             key={item.id}
             type="button"
@@ -473,8 +566,8 @@ export default function Analytics() {
               if (locked) {
                 setError(
                   item.id === "insights"
-                    ? "Les insights automatiques nécessitent le plan PRO et les rapports avancés."
-                    : `Cette analyse est disponible à partir du plan ${minimumPlan[item.id]}.`,
+                    ? "Les alertes et conseils automatiques nécessitent le plan Pro et les rapports avancés."
+                    : `Cette analyse est disponible à partir du plan ${planDisplayNames[minimumPlan[item.id]]}.`,
                 );
                 return;
               }
@@ -516,7 +609,7 @@ export default function Analytics() {
         <div className="space-y-5">
           {multiStoreMode && multiStoreData && (
             <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
-              <p className="font-semibold text-emerald-900">Vue consolidée Premium</p>
+              <p className="font-semibold text-emerald-900">Vue consolidée Signature</p>
               <p className="mt-1 text-sm text-emerald-800">
                 Données agrégées uniquement pour les boutiques autorisées de votre compte.
               </p>
@@ -530,15 +623,286 @@ export default function Analytics() {
             </div>
           )}
           <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-            <Kpi title="CA de la période" value={formatMoney((multiStoreMode ? multiStoreData?.consolidated.revenue : data?.kpis.revenue) ?? 0)} icon={<BarChart3 size={18} />} />
-            <Kpi title="Ventes" value={(multiStoreMode ? multiStoreData?.consolidated.salesCount : data?.kpis.salesCount) ?? 0} icon={<CreditCard size={18} />} />
-            <Kpi title="Panier moyen" value={formatMoney((multiStoreMode ? multiStoreData?.consolidated.averageBasket : data?.kpis.averageBasket) ?? 0)} icon={<Wallet size={18} />} />
-            <Kpi title="Variation CA" value={data?.comparison?.revenueChange === null || data?.comparison?.revenueChange === undefined ? "N/D" : `${data.comparison.revenueChange >= 0 ? "+" : ""}${data.comparison.revenueChange}%`} icon={<BarChart3 size={18} />} />
+            <Kpi title="CA de la période" value={formatMoney(activeKpis?.revenue ?? 0)} icon={<BarChart3 size={18} />} />
+            <Kpi title="Ventes" value={activeKpis?.salesCount ?? 0} icon={<CreditCard size={18} />} />
+            <Kpi title="Panier moyen" value={formatMoney(activeKpis?.averageBasket ?? 0)} icon={<Wallet size={18} />} />
+            <Kpi
+              title="Variation CA"
+              value={
+                activeComparison?.revenueChange === null ||
+                activeComparison?.revenueChange === undefined
+                  ? "N/D"
+                  : `${activeComparison.revenueChange >= 0 ? "+" : ""}${activeComparison.revenueChange}%`
+              }
+              icon={<BarChart3 size={18} />}
+            />
           </div>
+          {isAdmin() && activeKpis?.grossProfit !== undefined && (
+            <div className="rounded-2xl bg-white p-5 shadow-sm">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="font-semibold text-slate-900">
+                    Rentabilité &amp; Bénéfice
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Calculé sur les ventes non annulées et les sorties de caisse hors achats fournisseurs
+                  </p>
+                </div>
+                {activeKpis.marginRate !== null &&
+                  activeKpis.marginRate !== undefined && (
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                      Taux de marge : {activeKpis.marginRate}%
+                    </span>
+                  )}
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-4">
+                  <p className="text-xs font-medium text-emerald-700">
+                    Bénéfice brut
+                  </p>
+                  <p className="mt-1 text-xl font-bold text-emerald-950">
+                    {formatMoney(activeKpis.grossProfit)}
+                  </p>
+                  <p className="mt-1 text-xs text-emerald-700/80">
+                    Ventes − coût d'achat
+                    {activeComparison?.profitChange !== null &&
+                    activeComparison?.profitChange !== undefined
+                      ? ` · ${activeComparison.profitChange >= 0 ? "+" : ""}${activeComparison.profitChange}%`
+                      : ""}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-medium text-slate-500">
+                    Coût d'achat (CMV)
+                  </p>
+                  <p className="mt-1 text-xl font-bold text-slate-900">
+                    {formatMoney(activeKpis.costOfGoodsSold ?? 0)}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Coût des articles vendus
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-medium text-slate-500">
+                    Autres dépenses
+                  </p>
+                  <p className="mt-1 text-xl font-bold text-slate-900">
+                    {formatMoney(activeKpis.operatingExpenses ?? 0)}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Sorties caisse hors fournisseurs
+                  </p>
+                </div>
+                <div
+                  className={`rounded-xl border p-4 ${
+                    (activeKpis.netProfit ?? 0) >= 0
+                      ? "border-emerald-200 bg-white"
+                      : "border-rose-200 bg-rose-50/60"
+                  }`}
+                >
+                  <p className="text-xs font-medium text-slate-500">
+                    Résultat net
+                  </p>
+                  <p
+                    className={`mt-1 text-xl font-bold ${
+                      (activeKpis.netProfit ?? 0) >= 0
+                        ? "text-emerald-700"
+                        : "text-rose-700"
+                    }`}
+                  >
+                    {formatMoney(activeKpis.netProfit ?? 0)}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Bénéfice brut − autres dépenses
+                  </p>
+                </div>
+              </div>
+              {(activeKpis.itemsWithoutCost ?? 0) > 0 && (
+                <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs text-amber-800">
+                  ⚠️ {activeKpis.itemsWithoutCost} ligne(s) vendue(s) sur cette période avaient un prix d'achat à 0 FCFA. Renseignez les prix d'achat de vos produits pour un bénéfice encore plus précis.
+                </p>
+              )}
+            </div>
+          )}
           <div className="grid gap-5 lg:grid-cols-[1.4fr_0.6fr]">
             <div className="rounded-2xl bg-white p-5 shadow-sm">
-              <h2 className="mb-4 font-semibold text-slate-900">Comparaison du chiffre d'affaires</h2>
-              {overviewChart ? <Line data={overviewChart} options={{ responsive: true, plugins: { legend: { display: false } } }} /> : <EmptyState message="Aucune donnée disponible." />}
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="font-semibold text-slate-900">
+                    Comparaison du chiffre d'affaires
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Période précédente comparée à la période sélectionnée (chiffres réels)
+                  </p>
+                </div>
+                <div className="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+                  {(
+                    [
+                      { id: "bars", label: "Barres" },
+                      { id: "summary", label: "Synthèse" },
+                      { id: "line", label: "Courbe" },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => changeOverviewViewMode(opt.id)}
+                      className={`rounded-lg px-3 py-1.5 transition ${
+                        overviewViewMode === opt.id
+                          ? "bg-white text-emerald-700 shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {!activeKpis ? (
+                <EmptyState message="Aucune donnée disponible." />
+              ) : overviewViewMode === "summary" ? (
+                <div className="space-y-5 py-2">
+                  {/* Résumé en français simple */}
+                  <div
+                    className={`rounded-xl border px-4 py-3 text-sm ${
+                      revenueDelta > 0
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                        : revenueDelta < 0
+                          ? "border-amber-200 bg-amber-50 text-amber-900"
+                          : "border-slate-200 bg-slate-50 text-slate-800"
+                    }`}
+                  >
+                    {!hasPreviousData ? (
+                      <span>
+                        Chiffre d'affaires sur la période :{" "}
+                        <strong>{formatMoney(currentRevenue)}</strong>.
+                      </span>
+                    ) : revenueDelta > 0 ? (
+                      <span>
+                        Vos ventes sont en <strong>hausse de {formatMoney(revenueDelta)}</strong>
+                        {activeComparison?.revenueChange !== null &&
+                        activeComparison?.revenueChange !== undefined
+                          ? ` (+${activeComparison.revenueChange}%)`
+                          : ""}{" "}
+                        par rapport à la période précédente.
+                      </span>
+                    ) : revenueDelta < 0 ? (
+                      <span>
+                        Vos ventes sont en{" "}
+                        <strong>baisse de {formatMoney(Math.abs(revenueDelta))}</strong>
+                        {activeComparison?.revenueChange !== null &&
+                        activeComparison?.revenueChange !== undefined
+                          ? ` (${activeComparison.revenueChange}%)`
+                          : ""}{" "}
+                        par rapport à la période précédente.
+                      </span>
+                    ) : (
+                      <span>
+                        Chiffre d'affaires <strong>stable</strong> par rapport à la période précédente (
+                        {formatMoney(currentRevenue)}).
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Comparaison visuelle par barres horizontales */}
+                  {(() => {
+                    const maxRev = Math.max(currentRevenue, previousRevenue, 1);
+                    const prevPct = Math.round((previousRevenue / maxRev) * 100);
+                    const currPct = Math.round((currentRevenue / maxRev) * 100);
+                    return (
+                      <div className="space-y-3">
+                        <div>
+                          <div className="mb-1 flex items-center justify-between text-xs">
+                            <span className="font-medium text-slate-500">
+                              Période précédente
+                            </span>
+                            <span className="font-semibold text-slate-700">
+                              {formatMoney(previousRevenue)}
+                            </span>
+                          </div>
+                          <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100">
+                            <div
+                              className="h-full rounded-full bg-slate-400 transition-all"
+                              style={{ width: `${prevPct}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="mb-1 flex items-center justify-between text-xs">
+                            <span className="font-semibold text-emerald-800">
+                              Période actuelle
+                            </span>
+                            <span className="font-bold text-emerald-700">
+                              {formatMoney(currentRevenue)}
+                            </span>
+                          </div>
+                          <div className="h-3 w-full overflow-hidden rounded-full bg-emerald-100">
+                            <div
+                              className="h-full rounded-full bg-emerald-600 transition-all"
+                              style={{ width: `${currPct}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Jauge Encaissé vs Créances (données réelles) */}
+                  {(() => {
+                    const collected = activeKpis.collected ?? 0;
+                    const receivables = activeKpis.receivables ?? 0;
+                    const totalBilled = collected + receivables;
+                    const collectedPct =
+                      totalBilled > 0
+                        ? Math.round((collected / totalBilled) * 100)
+                        : 0;
+                    const receivablesPct =
+                      totalBilled > 0 ? 100 - collectedPct : 0;
+                    return (
+                      <div className="border-t border-slate-100 pt-4">
+                        <div className="mb-2 flex items-center justify-between text-xs">
+                          <span className="font-medium text-slate-600">
+                            Répartition des encaissements
+                          </span>
+                          <span className="text-slate-500">
+                            {totalBilled > 0
+                              ? `${collectedPct}% encaissé · ${receivablesPct}% à recouvrer`
+                              : "Aucun mouvement sur la période"}
+                          </span>
+                        </div>
+                        <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className="h-full bg-emerald-500 transition-all"
+                            style={{ width: `${collectedPct}%` }}
+                          />
+                          <div
+                            className="h-full bg-amber-400 transition-all"
+                            style={{ width: `${receivablesPct}%` }}
+                          />
+                        </div>
+                        <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-slate-600">
+                          <span>
+                            <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-emerald-500" />
+                            Encaissé : <strong>{formatMoney(collected)}</strong>
+                          </span>
+                          <span>
+                            <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-amber-400" />
+                            Créances : <strong>{formatMoney(receivables)}</strong>
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              ) : overviewViewMode === "bars" && overviewBarChart ? (
+                <Bar data={overviewBarChart} options={overviewChartOptions} />
+              ) : overviewLineChart ? (
+                <Line data={overviewLineChart} options={overviewChartOptions} />
+              ) : (
+                <EmptyState message="Aucune donnée disponible." />
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <Kpi title="Encaissé" value={formatMoney((multiStoreMode ? multiStoreData?.consolidated.collected : data?.kpis.collected) ?? 0)} icon={<Wallet size={18} />} />
@@ -547,11 +911,1247 @@ export default function Analytics() {
               <Kpi title="Alertes stock" value={((multiStoreMode ? multiStoreData?.consolidated.outOfStockProducts : data?.kpis.outOfStockProducts) ?? 0) + ((multiStoreMode ? multiStoreData?.consolidated.lowStockProducts : data?.kpis.lowStockProducts) ?? 0)} icon={<AlertTriangle size={18} />} />
             </div>
           </div>
+          {multiStoreMode && multiStoreData && multiStoreData.shops.length > 0 && (
+            <div className="rounded-2xl bg-white p-5 shadow-sm">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="font-semibold text-slate-900">
+                    Comparatif par boutique
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Détail des performances de chacune de vos {multiStoreData.shops.length} boutique(s) active(s) sur la période
+                  </p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="border-b border-slate-100 text-xs uppercase text-slate-400">
+                    <tr>
+                      <th className="py-2.5 pr-3">Boutique</th>
+                      <th className="py-2.5 px-3">Chiffre d'affaires</th>
+                      <th className="py-2.5 px-3 text-right">Bénéfice brut</th>
+                      <th className="py-2.5 px-3 text-center">Variation</th>
+                      <th className="py-2.5 px-3 text-center">Ventes</th>
+                      <th className="py-2.5 px-3 text-right">Encaissé</th>
+                      <th className="py-2.5 px-3 text-right">Créances</th>
+                      <th className="py-2.5 px-3 text-right">Valeur stock</th>
+                      <th className="py-2.5 pl-3 text-center">Alertes stock</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {[...multiStoreData.shops]
+                      .sort((a, b) => b.overview.kpis.revenue - a.overview.kpis.revenue)
+                      .map(({ shop, overview }) => {
+                        const kpis = overview.kpis;
+                        const share =
+                          multiStoreData.consolidated.revenue > 0
+                            ? Math.round(
+                                (kpis.revenue / multiStoreData.consolidated.revenue) * 100,
+                              )
+                            : 0;
+                        const change = overview.comparison?.revenueChange;
+                        const stockAlerts =
+                          (kpis.outOfStockProducts ?? 0) + (kpis.lowStockProducts ?? 0);
+                        return (
+                          <tr key={shop.id} className="hover:bg-slate-50/60">
+                            <td className="py-2.5 pr-3 font-semibold text-slate-800 whitespace-nowrap">
+                              {shop.name}
+                            </td>
+                            <td className="py-2.5 px-3 min-w-48">
+                              <div className="flex items-center gap-2">
+                                <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                                  <div
+                                    className="h-full rounded-full bg-emerald-500"
+                                    style={{ width: `${share}%` }}
+                                  />
+                                </div>
+                                <span className="font-semibold text-slate-900 whitespace-nowrap">
+                                  {formatMoney(kpis.revenue)}
+                                </span>
+                                <span className="text-xs text-slate-400 whitespace-nowrap">
+                                  ({share}%)
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                              <span className="font-semibold text-emerald-700">
+                                {formatMoney(kpis.grossProfit ?? 0)}
+                              </span>
+                              {kpis.marginRate !== null &&
+                                kpis.marginRate !== undefined && (
+                                  <span className="ml-1 text-xs text-slate-400">
+                                    ({kpis.marginRate}%)
+                                  </span>
+                                )}
+                            </td>
+                            <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                              {change === null || change === undefined ? (
+                                <span className="text-xs text-slate-400">N/D</span>
+                              ) : (
+                                <span
+                                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                                    change >= 0
+                                      ? "bg-emerald-50 text-emerald-700"
+                                      : "bg-rose-50 text-rose-700"
+                                  }`}
+                                >
+                                  {change >= 0 ? "+" : ""}
+                                  {change}%
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-2.5 px-3 text-center text-slate-700">
+                              {kpis.salesCount}
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-medium text-emerald-700 whitespace-nowrap">
+                              {formatMoney(kpis.collected)}
+                            </td>
+                            <td
+                              className={`py-2.5 px-3 text-right font-medium whitespace-nowrap ${
+                                kpis.receivables > 0 ? "text-amber-600" : "text-slate-400"
+                              }`}
+                            >
+                              {formatMoney(kpis.receivables)}
+                            </td>
+                            <td className="py-2.5 px-3 text-right text-slate-700 whitespace-nowrap">
+                              {formatMoney(kpis.stockValue)}
+                            </td>
+                            <td className="py-2.5 pl-3 text-center">
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                                  stockAlerts > 0
+                                    ? "bg-amber-50 text-amber-700"
+                                    : "bg-slate-100 text-slate-500"
+                                }`}
+                              >
+                                {stockAlerts}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <DetailSection section={section} detail={detail} onNavigate={navigate} onPageChange={setPage} />
       )}
     </section>
+  );
+}
+
+function SalesAnalyticsSection({ detail }: { detail: any }) {
+  const [viewMode, setViewMode] = useState<"bars" | "summary" | "line">(() => {
+    const saved = localStorage.getItem("analytics_sales_chart_mode");
+    return saved === "summary" || saved === "line" || saved === "bars"
+      ? saved
+      : "bars";
+  });
+
+  const changeMode = (mode: "bars" | "summary" | "line") => {
+    setViewMode(mode);
+    localStorage.setItem("analytics_sales_chart_mode", mode);
+  };
+
+  const timeline: Array<{
+    bucket: string;
+    revenue: number;
+    salesCount: number;
+    collected: number;
+    remaining: number;
+  }> = detail.timeline ?? [];
+  const granularity: string = detail.granularity ?? "day";
+  const topProducts: Array<{
+    productId: number | null;
+    productName: string;
+    quantity: number;
+    revenue: number;
+  }> = detail.topProductsByRevenue ?? [];
+
+  const formatBucketLabel = (bucket: string) => {
+    const date = new Date(bucket);
+    if (granularity === "hour") {
+      return date.toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+    if (granularity === "month") {
+      return date.toLocaleDateString("fr-FR", {
+        month: "short",
+        year: "numeric",
+      });
+    }
+    return date.toLocaleDateString("fr-FR");
+  };
+
+  const labels = timeline.map((row) => formatBucketLabel(row.bucket));
+  const totalRevenue = timeline.reduce((sum, r) => sum + (r.revenue || 0), 0);
+  const totalSales = timeline.reduce((sum, r) => sum + (r.salesCount || 0), 0);
+  const bestRow = timeline.reduce<typeof timeline[number] | null>(
+    (best, row) => (!best || row.revenue > best.revenue ? row : best),
+    null,
+  );
+  const maxRowRevenue = Math.max(...timeline.map((r) => r.revenue || 0), 1);
+
+  const summaryPageSize = 10;
+  const [summaryPage, setSummaryPage] = useState(1);
+  const summaryTotalPages = Math.max(1, Math.ceil(timeline.length / summaryPageSize));
+  const safeSummaryPage = Math.min(summaryPage, summaryTotalPages);
+  const pagedTimeline = timeline.slice(
+    (safeSummaryPage - 1) * summaryPageSize,
+    safeSummaryPage * summaryPageSize,
+  );
+
+  useEffect(() => {
+    setSummaryPage(1);
+  }, [detail]);
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: true, position: "top" as const },
+      tooltip: {
+        callbacks: {
+          label: (ctx: any) =>
+            `${ctx.dataset.label}: ${formatMoney(Number(ctx.raw) || 0)}`,
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: (value: any) =>
+            `${Number(value).toLocaleString("fr-FR")} F`,
+        },
+      },
+    },
+  };
+
+  return (
+    <div className="space-y-5">
+      <div className="rounded-2xl bg-white p-5 shadow-sm">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-semibold text-slate-900">
+              Évolution des ventes
+            </h2>
+            <p className="text-xs text-slate-500">
+              Chiffre d'affaires et montants encaissés sur la période (données réelles)
+            </p>
+          </div>
+          <div className="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+            {(
+              [
+                { id: "bars", label: "Barres" },
+                { id: "summary", label: "Synthèse" },
+                { id: "line", label: "Courbe" },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => changeMode(opt.id)}
+                className={`rounded-lg px-3 py-1.5 transition ${
+                  viewMode === opt.id
+                    ? "bg-white text-emerald-700 shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {!timeline.length ? (
+          <EmptyState message="Aucune vente sur cette période." />
+        ) : viewMode === "summary" ? (
+          <div className="space-y-4">
+            {/* 3 repères immédiats pour lecture rapide */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3.5">
+                <p className="text-xs text-emerald-700">Total CA sur la période</p>
+                <p className="mt-1 text-lg font-bold text-emerald-950">
+                  {formatMoney(totalRevenue)}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+                <p className="text-xs text-slate-500">Nombre de ventes</p>
+                <p className="mt-1 text-lg font-bold text-slate-900">
+                  {totalSales} vente{totalSales > 1 ? "s" : ""}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+                <p className="text-xs text-slate-500">Meilleur pic</p>
+                <p className="mt-1 text-sm font-bold text-slate-900">
+                  {bestRow
+                    ? `${formatBucketLabel(bestRow.bucket)} · ${formatMoney(bestRow.revenue)}`
+                    : "—"}
+                </p>
+              </div>
+            </div>
+
+            {/* Tableau clair par période */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-slate-100 text-xs uppercase text-slate-400">
+                  <tr>
+                    <th className="py-2.5 pr-3">Période</th>
+                    <th className="py-2.5 px-3 text-center">Ventes</th>
+                    <th className="py-2.5 px-3">Chiffre d'affaires</th>
+                    <th className="py-2.5 px-3 text-right">Encaissé</th>
+                    <th className="py-2.5 pl-3 text-right">Reste dû</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {pagedTimeline.map((row) => {
+                    const pct = Math.round((row.revenue / maxRowRevenue) * 100);
+                    return (
+                      <tr key={row.bucket} className="hover:bg-slate-50/60">
+                        <td className="py-2.5 pr-3 font-medium text-slate-700 whitespace-nowrap">
+                          {formatBucketLabel(row.bucket)}
+                        </td>
+                        <td className="py-2.5 px-3 text-center text-slate-600">
+                          {row.salesCount}
+                        </td>
+                        <td className="py-2.5 px-3 min-w-44">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                              <div
+                                className="h-full rounded-full bg-emerald-500"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <span className="font-semibold text-slate-900 whitespace-nowrap">
+                              {formatMoney(row.revenue)}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-3 text-right text-emerald-700 font-medium whitespace-nowrap">
+                          {formatMoney(row.collected)}
+                        </td>
+                        <td
+                          className={`py-2.5 pl-3 text-right font-medium whitespace-nowrap ${
+                            row.remaining > 0 ? "text-amber-600" : "text-slate-400"
+                          }`}
+                        >
+                          {formatMoney(row.remaining)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <Pagination
+              pagination={{
+                page: safeSummaryPage,
+                totalPages: summaryTotalPages,
+                total: timeline.length,
+              }}
+              onPageChange={setSummaryPage}
+            />
+          </div>
+        ) : viewMode === "bars" ? (
+          <Bar
+            data={{
+              labels,
+              datasets: [
+                {
+                  label: "Chiffre d'affaires",
+                  data: timeline.map((row) => row.revenue),
+                  backgroundColor: "#059669",
+                  borderRadius: 6,
+                },
+                {
+                  label: "Encaissé",
+                  data: timeline.map((row) => row.collected),
+                  backgroundColor: "#94a3b8",
+                  borderRadius: 6,
+                },
+              ],
+            }}
+            options={chartOptions}
+          />
+        ) : (
+          <Line
+            data={{
+              labels,
+              datasets: [
+                {
+                  label: "Chiffre d'affaires",
+                  data: timeline.map((row) => row.revenue),
+                  borderColor: "#059669",
+                  backgroundColor: "rgba(5, 150, 105, 0.12)",
+                  fill: true,
+                  tension: 0.3,
+                },
+                {
+                  label: "Encaissé",
+                  data: timeline.map((row) => row.collected),
+                  borderColor: "#64748b",
+                  borderDash: [5, 5],
+                  fill: false,
+                  tension: 0.3,
+                },
+              ],
+            }}
+            options={chartOptions}
+          />
+        )}
+      </div>
+
+      {topProducts.length > 0 && (
+        <div className="rounded-2xl bg-white p-5 shadow-sm">
+          <h3 className="mb-3 font-semibold text-slate-900">
+            Top produits par chiffre d'affaires
+          </h3>
+          <div className="divide-y divide-slate-100">
+            {topProducts.map((p, idx) => (
+              <div
+                key={`${p.productId ?? p.productName}-${idx}`}
+                className="flex items-center justify-between py-2.5 text-sm"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-700">
+                    {idx + 1}
+                  </span>
+                  <span className="truncate font-medium text-slate-800">
+                    {p.productName}
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 shrink-0">
+                  <span className="text-xs text-slate-500">
+                    {p.quantity} pcs
+                  </span>
+                  <span className="font-bold text-emerald-700">
+                    {formatMoney(p.revenue)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const insightLabels: Record<string, string> = {
+  REVENUE_GROWTH: "Croissance du chiffre d'affaires",
+  REVENUE_DECLINE: "Baisse du chiffre d'affaires",
+  OUT_OF_STOCK: "Ruptures de stock",
+  LOW_STOCK: "Stock faible",
+  DORMANT_PRODUCTS: "Produits dormants",
+  SALES_CONCENTRATION: "Concentration des ventes",
+  RECEIVABLES: "Créances",
+};
+
+function InsightsSection({
+  insights,
+  pagination,
+  onNavigate,
+  onPageChange,
+}: {
+  insights: any[];
+  pagination: any;
+  onNavigate: (path: string) => void;
+  onPageChange: (page: number) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      {insights.length ? (
+        insights.map((insight) => (
+          <div
+            key={`${insight.type}-${insight.message}`}
+            className="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div>
+              <p className="font-semibold text-slate-900">{insight.message}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                {insightLabels[insight.type] ?? readableStatus(insight.type)} ·{" "}
+                {readableStatus(insight.severity)}
+              </p>
+              {insight.type === "SALES_CONCENTRATION" &&
+                Array.isArray(insight.context?.products) && (
+                  <p className="mt-2 text-sm text-slate-600">
+                    Produits concernés :{" "}
+                    {insight.context.products
+                      .map((product: { productName: string }) => product.productName)
+                      .join(", ")}
+                  </p>
+                )}
+            </div>
+            {["OUT_OF_STOCK", "LOW_STOCK", "DORMANT_PRODUCTS"].includes(insight.type) && (
+              <button
+                type="button"
+                onClick={() =>
+                  onNavigate(insight.type === "DORMANT_PRODUCTS" ? "/products" : "/stock")
+                }
+                className="rounded-xl border border-emerald-200 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
+              >
+                Voir les produits
+              </button>
+            )}
+            {insight.type === "RECEIVABLES" && (
+              <button
+                type="button"
+                onClick={() => onNavigate("/invoices")}
+                className="rounded-xl border border-emerald-200 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
+              >
+                Voir les factures
+              </button>
+            )}
+          </div>
+        ))
+      ) : (
+        <EmptyState message="Aucune alerte ni conseil pour ce filtre et cette période." />
+      )}
+      <Pagination pagination={pagination} onPageChange={onPageChange} />
+    </div>
+  );
+}
+
+function TrendsAnalyticsSection({ detail }: { detail: any }) {
+  const [viewMode, setViewMode] = useState<"bars" | "table">(() => {
+    const saved = localStorage.getItem("jokko.analytics.trendsView");
+    return saved === "bars" || saved === "table" ? saved : "bars";
+  });
+
+  const changeViewMode = (mode: "bars" | "table") => {
+    setViewMode(mode);
+    localStorage.setItem("jokko.analytics.trendsView", mode);
+  };
+
+  const byWeekday: Array<{
+    weekday: number;
+    day: string;
+    revenue: number;
+    salesCount: number;
+    collected: number;
+    quantitySold: number;
+    averageBasket: number;
+  }> = detail.byWeekday ?? [];
+
+  const topRevenueDay = detail.topRevenueDay;
+  const mostActiveDay = detail.mostActiveDay;
+
+  return (
+    <div className="space-y-4">
+      {(topRevenueDay || mostActiveDay) && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Kpi
+            title="Meilleur jour en CA"
+            value={
+              topRevenueDay && topRevenueDay.revenue > 0
+                ? `${topRevenueDay.day} · ${formatMoney(topRevenueDay.revenue)}`
+                : "Aucune vente"
+            }
+            icon={<BarChart3 size={18} />}
+          />
+          <Kpi
+            title="Jour le plus actif"
+            value={
+              mostActiveDay && mostActiveDay.salesCount > 0
+                ? `${mostActiveDay.day} · ${mostActiveDay.salesCount} vente(s)`
+                : "Aucune vente"
+            }
+            icon={<CreditCard size={18} />}
+          />
+        </div>
+      )}
+
+      <div className="rounded-2xl bg-white p-5 shadow-sm">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="font-semibold text-slate-900">
+              Performance par jour de la semaine
+            </h3>
+            <p className="text-xs text-slate-500">
+              Chiffre d'affaires et montants encaissés selon les jours d'activité
+            </p>
+          </div>
+          <div className="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+            {(
+              [
+                { id: "bars", label: "Barres" },
+                { id: "table", label: "Tableau" },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => changeViewMode(opt.id)}
+                className={`rounded-lg px-3 py-1.5 transition ${
+                  viewMode === opt.id
+                    ? "bg-white text-emerald-700 shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {!byWeekday.length ? (
+          <EmptyState message="Aucune donnée de tendance pour cette période." />
+        ) : viewMode === "bars" ? (
+          <Bar
+            data={{
+              labels: byWeekday.map((row) => row.day),
+              datasets: [
+                {
+                  label: "Chiffre d'affaires",
+                  data: byWeekday.map((row) => row.revenue),
+                  backgroundColor: "#059669",
+                  borderRadius: 6,
+                },
+                {
+                  label: "Encaissé",
+                  data: byWeekday.map((row) => row.collected),
+                  backgroundColor: "#94a3b8",
+                  borderRadius: 6,
+                },
+              ],
+            }}
+            options={{
+              responsive: true,
+              plugins: {
+                legend: { display: true, position: "bottom" },
+                tooltip: {
+                  callbacks: {
+                    label: (ctx) =>
+                      `${ctx.dataset.label}: ${formatMoney(Number(ctx.parsed.y ?? 0))}`,
+                  },
+                },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    callback: (value) => `${Number(value).toLocaleString("fr-FR")}`,
+                  },
+                },
+              },
+            }}
+          />
+        ) : (
+          <EntityTable
+            rows={byWeekday}
+            columns={["day", "salesCount", "revenue", "collected", "quantitySold", "averageBasket"]}
+            money={["revenue", "collected", "averageBasket"]}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ProfitAnalyticsSection({
+  detail,
+  onNavigate,
+  onPageChange,
+}: {
+  detail: any;
+  onNavigate: (path: string) => void;
+  onPageChange: (page: number) => void;
+}) {
+  const [tab, setTab] = useState<"products" | "categories" | "sales" | "expenses">(
+    "products",
+  );
+  const [productPage, setProductPage] = useState(1);
+  const [expensePage, setExpensePage] = useState(1);
+  const localPageSize = 10;
+
+  useEffect(() => {
+    setProductPage(1);
+    setExpensePage(1);
+  }, [detail]);
+
+  const summary = detail.summary ?? {
+    revenue: 0,
+    costOfGoodsSold: 0,
+    grossProfit: 0,
+    marginRate: null,
+    operatingExpenses: 0,
+    netProfit: 0,
+    salesCount: 0,
+    itemsCount: 0,
+    itemsWithoutCost: 0,
+    historicalCostRate: 100,
+  };
+
+  const byProduct: Array<{
+    productId: number | null;
+    productName: string;
+    categoryName: string;
+    quantitySold: number;
+    revenue: number;
+    costOfGoodsSold: number;
+    grossProfit: number;
+    marginRate: number | null;
+    profitShare: number | null;
+    costSource: "HISTORICAL" | "PRODUCT_PRICE" | "MISSING";
+  }> = detail.byProduct ?? [];
+
+  const byCategory: Array<{
+    categoryName: string;
+    productCount: number;
+    quantitySold: number;
+    revenue: number;
+    costOfGoodsSold: number;
+    grossProfit: number;
+    marginRate: number | null;
+    profitShare: number | null;
+  }> = detail.byCategory ?? [];
+
+  const sales: Array<{
+    saleId: number;
+    invoiceNumber: string;
+    createdAt: string;
+    customerName: string;
+    status: string;
+    itemsCount: number;
+    revenue: number;
+    costOfGoodsSold: number;
+    grossProfit: number;
+    marginRate: number | null;
+    hasMissingCost: boolean;
+  }> = detail.sales ?? [];
+
+  const expenses: Array<{
+    id: number;
+    createdAt: string;
+    label: string;
+    paymentMethod: string;
+    amount: number;
+    reference: string | null;
+  }> = detail.expenses ?? [];
+
+  const alerts = detail.alerts ?? {
+    lossProducts: [],
+    lowMarginProducts: [],
+    missingCostProducts: [],
+  };
+  const hasAlerts =
+    (alerts.lossProducts?.length ?? 0) > 0 ||
+    (alerts.lowMarginProducts?.length ?? 0) > 0 ||
+    (alerts.missingCostProducts?.length ?? 0) > 0;
+
+  const productTotalPages = Math.max(1, Math.ceil(byProduct.length / localPageSize));
+  const safeProductPage = Math.min(productPage, productTotalPages);
+  const pagedProducts = byProduct.slice(
+    (safeProductPage - 1) * localPageSize,
+    safeProductPage * localPageSize,
+  );
+
+  const expenseTotalPages = Math.max(1, Math.ceil(expenses.length / localPageSize));
+  const safeExpensePage = Math.min(expensePage, expenseTotalPages);
+  const pagedExpenses = expenses.slice(
+    (safeExpensePage - 1) * localPageSize,
+    safeExpensePage * localPageSize,
+  );
+
+  const maxProductProfit = Math.max(
+    ...byProduct.map((p) => Math.abs(p.grossProfit)),
+    1,
+  );
+  const maxCategoryProfit = Math.max(
+    ...byCategory.map((c) => Math.abs(c.grossProfit)),
+    1,
+  );
+
+  const costSourceBadge = (source: "HISTORICAL" | "PRODUCT_PRICE" | "MISSING") => {
+    if (source === "HISTORICAL") {
+      return (
+        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+          Entrée stock
+        </span>
+      );
+    }
+    if (source === "PRODUCT_PRICE") {
+      return (
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+          Fiche produit
+        </span>
+      );
+    }
+    return (
+      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+        Prix d'achat manquant
+      </span>
+    );
+  };
+
+  return (
+    <div className="space-y-5">
+      {/* 1. Cascade transparente du bénéfice */}
+      <div className="rounded-2xl bg-white p-5 shadow-sm">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="font-semibold text-slate-900">
+              Origine de vos bénéfices
+            </h2>
+            <p className="text-xs text-slate-500">
+              Décomposition exacte sur {summary.salesCount} vente(s) non annulée(s) ·{" "}
+              {summary.historicalCostRate}% des lignes basées sur le coût d'entrée en stock
+            </p>
+          </div>
+          {summary.marginRate !== null && summary.marginRate !== undefined && (
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              Taux de marge global : {summary.marginRate}%
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-medium text-slate-500">
+              1. Chiffre d'affaires
+            </p>
+            <p className="mt-1 text-lg font-bold text-slate-900">
+              {formatMoney(summary.revenue)}
+            </p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Total facturé (hors annulées)
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-medium text-slate-500">
+              2. − Coût d'achat (CMV)
+            </p>
+            <p className="mt-1 text-lg font-bold text-slate-900">
+              − {formatMoney(summary.costOfGoodsSold)}
+            </p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Coût des marchandises vendues
+            </p>
+          </div>
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4">
+            <p className="text-xs font-medium text-emerald-700">
+              3. = Bénéfice brut
+            </p>
+            <p className="mt-1 text-lg font-bold text-emerald-950">
+              {formatMoney(summary.grossProfit)}
+            </p>
+            <p className="mt-1 text-[11px] text-emerald-700/80">
+              {summary.marginRate !== null ? `Marge de ${summary.marginRate}%` : "Aucune vente"}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-medium text-slate-500">
+              4. − Autres dépenses
+            </p>
+            <p className="mt-1 text-lg font-bold text-slate-900">
+              − {formatMoney(summary.operatingExpenses)}
+            </p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              {expenses.length} sortie(s) caisse hors fournisseurs
+            </p>
+          </div>
+          <div
+            className={`rounded-xl border p-4 ${
+              summary.netProfit >= 0
+                ? "border-emerald-300 bg-white"
+                : "border-rose-200 bg-rose-50/60"
+            }`}
+          >
+            <p className="text-xs font-medium text-slate-600">
+              5. = Résultat net
+            </p>
+            <p
+              className={`mt-1 text-lg font-bold ${
+                summary.netProfit >= 0 ? "text-emerald-700" : "text-rose-700"
+              }`}
+            >
+              {formatMoney(summary.netProfit)}
+            </p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Bénéfice brut − autres dépenses
+            </p>
+          </div>
+        </div>
+
+        {summary.itemsWithoutCost > 0 && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+            <span>
+              ⚠️ <strong>{summary.itemsWithoutCost} ligne(s) vendue(s)</strong> n'avaient pas de prix d'achat renseigné (0 FCFA). Complétez-les dans votre catalogue pour garantir un bénéfice exact au franc près.
+            </span>
+            <button
+              type="button"
+              onClick={() => onNavigate("/products")}
+              className="rounded-lg border border-amber-300 bg-white px-3 py-1.5 font-semibold text-amber-800 hover:bg-amber-100"
+            >
+              Compléter les prix d'achat
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 2. Points d'attention actionnables */}
+      {hasAlerts && (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {alerts.lossProducts.length > 0 && (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50/70 p-4">
+              <p className="text-xs font-semibold uppercase text-rose-700">
+                Vendus à perte ({alerts.lossProducts.length})
+              </p>
+              <ul className="mt-2 space-y-1.5 text-xs text-rose-900">
+                {alerts.lossProducts.slice(0, 4).map((p: any) => (
+                  <li key={`${p.productId}-${p.productName}`} className="flex justify-between gap-2">
+                    <span className="truncate font-medium">{p.productName}</span>
+                    <span className="shrink-0 font-bold">{formatMoney(p.grossProfit)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {alerts.lowMarginProducts.length > 0 && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
+              <p className="text-xs font-semibold uppercase text-amber-700">
+                Marge faible &lt; 10% ({alerts.lowMarginProducts.length})
+              </p>
+              <ul className="mt-2 space-y-1.5 text-xs text-amber-900">
+                {alerts.lowMarginProducts.slice(0, 4).map((p: any) => (
+                  <li key={`${p.productId}-${p.productName}`} className="flex justify-between gap-2">
+                    <span className="truncate font-medium">{p.productName}</span>
+                    <span className="shrink-0 font-bold">{p.marginRate}%</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {alerts.missingCostProducts.length > 0 && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase text-slate-600">
+                Prix d'achat à renseigner ({alerts.missingCostProducts.length})
+              </p>
+              <ul className="mt-2 space-y-1.5 text-xs text-slate-700">
+                {alerts.missingCostProducts.slice(0, 4).map((p: any) => (
+                  <li key={`${p.productId}-${p.productName}`} className="flex justify-between gap-2">
+                    <span className="truncate font-medium">{p.productName}</span>
+                    <span className="shrink-0 text-amber-700">CA {formatMoney(p.revenue)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 3. Sous-onglets de traçabilité */}
+      <div className="rounded-2xl bg-white p-5 shadow-sm space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="inline-flex flex-wrap rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+            {(
+              [
+                { id: "products", label: `Par produit (${byProduct.length})` },
+                { id: "categories", label: `Par catégorie (${byCategory.length})` },
+                { id: "sales", label: `Par vente (${detail.salesPagination?.total ?? sales.length})` },
+                { id: "expenses", label: `Dépenses déduites (${expenses.length})` },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setTab(opt.id)}
+                className={`rounded-lg px-3 py-1.5 transition ${
+                  tab === opt.id
+                    ? "bg-white text-emerald-700 shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {tab === "products" && (
+          !byProduct.length ? (
+            <EmptyState message="Aucune vente sur cette période." />
+          ) : (
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="border-b border-slate-100 text-xs uppercase text-slate-400">
+                    <tr>
+                      <th className="py-2.5 pr-3">Produit</th>
+                      <th className="py-2.5 px-3 text-center">Qté</th>
+                      <th className="py-2.5 px-3 text-right">CA</th>
+                      <th className="py-2.5 px-3 text-right">Coût d'achat</th>
+                      <th className="py-2.5 px-3">Bénéfice brut</th>
+                      <th className="py-2.5 px-3 text-center">Marge</th>
+                      <th className="py-2.5 pl-3 text-right">Source du coût</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {pagedProducts.map((p) => {
+                      const pct = Math.round(
+                        (Math.abs(p.grossProfit) / maxProductProfit) * 100,
+                      );
+                      const isLoss = p.grossProfit < 0;
+                      return (
+                        <tr key={`${p.productId ?? "deleted"}-${p.productName}`} className="hover:bg-slate-50/60">
+                          <td className="py-2.5 pr-3">
+                            <p className="font-semibold text-slate-800">{p.productName}</p>
+                            <p className="text-xs text-slate-400">{p.categoryName}</p>
+                          </td>
+                          <td className="py-2.5 px-3 text-center text-slate-600">
+                            {p.quantitySold}
+                          </td>
+                          <td className="py-2.5 px-3 text-right text-slate-700 whitespace-nowrap">
+                            {formatMoney(p.revenue)}
+                          </td>
+                          <td className="py-2.5 px-3 text-right text-slate-500 whitespace-nowrap">
+                            {formatMoney(p.costOfGoodsSold)}
+                          </td>
+                          <td className="py-2.5 px-3 min-w-48">
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                                <div
+                                  className={`h-full rounded-full ${
+                                    isLoss ? "bg-rose-500" : "bg-emerald-500"
+                                  }`}
+                                  style={{ width: `${Math.max(pct, 3)}%` }}
+                                />
+                              </div>
+                              <span
+                                className={`font-semibold whitespace-nowrap ${
+                                  isLoss ? "text-rose-600" : "text-emerald-700"
+                                }`}
+                              >
+                                {formatMoney(p.grossProfit)}
+                              </span>
+                              {p.profitShare !== null && (
+                                <span className="text-xs text-slate-400 whitespace-nowrap">
+                                  ({p.profitShare}%)
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                            {p.marginRate === null ? "—" : `${p.marginRate}%`}
+                          </td>
+                          <td className="py-2.5 pl-3 text-right whitespace-nowrap">
+                            {costSourceBadge(p.costSource)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <Pagination
+                pagination={{
+                  page: safeProductPage,
+                  totalPages: productTotalPages,
+                  total: byProduct.length,
+                }}
+                onPageChange={setProductPage}
+              />
+            </div>
+          )
+        )}
+
+        {tab === "categories" && (
+          !byCategory.length ? (
+            <EmptyState message="Aucune catégorie vendue sur cette période." />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="border-b border-slate-100 text-xs uppercase text-slate-400">
+                  <tr>
+                    <th className="py-2.5 pr-3">Catégorie</th>
+                    <th className="py-2.5 px-3 text-center">Produits</th>
+                    <th className="py-2.5 px-3 text-right">CA</th>
+                    <th className="py-2.5 px-3 text-right">Coût d'achat</th>
+                    <th className="py-2.5 px-3">Bénéfice brut</th>
+                    <th className="py-2.5 pl-3 text-center">Marge</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {byCategory.map((c) => {
+                    const pct = Math.round(
+                      (Math.abs(c.grossProfit) / maxCategoryProfit) * 100,
+                    );
+                    const isLoss = c.grossProfit < 0;
+                    return (
+                      <tr key={c.categoryName} className="hover:bg-slate-50/60">
+                        <td className="py-2.5 pr-3 font-semibold text-slate-800">
+                          {c.categoryName}
+                        </td>
+                        <td className="py-2.5 px-3 text-center text-slate-600">
+                          {c.productCount}
+                        </td>
+                        <td className="py-2.5 px-3 text-right text-slate-700 whitespace-nowrap">
+                          {formatMoney(c.revenue)}
+                        </td>
+                        <td className="py-2.5 px-3 text-right text-slate-500 whitespace-nowrap">
+                          {formatMoney(c.costOfGoodsSold)}
+                        </td>
+                        <td className="py-2.5 px-3 min-w-48">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                              <div
+                                className={`h-full rounded-full ${
+                                  isLoss ? "bg-rose-500" : "bg-emerald-500"
+                                }`}
+                                style={{ width: `${Math.max(pct, 3)}%` }}
+                              />
+                            </div>
+                            <span
+                              className={`font-semibold whitespace-nowrap ${
+                                isLoss ? "text-rose-600" : "text-emerald-700"
+                              }`}
+                            >
+                              {formatMoney(c.grossProfit)}
+                            </span>
+                            {c.profitShare !== null && (
+                              <span className="text-xs text-slate-400 whitespace-nowrap">
+                                ({c.profitShare}%)
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-2.5 pl-3 text-center whitespace-nowrap">
+                          {c.marginRate === null ? "—" : `${c.marginRate}%`}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
+
+        {tab === "sales" && (
+          !sales.length ? (
+            <EmptyState message="Aucune vente enregistrée sur cette période." />
+          ) : (
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="border-b border-slate-100 text-xs uppercase text-slate-400">
+                    <tr>
+                      <th className="py-2.5 pr-3">Facture</th>
+                      <th className="py-2.5 px-3">Date</th>
+                      <th className="py-2.5 px-3">Client</th>
+                      <th className="py-2.5 px-3 text-right">Montant</th>
+                      <th className="py-2.5 px-3 text-right">Coût d'achat</th>
+                      <th className="py-2.5 px-3 text-right">Bénéfice brut</th>
+                      <th className="py-2.5 pl-3 text-center">Marge</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {sales.map((s) => (
+                      <tr key={s.saleId} className="hover:bg-slate-50/60">
+                        <td className="py-2.5 pr-3 font-semibold text-slate-800 whitespace-nowrap">
+                          {s.invoiceNumber}
+                          {s.hasMissingCost && (
+                            <span
+                              title="Un ou plusieurs articles de cette vente n'avaient pas de prix d'achat"
+                              className="ml-1.5 text-amber-600"
+                            >
+                              ⚠️
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">
+                          {formatDateTime(s.createdAt)}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-700">
+                          {s.customerName}
+                        </td>
+                        <td className="py-2.5 px-3 text-right text-slate-700 whitespace-nowrap">
+                          {formatMoney(s.revenue)}
+                        </td>
+                        <td className="py-2.5 px-3 text-right text-slate-500 whitespace-nowrap">
+                          {formatMoney(s.costOfGoodsSold)}
+                        </td>
+                        <td
+                          className={`py-2.5 px-3 text-right font-semibold whitespace-nowrap ${
+                            s.grossProfit < 0 ? "text-rose-600" : "text-emerald-700"
+                          }`}
+                        >
+                          {formatMoney(s.grossProfit)}
+                        </td>
+                        <td className="py-2.5 pl-3 text-center whitespace-nowrap">
+                          {s.marginRate === null ? "—" : `${s.marginRate}%`}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Pagination
+                pagination={detail.salesPagination}
+                onPageChange={onPageChange}
+              />
+            </div>
+          )
+        )}
+
+        {tab === "expenses" && (
+          <div className="space-y-3">
+            <p className="rounded-xl bg-slate-50 px-3.5 py-2.5 text-xs text-slate-600">
+              Seules les sorties de caisse de fonctionnement (loyer, transport, électricité, frais divers…) apparaissent ici. Les paiements fournisseurs sont déjà comptés dans le <strong>Coût d'achat (CMV)</strong> pour éviter de les déduire deux fois.
+            </p>
+            {!expenses.length ? (
+              <EmptyState message="Aucune autre dépense de caisse déduite sur cette période." />
+            ) : (
+              <div className="space-y-4">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="border-b border-slate-100 text-xs uppercase text-slate-400">
+                      <tr>
+                        <th className="py-2.5 pr-3">Date</th>
+                        <th className="py-2.5 px-3">Libellé</th>
+                        <th className="py-2.5 px-3">Mode de paiement</th>
+                        <th className="py-2.5 pl-3 text-right">Montant déduit</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {pagedExpenses.map((e) => (
+                        <tr key={e.id} className="hover:bg-slate-50/60">
+                          <td className="py-2.5 pr-3 text-slate-600 whitespace-nowrap">
+                            {formatDateTime(e.createdAt)}
+                          </td>
+                          <td className="py-2.5 px-3 font-medium text-slate-800">
+                            {e.label}
+                          </td>
+                          <td className="py-2.5 px-3 text-slate-600">
+                            {readableStatus(e.paymentMethod)}
+                          </td>
+                          <td className="py-2.5 pl-3 text-right font-semibold text-rose-600 whitespace-nowrap">
+                            − {formatMoney(e.amount)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <Pagination
+                  pagination={{
+                    page: safeExpensePage,
+                    totalPages: expenseTotalPages,
+                    total: expenses.length,
+                  }}
+                  onPageChange={setExpensePage}
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -567,86 +2167,27 @@ function DetailSection({
   onPageChange: (page: number) => void;
 }) {
   if (!detail) return <EmptyState message="Aucune donnée disponible." />;
+  if (section === "profit") {
+    return (
+      <ProfitAnalyticsSection
+        detail={detail}
+        onNavigate={onNavigate}
+        onPageChange={onPageChange}
+      />
+    );
+  }
   if (section === "insights") {
-    return <InsightsSection insights={detail.insights ?? []} pagination={detail.pagination} onNavigate={onNavigate} onPageChange={onPageChange} />;
+    return (
+      <InsightsSection
+        insights={detail.insights ?? []}
+        pagination={detail.pagination}
+        onNavigate={onNavigate}
+        onPageChange={onPageChange}
+      />
+    );
   }
   if (section === "sales") {
-    const timeline = detail.timeline ?? [];
-    return (
-      <div className="rounded-2xl bg-white p-5 shadow-sm">
-        <h2 className="mb-4 font-semibold text-slate-900">Évolution des ventes</h2>
-        {timeline.length ? <Bar data={{ labels: timeline.map((row: any) => new Date(row.bucket).toLocaleDateString("fr-FR")), datasets: [{ label: "CA", data: timeline.map((row: any) => row.revenue), backgroundColor: "#10b981" }] }} options={{ responsive: true }} /> : <EmptyState message="Aucune vente sur cette période." />}
-      </div>
-    );
-  }
-
-  function InsightsSection({
-    insights,
-    pagination,
-    onNavigate,
-    onPageChange,
-  }: {
-    insights: any[];
-      pagination: any;
-      onNavigate: (path: string) => void;
-      onPageChange: (page: number) => void;
-  }) {
-    const insightLabels: Record<string, string> = {
-      ALL: "Toutes",
-      REVENUE_GROWTH: "Croissance du chiffre d'affaires",
-      REVENUE_DECLINE: "Baisse du chiffre d'affaires",
-      OUT_OF_STOCK: "Ruptures de stock",
-      LOW_STOCK: "Stock faible",
-      DORMANT_PRODUCTS: "Produits dormants",
-      SALES_CONCENTRATION: "Concentration des ventes",
-      RECEIVABLES: "Créances",
-    };
-    const [filter, setFilter] = useState("ALL");
-    const filteredInsights = insights.filter(
-      (insight) => filter === "ALL" || insight.type === filter,
-    );
-
-    return (
-      <div className="space-y-3">
-        <div className="flex flex-wrap gap-2">
-          {["ALL", ...new Set(insights.map((insight) => insight.type))].map((type) => (
-            <button key={type} type="button" onClick={() => setFilter(type)} className={`rounded-xl px-3 py-2 text-sm ${filter === type ? "bg-emerald-600 text-white" : "bg-white text-slate-600 shadow-sm"}`}>
-              {insightLabels[type] ?? readableStatus(type)}
-            </button>
-          ))}
-        </div>
-        {filteredInsights.length ? filteredInsights.map((insight) => (
-          <div key={`${insight.type}-${insight.message}`} className="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-semibold text-slate-900">{insight.message}</p>
-              <p className="mt-1 text-xs text-slate-500">
-                {insightLabels[insight.type] ?? readableStatus(insight.type)} · {readableStatus(insight.severity)}
-              </p>
-              {insight.type === "SALES_CONCENTRATION" &&
-                Array.isArray(insight.context?.products) && (
-                  <p className="mt-2 text-sm text-slate-600">
-                    Produits concernés :{" "}
-                    {insight.context.products
-                      .map((product: { productName: string }) => product.productName)
-                      .join(", ")}
-                  </p>
-                )}
-            </div>
-            {["OUT_OF_STOCK", "LOW_STOCK", "DORMANT_PRODUCTS"].includes(insight.type) && (
-              <button type="button" onClick={() => onNavigate(insight.type === "DORMANT_PRODUCTS" ? "/products" : "/stock")} className="rounded-xl border border-emerald-200 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50">
-                Voir les produits
-              </button>
-            )}
-            {insight.type === "RECEIVABLES" && (
-              <button type="button" onClick={() => onNavigate("/invoices")} className="rounded-xl border border-emerald-200 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50">
-                Voir les factures
-              </button>
-            )}
-          </div>
-        )) : <EmptyState message="Aucun insight pour ce filtre et cette période." />}
-        <Pagination pagination={pagination} onPageChange={onPageChange} />
-      </div>
-    );
+    return <SalesAnalyticsSection detail={detail} />;
   }
   if (section === "stock") {
     return (
@@ -657,25 +2198,141 @@ function DetailSection({
           <Kpi title="Stock faible" value={detail.summary?.lowStock ?? 0} icon={<AlertTriangle size={18} />} />
           <Kpi title="Dormants" value={detail.summary?.dormant ?? 0} icon={<PackageSearch size={18} />} />
         </div>
-        <EntityTable rows={detail.products ?? []} columns={["productName", "currentStock", "stockValue", "status"]} />
+        <EntityTable
+          rows={detail.products ?? []}
+          columns={["productName", "currentStock", "stockValue", "status"]}
+          money={["stockValue"]}
+        />
         <Pagination pagination={detail.pagination} onPageChange={onPageChange} />
       </div>
     );
   }
-  if (section === "products") return <><EntityTable rows={detail.products ?? []} columns={["productName", "soldQuantity", "revenue", "grossMargin", "status"]} money={["revenue", "grossMargin"]} /><Pagination pagination={detail.pagination} onPageChange={onPageChange} /></>;
-  if (section === "customers") return <><EntityTable rows={detail.customers ?? []} columns={["customerName", "orderCount", "purchasedAmount", "receivable", "status"]} money={["purchasedAmount", "receivable"]} /><Pagination pagination={detail.pagination} onPageChange={onPageChange} /></>;
-  if (section === "cash") {
+  if (section === "products") {
+    const canSeeProfit =
+      isAdmin() && detail.summary?.totalGrossMargin !== undefined;
     return (
-      <>
+      <div className="space-y-4">
+        {canSeeProfit && (
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <Kpi
+              title="CA Produits"
+              value={formatMoney(detail.summary.totalRevenue ?? 0)}
+              icon={<BarChart3 size={18} />}
+            />
+            <Kpi
+              title="Coût d'achat (CMV)"
+              value={formatMoney(detail.summary.totalCostOfGoodsSold ?? 0)}
+              icon={<Boxes size={18} />}
+            />
+            <Kpi
+              title="Bénéfice brut"
+              value={formatMoney(detail.summary.totalGrossMargin ?? 0)}
+              icon={<Wallet size={18} />}
+            />
+            <Kpi
+              title="Taux de marge"
+              value={
+                detail.summary.averageMarginRate !== null &&
+                detail.summary.averageMarginRate !== undefined
+                  ? `${detail.summary.averageMarginRate}%`
+                  : "N/D"
+              }
+              icon={<BarChart3 size={18} />}
+            />
+          </div>
+        )}
+        <EntityTable
+          rows={detail.products ?? []}
+          columns={
+            canSeeProfit
+              ? ["productName", "soldQuantity", "revenue", "grossMargin", "marginRate", "status"]
+              : ["productName", "soldQuantity", "revenue", "status"]
+          }
+          money={canSeeProfit ? ["revenue", "grossMargin"] : ["revenue"]}
+        />
+        <Pagination pagination={detail.pagination} onPageChange={onPageChange} />
+      </div>
+    );
+  }
+  if (section === "customers") {
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Kpi title="Nouveaux" value={detail.summary?.newCustomers ?? 0} icon={<Users size={18} />} />
+          <Kpi title="Actifs" value={detail.summary?.activeCustomers ?? 0} icon={<Users size={18} />} />
+          <Kpi title="Récurrents" value={detail.summary?.recurrentCustomers ?? 0} icon={<Users size={18} />} />
+          <Kpi title="Inactifs" value={detail.summary?.inactiveCustomers ?? 0} icon={<Users size={18} />} />
+        </div>
+        <EntityTable
+          rows={detail.customers ?? []}
+          columns={["customerName", "orderCount", "purchasedAmount", "receivable", "status"]}
+          money={["purchasedAmount", "receivable"]}
+        />
+        <Pagination pagination={detail.pagination} onPageChange={onPageChange} />
+      </div>
+    );
+  }
+  if (section === "cash") {
+    const byPaymentMethod: Array<{ paymentMethod: string; amount: number }> =
+      detail.byPaymentMethod ?? [];
+    const maxMethodAbs = Math.max(
+      ...byPaymentMethod.map((item) => Math.abs(item.amount)),
+      1,
+    );
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Kpi title="Entrées" value={formatMoney(detail.summary?.cashIn ?? 0)} icon={<Wallet size={18} />} />
+          <Kpi title="Sorties" value={formatMoney(detail.summary?.cashOut ?? 0)} icon={<Wallet size={18} />} />
+          <Kpi title="Flux net" value={formatMoney(detail.summary?.netCashFlow ?? 0)} icon={<BarChart3 size={18} />} />
+          <Kpi title="Encaissé (ventes)" value={formatMoney(detail.summary?.commercialCollected ?? 0)} icon={<CreditCard size={18} />} />
+        </div>
+        {byPaymentMethod.length > 0 && (
+          <div className="rounded-2xl bg-white p-5 shadow-sm">
+            <h3 className="mb-3 font-semibold text-slate-900">
+              Flux net par mode de paiement
+            </h3>
+            <div className="space-y-3">
+              {byPaymentMethod.map((item) => {
+                const pct = Math.round((Math.abs(item.amount) / maxMethodAbs) * 100);
+                const isNegative = item.amount < 0;
+                return (
+                  <div key={item.paymentMethod}>
+                    <div className="mb-1 flex items-center justify-between text-xs">
+                      <span className="font-medium text-slate-700">
+                        {readableStatus(item.paymentMethod)}
+                      </span>
+                      <span
+                        className={`font-semibold ${
+                          isNegative ? "text-rose-600" : "text-emerald-700"
+                        }`}
+                      >
+                        {formatMoney(item.amount)}
+                      </span>
+                    </div>
+                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+                      <div
+                        className={`h-full rounded-full ${
+                          isNegative ? "bg-rose-500" : "bg-emerald-500"
+                        }`}
+                        style={{ width: `${Math.max(pct, 3)}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <CashTable
           rows={detail.transactions ?? []}
           onNavigate={onNavigate}
         />
         <Pagination pagination={detail.pagination} onPageChange={onPageChange} />
-      </>
+      </div>
     );
   }
-  return <EntityTable rows={detail.byWeekday ?? []} columns={["day", "salesCount", "revenue", "quantitySold", "averageBasket"]} money={["revenue", "averageBasket"]} />;
+  return <TrendsAnalyticsSection detail={detail} />;
 }
 
 function CashTable({
@@ -742,7 +2399,7 @@ function EntityTable({ rows, columns, money = [] }: { rows: any[]; columns: stri
           <tr>{columns.map((column) => <th key={column} className="px-4 py-3">{columnLabels[column] ?? column}</th>)}</tr>
         </thead>
         <tbody>{rows.map((row, index) => <tr key={row.id ?? row.productId ?? row.customerId ?? index} className="border-b border-slate-50 last:border-0">
-          {columns.map((column) => <td key={column} className="px-4 py-3 text-slate-700">{money.includes(column) ? formatMoney(Number(row[column] ?? 0)) : column.toLowerCase().includes("date") ? formatDateTime(row[column]) : column === "status" || column === "type" || column === "severity" ? readableStatus(row[column]) : String(row[column] ?? "—")}</td>)}
+          {columns.map((column) => <td key={column} className="px-4 py-3 text-slate-700">{money.includes(column) ? formatMoney(Number(row[column] ?? 0)) : column === "marginRate" ? (row[column] === null || row[column] === undefined ? "—" : `${row[column]}%`) : column.toLowerCase().includes("date") ? formatDateTime(row[column]) : column === "status" || column === "type" || column === "severity" ? readableStatus(row[column]) : String(row[column] ?? "—")}</td>)}
         </tr>)}</tbody>
       </table>
     </div>

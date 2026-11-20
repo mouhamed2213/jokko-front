@@ -74,6 +74,8 @@ export type SupplierDebtAging = {
 // ============================================================
 //  types/product.ts
 // ============================================================
+export type PackagingUnit = "PIECE" | "DOZEN" | "CARTON";
+
 export type Product = {
   id: number;
   shopId: number;
@@ -81,9 +83,13 @@ export type Product = {
   name: string;
   description?: string | null;
   reference?: string | null;
+  unitType?: PackagingUnit;
+  unitsPerPack?: number;
   quantity: number;
   purchasePrice: number;
   salePrice: number;
+  packPurchasePrice?: number | null;
+  packSalePrice?: number | null;
   alertThreshold: number;
   imageUrl?: string | null;
   isActive: boolean;
@@ -203,6 +209,9 @@ export type SaleItem = {
   productImageUrl?: string | null;
   quantity: number;
   unitPrice: number;
+  soldUnit?: PackagingUnit;
+  soldQuantity?: number | null;
+  soldUnitPrice?: number | null;
   totalAmount: number;
   product?: Product | null;
 };
@@ -304,6 +313,12 @@ export type DashboardStats = {
   cashOpen: boolean;
   currentBalance: number | null;
   currentMonthSalesAmount: number;
+  currentMonthCostOfGoodsSold?: number;
+  currentMonthGrossProfit?: number;
+  currentMonthMarginRate?: number | null;
+  currentMonthOperatingExpenses?: number;
+  currentMonthNetProfit?: number;
+  currentMonthItemsWithoutCost?: number;
   topProducts: {
     productId: number | null;
     productName: string;

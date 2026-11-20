@@ -56,7 +56,7 @@ type ShopInfo = {
   };
 };
 
-// ── Données des plans pour la section upgrade ──
+// ── Données des plans pour la section upgrade (alignées sur seed-db.ts) ──
 const PLANS_INFO = [
   {
     code: "FREE",
@@ -64,27 +64,26 @@ const PLANS_INFO = [
     price: 0,
     color: "slate",
     features: [
-      "1 utilisateur",
-      "20 produits",
-      "10 ventes/mois",
+      "1 utilisateur · 1 boutique",
+      "Jusqu'à 20 produits",
+      "Jusqu'à 10 ventes / mois",
       "Clients illimités",
-      "2 fournisseurs",
+      "Jusqu'à 2 fournisseurs",
+      "Caisse, alertes stock & exports PDF / Excel",
     ],
   },
   {
     code: "BASIC",
-    name: "Basic",
+    name: "Starter",
     price: 6500,
     color: "emerald",
     features: [
-      "3 utilisateurs",
+      "Tout le forfait Gratuit, plus :",
+      "Jusqu'à 3 utilisateurs · 1 boutique",
       "Produits illimités",
       "Ventes illimitées",
       "Clients illimités",
-      "Factures PDF A4",
-      "Export Excel",
-      "Alertes stock",
-      "5 fournisseurs",
+      "Jusqu'à 5 fournisseurs",
     ],
   },
   {
@@ -93,25 +92,26 @@ const PLANS_INFO = [
     price: 14000,
     color: "blue",
     features: [
-      "5 utilisateurs",
-      "Tout Basic inclus",
-      "Gestion fournisseurs",
-      "Rapports & statistiques",
-      "Paiements par tranches",
-      "Historique complet",
+      "Tout le forfait Starter, plus :",
+      "Jusqu'à 5 utilisateurs",
+      "Jusqu'à 2 boutiques",
+      "Fournisseurs illimités",
+      "Analytics & rapports avancés",
+      "Performance & classement fournisseurs",
     ],
   },
   {
     code: "PREMIUM",
-    name: "Premium",
+    name: "Signature",
     price: 22000,
     color: "purple",
     features: [
+      "Tout le forfait Pro, plus :",
       "Utilisateurs illimités",
-      "Tout Pro inclus",
-      "Multi-boutiques (5 max)",
-      "Rôles & permissions avancés",
-      "Support prioritaire",
+      "Jusqu'à 5 boutiques",
+      "Vue consolidée multi-boutiques (analytics & CA)",
+      "Analyse détaillée des bénéfices (par produit, catégorie & facture)",
+      "Suivi consolidé des dettes fournisseurs",
     ],
   },
 ];

@@ -2,7 +2,7 @@ import axios from "axios";
 export const apiUrl =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.DEV
-    ? "http://localhost:3000/api"
+    ? "http://localhost:3001/api"
     : "https://api.jokko-business.com/api");
 
 // ── Espace boutique ───────────────────────────────────────────
@@ -25,7 +25,11 @@ api.interceptors.response.use(
 
     // Une réponse de maintenance renvoie l'utilisateur vers la racine :
     // MaintenanceGate y affiche la page dédiée après lecture du statut public.
-    if (status === 503 && code === "MAINTENANCE_MODE" && window.location.pathname !== "/") {
+    if (
+      status === 503 &&
+      code === "MAINTENANCE_MODE" &&
+      window.location.pathname !== "/"
+    ) {
       window.location.href = "/";
     }
 

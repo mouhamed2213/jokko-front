@@ -196,12 +196,15 @@ export const getLowStockProducts = async (): Promise<Product[]> =>
 export const getSuggestedPrice = async (
   productId: number,
   quantity: number,
+  unit?: "PIECE" | "DOZEN" | "CARTON",
 ) => {
   const res = await api.get(`/products/${productId}/price`, {
-    params: { quantity },
+    params: { quantity, ...(unit ? { unit } : {}) },
   });
   return res.data as {
     quantity: number;
+    soldUnit?: "PIECE" | "DOZEN" | "CARTON";
+    piecesCount?: number;
     suggestedPrice: number;
     tier: "detail" | "semiWholesale" | "wholesale";
     tiers: {
@@ -369,6 +372,7 @@ export type SaleItemPayload = {
   productId: number;
   quantity: number;
   unitPrice: number;
+  soldUnit?: "PIECE" | "DOZEN" | "CARTON";
 };
 export type CreateSalePayload = {
   clientId?: number | null;
@@ -455,6 +459,7 @@ export const addInvoicePayment = async (
 export type StockPayload = {
   productId: number;
   quantity: number;
+  unit?: "PIECE" | "DOZEN" | "CARTON";
   supplierId?: number;
   unitCost?: number;
   paidAmount?: number;
@@ -500,7 +505,14 @@ export const getDashboardStats = async (): Promise<DashboardStats> =>
 // ── Analytics ──────────────────────────────────────────────────
 export type AnalyticsOverview = {
   period: { startDate: string; endDate: string };
-  comparison: { revenueChange: number | null } | null;
+  comparison: {
+    revenueChange: number | null;
+    previousRevenue?: number;
+    previousSalesCount?: number;
+    previousGrossProfit?: number;
+    profitChange?: number | null;
+    previousPeriod?: { startDate: string; endDate: string } | null;
+  } | null;
   kpis: {
     revenue: number;
     salesCount: number;
@@ -510,6 +522,12 @@ export type AnalyticsOverview = {
     stockValue: number;
     outOfStockProducts: number;
     lowStockProducts: number;
+    costOfGoodsSold?: number;
+    grossProfit?: number;
+    marginRate?: number | null;
+    operatingExpenses?: number;
+    netProfit?: number;
+    itemsWithoutCost?: number;
   };
 };
 
@@ -643,6 +661,7 @@ export const getAnalyticsMultiStoreOverview = async (params: {
   const res = await api.get("/analytics/overview/multi-store", { params });
   return res.data as {
     period: { startDate: string; endDate: string } | null;
+    comparison?: AnalyticsOverview["comparison"];
     shops: Array<{
       shop: { id: number; name: string };
       overview: AnalyticsOverview;
@@ -650,6 +669,9 @@ export const getAnalyticsMultiStoreOverview = async (params: {
     consolidated: AnalyticsOverview["kpis"];
   };
 };
+
+export const getAnalyticsProfit = async (params?: AnalyticsPeriodParams) =>
+  (await api.get("/analytics/profit", { params })).data;
 
 // create secondary shop
 

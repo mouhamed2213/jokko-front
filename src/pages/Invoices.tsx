@@ -11,7 +11,8 @@ import {
   updateSale,
 } from "../services/index";
 import { getStoredUser, isAdmin } from "../types/auth";
-import type { Client, Product, Sale } from "../types/index";
+import type { Client, PackagingUnit, Product, Sale } from "../types/index";
+import { unitLabel } from "../utils/packaging";
 import { printInvoice as doPrint } from "../utils/printInvoice";
 import { showModal } from "../components/upgradeModal";
 
@@ -20,6 +21,11 @@ const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 type EditCartItem = {
   productId: number;
   productName: string;
+  soldUnit: PackagingUnit;
+  productUnitType: PackagingUnit;
+  unitsPerPack: number;
+  piecePrice: number;
+  packPrice: number;
   quantity: number;
   unitPrice: number;
   stock: number; // stock actuellement disponible (hors réservation de cette facture)
@@ -175,11 +181,13 @@ export default function Invoices() {
 
   const openEdit = async (invoice: Sale) => {
     if (!canEdit(invoice)) return;
+    let loadedProducts: Product[] = [];
     try {
       const [productsRes, clientsRes] = await Promise.all([
         getProducts({ limit: 1000 }),
         getClients(),
       ]);
+      loadedProducts = productsRes.data;
       setProducts(productsRes.data);
       setClients(clientsRes.client);
     } catch {
@@ -188,13 +196,26 @@ export default function Invoices() {
     }
     setEditingInvoice(invoice);
     setEditItems(
-      invoice.items.map((it) => ({
-        productId: it.productId as number,
-        productName: it.productName,
-        quantity: it.quantity,
-        unitPrice: it.unitPrice,
-        stock: 0, // sera recalculé via le produit sélectionné le cas échéant
-      })),
+      invoice.items.map((it) => {
+        const prod = loadedProducts.find((p) => p.id === it.productId);
+        const soldUnit: PackagingUnit = it.soldUnit ?? "PIECE";
+        const productUnitType: PackagingUnit = prod?.unitType ?? soldUnit;
+        const unitsPerPack = prod?.unitsPerPack ?? 1;
+        const piecePrice = prod?.salePrice ?? it.unitPrice;
+        const packPrice = prod?.packSalePrice ?? piecePrice * unitsPerPack;
+        return {
+          productId: it.productId as number,
+          productName: it.productName,
+          soldUnit,
+          productUnitType,
+          unitsPerPack,
+          piecePrice,
+          packPrice,
+          quantity: it.soldQuantity ?? it.quantity,
+          unitPrice: it.soldUnitPrice ?? it.unitPrice,
+          stock: prod?.quantity ?? 0,
+        };
+      }),
     );
     setEditClientId(invoice.client?.id || "");
     setEditCustomerName(invoice.customerName || "");
@@ -203,20 +224,75 @@ export default function Invoices() {
     setEditAddQty(1);
   };
 
-  const updateEditItemQty = (productId: number, quantity: number) => {
+  const updateEditItemQty = (
+    productId: number,
+    soldUnit: PackagingUnit,
+    quantity: number,
+  ) => {
     setEditItems((prev) =>
-      prev.map((it) => (it.productId === productId ? { ...it, quantity } : it)),
+      prev.map((it) =>
+        it.productId === productId && it.soldUnit === soldUnit
+          ? { ...it, quantity }
+          : it,
+      ),
     );
   };
 
-  const updateEditItemPrice = (productId: number, unitPrice: number) => {
+  const updateEditItemPrice = (
+    productId: number,
+    soldUnit: PackagingUnit,
+    unitPrice: number,
+  ) => {
     setEditItems((prev) =>
-      prev.map((it) => (it.productId === productId ? { ...it, unitPrice } : it)),
+      prev.map((it) =>
+        it.productId === productId && it.soldUnit === soldUnit
+          ? { ...it, unitPrice }
+          : it,
+      ),
     );
   };
 
-  const removeEditItem = (productId: number) => {
-    setEditItems((prev) => prev.filter((it) => it.productId !== productId));
+  const updateEditItemUnit = (
+    productId: number,
+    currentUnit: PackagingUnit,
+    nextUnit: PackagingUnit,
+  ) => {
+    if (currentUnit === nextUnit) return;
+    setEditItems((prev) => {
+      const target = prev.find(
+        (it) => it.productId === productId && it.soldUnit === currentUnit,
+      );
+      if (!target) return prev;
+      const nextPrice =
+        nextUnit === "PIECE" ? target.piecePrice : target.packPrice;
+      const duplicate = prev.find(
+        (it) => it.productId === productId && it.soldUnit === nextUnit,
+      );
+      if (duplicate) {
+        return prev
+          .filter(
+            (it) => !(it.productId === productId && it.soldUnit === currentUnit),
+          )
+          .map((it) =>
+            it.productId === productId && it.soldUnit === nextUnit
+              ? { ...it, quantity: it.quantity + target.quantity }
+              : it,
+          );
+      }
+      return prev.map((it) =>
+        it.productId === productId && it.soldUnit === currentUnit
+          ? { ...it, soldUnit: nextUnit, unitPrice: nextPrice }
+          : it,
+      );
+    });
+  };
+
+  const removeEditItem = (productId: number, soldUnit: PackagingUnit) => {
+    setEditItems((prev) =>
+      prev.filter(
+        (it) => !(it.productId === productId && it.soldUnit === soldUnit),
+      ),
+    );
   };
 
   const addEditItem = () => {
@@ -225,11 +301,19 @@ export default function Invoices() {
     }
     const product = products.find((p) => p.id === editAddProductId);
     if (!product) return;
+    const defaultUnit: PackagingUnit = product.unitType ?? "PIECE";
+    const unitsPerPack = product.unitsPerPack ?? 1;
+    const piecePrice = product.salePrice;
+    const packPrice = product.packSalePrice ?? piecePrice * unitsPerPack;
+    const defaultPrice = defaultUnit === "PIECE" ? piecePrice : packPrice;
+
     setEditItems((prev) => {
-      const existing = prev.find((it) => it.productId === product.id);
+      const existing = prev.find(
+        (it) => it.productId === product.id && it.soldUnit === defaultUnit,
+      );
       if (existing) {
         return prev.map((it) =>
-          it.productId === product.id
+          it.productId === product.id && it.soldUnit === defaultUnit
             ? { ...it, quantity: it.quantity + editAddQty }
             : it,
         );
@@ -239,8 +323,13 @@ export default function Invoices() {
         {
           productId: product.id,
           productName: product.name,
+          soldUnit: defaultUnit,
+          productUnitType: defaultUnit,
+          unitsPerPack,
+          piecePrice,
+          packPrice,
           quantity: editAddQty,
-          unitPrice: product.salePrice,
+          unitPrice: defaultPrice,
           stock: product.quantity,
         },
       ];
@@ -272,6 +361,7 @@ export default function Invoices() {
           productId: it.productId,
           quantity: it.quantity,
           unitPrice: it.unitPrice,
+          soldUnit: it.soldUnit,
         })),
       });
       toast.success("Facture modifiée avec succès");
@@ -577,18 +667,44 @@ export default function Invoices() {
               <div className="space-y-2">
                 {editItems.map((it) => (
                   <div
-                    key={it.productId}
-                    className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2"
+                    key={`${it.productId}:${it.soldUnit}`}
+                    className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 px-3 py-2"
                   >
-                    <span className="flex-1 text-sm font-medium text-slate-800">
-                      {it.productName}
-                    </span>
+                    <div className="min-w-32 flex-1">
+                      <span className="text-sm font-medium text-slate-800">
+                        {it.productName}
+                      </span>
+                      {it.productUnitType !== "PIECE" ? (
+                        <select
+                          value={it.soldUnit}
+                          onChange={(e) =>
+                            updateEditItemUnit(
+                              it.productId,
+                              it.soldUnit,
+                              e.target.value as PackagingUnit,
+                            )
+                          }
+                          className="ml-2 rounded-lg border border-gray-200 bg-white px-2 py-0.5 text-xs text-slate-700"
+                        >
+                          <option value={it.productUnitType}>
+                            {unitLabel(it.productUnitType)} ({it.unitsPerPack} pcs)
+                          </option>
+                          <option value="PIECE">Pièce</option>
+                        </select>
+                      ) : (
+                        <span className="ml-2 text-xs text-slate-400">Pièce</span>
+                      )}
+                    </div>
                     <input
                       type="number"
                       min={1}
                       value={it.quantity}
                       onChange={(e) =>
-                        updateEditItemQty(it.productId, Number(e.target.value))
+                        updateEditItemQty(
+                          it.productId,
+                          it.soldUnit,
+                          Number(e.target.value),
+                        )
                       }
                       className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right outline-none focus:border-emerald-500"
                     />
@@ -597,7 +713,11 @@ export default function Invoices() {
                       min={0}
                       value={it.unitPrice}
                       onChange={(e) =>
-                        updateEditItemPrice(it.productId, Number(e.target.value))
+                        updateEditItemPrice(
+                          it.productId,
+                          it.soldUnit,
+                          Number(e.target.value),
+                        )
                       }
                       className="w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right outline-none focus:border-emerald-500"
                     />
@@ -605,7 +725,7 @@ export default function Invoices() {
                       {fmt(it.quantity * it.unitPrice)}
                     </span>
                     <button
-                      onClick={() => removeEditItem(it.productId)}
+                      onClick={() => removeEditItem(it.productId, it.soldUnit)}
                       className="text-red-500 hover:text-red-700"
                     >
                       <Trash2 size={15} />
@@ -747,16 +867,23 @@ export default function Invoices() {
                 </tr>
               </thead>
               <tbody>
-                {detailInvoice.items.map((item) => (
-                  <tr key={item.id} className="border-b">
-                    <td className="py-2">{item.productName}</td>
-                    <td className="py-2 text-right">{item.quantity}</td>
-                    <td className="py-2 text-right">{fmt(item.unitPrice)}</td>
-                    <td className="py-2 text-right font-semibold">
-                      {fmt(item.totalAmount)}
-                    </td>
-                  </tr>
-                ))}
+                {detailInvoice.items.map((item) => {
+                  const soldUnit: PackagingUnit = item.soldUnit ?? "PIECE";
+                  const soldQty = item.soldQuantity ?? item.quantity;
+                  const soldPrice = item.soldUnitPrice ?? item.unitPrice;
+                  return (
+                    <tr key={item.id} className="border-b">
+                      <td className="py-2">{item.productName}</td>
+                      <td className="py-2 text-right">
+                        {soldQty} {unitLabel(soldUnit, soldQty > 1)}
+                      </td>
+                      <td className="py-2 text-right">{fmt(soldPrice)}</td>
+                      <td className="py-2 text-right font-semibold">
+                        {fmt(item.totalAmount)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             </div>
@@ -1029,7 +1156,7 @@ export default function Invoices() {
                         <Pencil size={13} /> Modifier
                       </button>
                     )}
-                    {invoice.status !== "PAID" && (
+                    {invoice.status !== "PAID" && invoice.status !== "CANCELLED" && (
                       <button
                         onClick={() => {
                           if (!cashOpen) {

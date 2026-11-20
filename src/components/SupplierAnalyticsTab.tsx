@@ -82,7 +82,7 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
           <Lock size={22} />
         </div>
         <p className="font-semibold text-slate-900">
-          La performance fournisseurs est réservée aux plans Pro et Premium
+          La performance fournisseurs est réservée aux plans Pro et Signature
         </p>
         <p className="max-w-md text-sm text-slate-500">
           Classez vos fournisseurs par volume d'achat ou par dette, et voyez

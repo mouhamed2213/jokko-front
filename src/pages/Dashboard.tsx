@@ -152,9 +152,15 @@ export default function Dashboard() {
       {/* Stats ventes */}
       <div>
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">
-          Ventes & Finances
+          Ventes &amp; Finances
         </h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div
+          className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${
+            user.role === "ADMIN" && stats?.currentMonthGrossProfit !== undefined
+              ? "xl:grid-cols-3"
+              : "xl:grid-cols-5"
+          }`}
+        >
           <StatCard
             title="Total ventes"
             value={stats?.totalSales ?? 0}
@@ -163,14 +169,30 @@ export default function Dashboard() {
             color="blue"
           />
 
-          {/* 1. CHIFFRE D'AFFAIRES MENSUEL (Soumis à restriction) */}
+          {/* 1. CHIFFRE D'AFFAIRES MENSUEL */}
           <StatCard
             title="CA du mois"
             value={fmt(currentMonthCA)}
-            subtitle={`Chiffre d'affaire par mois`}
+            subtitle="Chiffre d'affaires du mois en cours"
             icon={<BarChart3 size={20} />}
-            color={"yellow"}
+            color="yellow"
           />
+
+          {/* BÉNÉFICE DU MOIS (ADMIN UNIQUEMENT) */}
+          {user.role === "ADMIN" && stats?.currentMonthGrossProfit !== undefined && (
+            <StatCard
+              title="Bénéfice brut du mois"
+              value={fmt(stats.currentMonthGrossProfit)}
+              subtitle={
+                stats.currentMonthMarginRate !== null &&
+                stats.currentMonthMarginRate !== undefined
+                  ? `Marge ${stats.currentMonthMarginRate}% · Résultat net : ${fmt(stats.currentMonthNetProfit ?? stats.currentMonthGrossProfit)}`
+                  : `Résultat net : ${fmt(stats.currentMonthNetProfit ?? stats.currentMonthGrossProfit)}`
+              }
+              icon={<Wallet size={20} />}
+              color="emerald"
+            />
+          )}
 
           {/* 2. CHIFFRE D'AFFAIRES HISTORIQUE / GLOBAL */}
           <StatCard
@@ -196,6 +218,12 @@ export default function Dashboard() {
             color="red"
           />
         </div>
+        {user.role === "ADMIN" &&
+          (stats?.currentMonthItemsWithoutCost ?? 0) > 0 && (
+            <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
+              ⚠️ {stats?.currentMonthItemsWithoutCost} ligne(s) vendue(s) ce mois-ci avaient un prix d'achat à 0 FCFA. Complétez vos prix d'achat pour un bénéfice exact.
+            </p>
+          )}
       </div>
 
       {/* Stats clients & fournisseurs */}

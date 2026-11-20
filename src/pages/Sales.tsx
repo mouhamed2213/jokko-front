@@ -5,12 +5,14 @@ import {
   Search,
   ShoppingCart,
   Trash2,
+  UserPlus,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
+  createClient,
   createSale,
   getCategories,
   getClients,
@@ -25,11 +27,18 @@ import { getStoredUser, isAdmin } from "../types/auth";
 import type {
   Category,
   Client,
+  PackagingUnit,
   Product,
   Sale,
   SubscriptionInfo,
 } from "../types/index";
 import { showModal } from "../components/upgradeModal";
+import {
+  computeUnitPrice,
+  formatStockDisplay,
+  unitLabel,
+  type PriceTier,
+} from "../utils/packaging";
 
 const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
@@ -37,10 +46,14 @@ type CartItem = {
   productId: number;
   productName: string;
   imageUrl?: string | null;
-  quantity: number;
-  unitPrice: number;
-  stock: number;
+  soldUnit: PackagingUnit;
+  unitType: PackagingUnit;
+  unitsPerPack: number;
+  quantity: number; // quantité dans soldUnit
+  unitPrice: number; // prix par soldUnit
+  stock: number; // stock total du produit en pièces
   salePrice: number;
+  packSalePrice?: number | null;
   semiWholesalePrice?: number | null;
   semiWholesaleMinQty?: number | null;
   wholesalePrice?: number | null;
@@ -48,34 +61,8 @@ type CartItem = {
   priceOverridden?: boolean;
 };
 
-type PriceTier = "detail" | "semiWholesale" | "wholesale";
-
-function computeTierPrice(
-  product: {
-    salePrice: number;
-    semiWholesalePrice?: number | null;
-    semiWholesaleMinQty?: number | null;
-    wholesalePrice?: number | null;
-    wholesaleMinQty?: number | null;
-  },
-  quantity: number,
-): { price: number; tier: PriceTier } {
-  if (
-    product.wholesalePrice &&
-    product.wholesaleMinQty &&
-    quantity >= product.wholesaleMinQty
-  ) {
-    return { price: product.wholesalePrice, tier: "wholesale" };
-  }
-  if (
-    product.semiWholesalePrice &&
-    product.semiWholesaleMinQty &&
-    quantity >= product.semiWholesaleMinQty
-  ) {
-    return { price: product.semiWholesalePrice, tier: "semiWholesale" };
-  }
-  return { price: product.salePrice, tier: "detail" };
-}
+const cartLineKey = (productId: number, soldUnit: PackagingUnit) =>
+  `${productId}:${soldUnit}`;
 
 const statusBadge: Record<string, string> = {
   PAID: "bg-emerald-100 text-emerald-700",
@@ -111,8 +98,14 @@ export default function Sales() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [clientId, setClientId] = useState<number | "">("");
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [clientSearch, setClientSearch] = useState("");
   const [customerName, setCustomerName] = useState("");
+  const [showQuickClientForm, setShowQuickClientForm] = useState(false);
+  const [quickClientName, setQuickClientName] = useState("");
+  const [quickClientPhone, setQuickClientPhone] = useState("");
+  const [quickClientAddress, setQuickClientAddress] = useState("");
+  const [creatingClient, setCreatingClient] = useState(false);
   const [note, setNote] = useState("");
   const [paidAmount, setPaidAmount] = useState(0);
   const [paidAmountTouched, setPaidAmountTouched] = useState(false);
@@ -121,6 +114,7 @@ export default function Sales() {
 
   // Modal "Ajouter au panier"
   const [modalProduct, setModalProduct] = useState<Product | null>(null);
+  const [modalUnit, setModalUnit] = useState<PackagingUnit>("PIECE");
   const [modalQty, setModalQty] = useState(1);
   const [modalPrice, setModalPrice] = useState(0);
   const [modalTier, setModalTier] = useState<PriceTier>("detail");
@@ -242,74 +236,145 @@ export default function Sales() {
       );
     });
 
-  const updatePriceSuggestion = (tier: PriceTier, tiers: any) => {
+  const updatePriceSuggestion = (tier: PriceTier, tiers: any, unit: PackagingUnit) => {
+    const label = unitLabel(unit, true);
     if (tier === "wholesale" && tiers.wholesale) {
-      setModalSuggestion(`Prix Gros appliqué (≥${tiers.wholesale.minQty} unités)`);
+      setModalSuggestion(`Prix Gros appliqué (≥${tiers.wholesale.minQty} ${label})`);
     } else if (tier === "semiWholesale" && tiers.semiWholesale) {
       setModalSuggestion(
-        `Prix Demi-gros appliqué (≥${tiers.semiWholesale.minQty} unités)`,
+        `Prix Demi-gros appliqué (≥${tiers.semiWholesale.minQty} ${label})`,
       );
     } else {
-      setModalSuggestion("Prix Détail");
+      setModalSuggestion(
+        unit === "PIECE" ? "Prix Détail (à la pièce)" : `Prix standard par ${unitLabel(unit)}`,
+      );
     }
   };
 
   const openAddModal = (product: Product) => {
+    const productUnit: PackagingUnit = product.unitType || "PIECE";
+    const unitsPerPack = product.unitsPerPack || 1;
+    // Si le produit est en carton/douzaine et qu'il y a au moins 1 pack en stock, on pré-sélectionne son unité
+    const defaultUnit: PackagingUnit =
+      productUnit !== "PIECE" && product.quantity >= unitsPerPack
+        ? productUnit
+        : "PIECE";
+    const initial = computeUnitPrice(product, 1, defaultUnit);
     setModalProduct(product);
+    setModalUnit(defaultUnit);
     setModalQty(1);
-    setModalPrice(product.salePrice);
-    setModalTier("detail");
-    setModalSuggestion("");
+    setModalPrice(initial.price);
+    setModalTier(initial.tier);
+    setModalSuggestion(
+      defaultUnit === "PIECE"
+        ? "Prix Détail (à la pièce)"
+        : `Prix standard par ${unitLabel(defaultUnit)}`,
+    );
   };
 
   const closeAddModal = () => setModalProduct(null);
 
-  const handleModalQtyChange = async (qty: number) => {
-    setModalQty(qty);
-    if (!modalProduct || qty <= 0) return;
-    if (!modalProduct.semiWholesalePrice && !modalProduct.wholesalePrice) return;
-    try {
-      const suggestion = await getSuggestedPrice(modalProduct.id, qty);
-      setModalPrice(suggestion.suggestedPrice);
-      setModalTier(suggestion.tier);
-      updatePriceSuggestion(suggestion.tier, suggestion.tiers);
-    } catch {
-      /* silencieux */
+  const refreshModalPrice = async (
+    product: Product,
+    qty: number,
+    unit: PackagingUnit,
+  ) => {
+    if (qty <= 0) return;
+    const local = computeUnitPrice(product, qty, unit);
+    setModalPrice(local.price);
+    setModalTier(local.tier);
+    if (unit === (product.unitType || "PIECE") && (product.semiWholesalePrice || product.wholesalePrice)) {
+      try {
+        const suggestion = await getSuggestedPrice(product.id, qty, unit);
+        setModalPrice(suggestion.suggestedPrice);
+        setModalTier(suggestion.tier);
+        updatePriceSuggestion(suggestion.tier, suggestion.tiers, unit);
+      } catch {
+        /* silencieux */
+      }
+    } else {
+      setModalSuggestion(
+        unit === "PIECE"
+          ? "Prix Détail (à la pièce)"
+          : `Prix standard par ${unitLabel(unit)}`,
+      );
     }
   };
+
+  const handleModalQtyChange = async (qty: number) => {
+    setModalQty(qty);
+    if (!modalProduct) return;
+    await refreshModalPrice(modalProduct, qty, modalUnit);
+  };
+
+  const handleModalUnitChange = async (unit: PackagingUnit) => {
+    setModalUnit(unit);
+    setModalQty(1);
+    if (!modalProduct) return;
+    await refreshModalPrice(modalProduct, 1, unit);
+  };
+
+  const piecesInCartForProduct = (productId: number, excludeKey?: string) =>
+    cart.reduce((sum, item) => {
+      if (item.productId !== productId) return sum;
+      if (excludeKey && cartLineKey(item.productId, item.soldUnit) === excludeKey) {
+        return sum;
+      }
+      const mult = item.soldUnit === "PIECE" ? 1 : Math.max(1, item.unitsPerPack);
+      return sum + item.quantity * mult;
+    }, 0);
 
   const confirmAddToCart = () => {
     if (!modalProduct || !Number.isInteger(modalQty) || modalQty <= 0 || modalPrice <= 0) {
       return toast.error("Quantité et prix invalides");
     }
-    const alreadyInCart =
-      cart.find((c) => c.productId === modalProduct.id)?.quantity || 0;
-    const totalQty = alreadyInCart + modalQty;
-    if (totalQty > modalProduct.quantity) {
+    const productUnit: PackagingUnit = modalProduct.unitType || "PIECE";
+    const unitsPerPack = modalProduct.unitsPerPack || 1;
+    const multiplier = modalUnit === "PIECE" ? 1 : Math.max(1, unitsPerPack);
+    const addedPieces = modalQty * multiplier;
+    const alreadyPieces = piecesInCartForProduct(modalProduct.id);
+
+    if (alreadyPieces + addedPieces > modalProduct.quantity) {
       return toast.error(
-        `Stock insuffisant (${modalProduct.quantity} disponibles)`,
+        `Stock insuffisant (${formatStockDisplay(
+          modalProduct.quantity,
+          productUnit,
+          unitsPerPack,
+        )} disponibles)`,
       );
     }
 
-    const tierForModalQty = computeTierPrice(modalProduct, modalQty);
+    const lineKey = cartLineKey(modalProduct.id, modalUnit);
+    const existingLine = cart.find(
+      (c) => cartLineKey(c.productId, c.soldUnit) === lineKey,
+    );
+    const totalQtyInUnit = (existingLine?.quantity || 0) + modalQty;
+
+    const tierForModalQty = computeUnitPrice(modalProduct, modalQty, modalUnit);
     const adminOverrode = admin && modalPrice !== tierForModalQty.price;
-    const tierForTotalQty = computeTierPrice(modalProduct, totalQty);
+    const tierForTotalQty = computeUnitPrice(
+      modalProduct,
+      totalQtyInUnit,
+      modalUnit,
+    );
     const resolvedUnitPrice = adminOverrode ? modalPrice : tierForTotalQty.price;
 
     setCart((prev) => {
-      const existing = prev.findIndex((c) => c.productId === modalProduct.id);
-      if (existing >= 0) {
+      const existingIdx = prev.findIndex(
+        (c) => cartLineKey(c.productId, c.soldUnit) === lineKey,
+      );
+      if (existingIdx >= 0) {
         const updated = [...prev];
-        const prevItem = updated[existing];
+        const prevItem = updated[existingIdx];
         const nextOverridden = adminOverrode || prevItem.priceOverridden;
         const nextPrice = adminOverrode
           ? modalPrice
           : prevItem.priceOverridden
             ? prevItem.unitPrice
             : tierForTotalQty.price;
-        updated[existing] = {
+        updated[existingIdx] = {
           ...prevItem,
-          quantity: totalQty,
+          quantity: totalQtyInUnit,
           unitPrice: nextPrice,
           priceOverridden: nextOverridden,
         };
@@ -321,10 +386,14 @@ export default function Sales() {
           productId: modalProduct.id,
           productName: modalProduct.name,
           imageUrl: modalProduct.imageUrl,
+          soldUnit: modalUnit,
+          unitType: productUnit,
+          unitsPerPack,
           quantity: modalQty,
           unitPrice: resolvedUnitPrice,
           stock: modalProduct.quantity,
           salePrice: modalProduct.salePrice,
+          packSalePrice: modalProduct.packSalePrice,
           semiWholesalePrice: modalProduct.semiWholesalePrice,
           semiWholesaleMinQty: modalProduct.semiWholesaleMinQty,
           wholesalePrice: modalProduct.wholesalePrice,
@@ -333,48 +402,114 @@ export default function Sales() {
         },
       ];
     });
-    toast.success(`${modalProduct.name} ajouté au panier`);
+    toast.success(
+      `${modalProduct.name} (${modalQty} ${unitLabel(modalUnit, modalQty > 1)}) ajouté au panier`,
+    );
     closeAddModal();
   };
 
-  const updateCartQty = (productId: number, quantity: number) => {
-    if (quantity <= 0) return removeFromCart(productId);
+  const updateCartQty = (
+    productId: number,
+    soldUnit: PackagingUnit,
+    quantity: number,
+  ) => {
+    const key = cartLineKey(productId, soldUnit);
+    if (quantity <= 0) return removeFromCart(productId, soldUnit);
+    const otherPieces = piecesInCartForProduct(productId, key);
+
     setCart((prev) =>
       prev.map((c) => {
-        if (c.productId !== productId) return c;
-        const nextQty = Math.min(quantity, c.stock);
+        if (cartLineKey(c.productId, c.soldUnit) !== key) return c;
+        const mult = c.soldUnit === "PIECE" ? 1 : Math.max(1, c.unitsPerPack);
+        const maxQtyInUnit = Math.max(
+          1,
+          Math.floor((c.stock - otherPieces) / mult),
+        );
+        const nextQty = Math.min(quantity, maxQtyInUnit);
         const nextPrice = c.priceOverridden
           ? c.unitPrice
-          : computeTierPrice(c, nextQty).price;
+          : computeUnitPrice(c, nextQty, c.soldUnit).price;
         return { ...c, quantity: nextQty, unitPrice: nextPrice };
       }),
     );
   };
 
-  const updateCartPrice = (productId: number, unitPrice: number) => {
+  const updateCartPrice = (
+    productId: number,
+    soldUnit: PackagingUnit,
+    unitPrice: number,
+  ) => {
     if (!admin) return;
+    const key = cartLineKey(productId, soldUnit);
     setCart((prev) =>
       prev.map((c) =>
-        c.productId === productId
+        cartLineKey(c.productId, c.soldUnit) === key
           ? { ...c, unitPrice, priceOverridden: true }
           : c,
       ),
     );
   };
 
-  const removeFromCart = (productId: number) => {
-    setCart((prev) => prev.filter((c) => c.productId !== productId));
+  const removeFromCart = (productId: number, soldUnit: PackagingUnit) => {
+    const key = cartLineKey(productId, soldUnit);
+    setCart((prev) =>
+      prev.filter((c) => cartLineKey(c.productId, c.soldUnit) !== key),
+    );
   };
 
   const resetCartAndClient = () => {
     setCart([]);
     setClientId("");
+    setSelectedClient(null);
     setClientSearch("");
     setCustomerName("");
+    setShowQuickClientForm(false);
+    setQuickClientName("");
+    setQuickClientPhone("");
+    setQuickClientAddress("");
     setNote("");
     setPaidAmount(0);
     setPaidAmountTouched(false);
     setPaymentMethod("CASH");
+  };
+
+  const openQuickClientForm = (prefill?: string) => {
+    const seed = (prefill ?? clientSearch ?? customerName).trim();
+    const looksLikePhone = /^[+\d\s-]{6,}$/.test(seed);
+    setQuickClientName(looksLikePhone ? "" : seed);
+    setQuickClientPhone(looksLikePhone ? seed : "");
+    setQuickClientAddress("");
+    setShowQuickClientForm(true);
+  };
+
+  const handleQuickCreateClient = async () => {
+    if (!quickClientName.trim() || !quickClientPhone.trim()) {
+      return toast.error("Le nom et le téléphone du client sont obligatoires");
+    }
+    setCreatingClient(true);
+    try {
+      const created = await createClient({
+        name: quickClientName.trim(),
+        phone: quickClientPhone.trim(),
+        address: quickClientAddress.trim() || undefined,
+      });
+      setClients((prev) => [created, ...prev.filter((c) => c.id !== created.id)]);
+      setSelectedClient(created);
+      setClientId(created.id);
+      setClientSearch("");
+      setCustomerName("");
+      setShowQuickClientForm(false);
+      setQuickClientName("");
+      setQuickClientPhone("");
+      setQuickClientAddress("");
+      toast.success(`Client "${created.name}" créé et sélectionné`);
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Erreur lors de la création du client",
+      );
+    } finally {
+      setCreatingClient(false);
+    }
   };
 
   const handleCreateSale = async (e: React.FormEvent) => {
@@ -408,6 +543,7 @@ export default function Sales() {
           productId: c.productId,
           quantity: c.quantity,
           unitPrice: c.unitPrice,
+          soldUnit: c.soldUnit,
         })),
       } as any);
       toast.success("Vente enregistrée avec succès");
@@ -563,53 +699,142 @@ export default function Sales() {
               Aucun produit trouvé.
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+            <div
+              className={`grid grid-cols-2 gap-4 ${
+                cart.length
+                  ? "sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
+                  : "sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5"
+              }`}
+            >
               {filteredProducts.map((p) => {
-                const inCartQty =
-                  cart.find((c) => c.productId === p.id)?.quantity || 0;
+                const productUnit: PackagingUnit = p.unitType || "PIECE";
+                const unitsPerPack = p.unitsPerPack || 1;
+                const isPack = productUnit !== "PIECE";
+                const isLowStock =
+                  p.quantity > 0 && p.quantity <= p.alertThreshold;
+                const inCartLines = cart.filter((c) => c.productId === p.id);
+                const inCartCount = inCartLines.reduce(
+                  (sum, c) => sum + c.quantity,
+                  0,
+                );
+                const unitBadge =
+                  productUnit === "CARTON"
+                    ? {
+                        label: `Carton · ${unitsPerPack} pcs`,
+                        cls: "bg-purple-600/90 text-white",
+                      }
+                    : productUnit === "DOZEN"
+                      ? {
+                          label: "Douzaine · 12 pcs",
+                          cls: "bg-blue-600/90 text-white",
+                        }
+                      : {
+                          label: "Par pièce",
+                          cls: "bg-slate-800/80 text-white",
+                        };
+
                 return (
                   <div
                     key={p.id}
-                    className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                    className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm transition-all hover:border-emerald-300 hover:shadow-md"
                   >
-                    <div className="h-24 w-full bg-slate-100 overflow-hidden">
+                    {/* Zone photo équilibrée (h-32 / sm:h-36) sans rognage */}
+                    <div className="relative h-32 sm:h-36 w-full shrink-0 overflow-hidden bg-slate-100 flex items-center justify-center p-2.5">
                       {p.imageUrl ? (
-                        <img
-                          src={p.imageUrl}
-                          alt={p.name}
-                          className="h-full w-full object-cover"
-                        />
+                        <>
+                          <img
+                            src={p.imageUrl}
+                            alt=""
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-0 h-full w-full scale-125 object-cover opacity-25 blur-md"
+                          />
+                          <img
+                            src={p.imageUrl}
+                            alt={p.name}
+                            className="relative z-10 h-full w-full object-contain drop-shadow-xs transition-transform duration-300 group-hover:scale-105"
+                          />
+                        </>
                       ) : (
-                        <div className="flex h-full items-center justify-center text-2xl font-bold text-slate-300">
+                        <span className="text-3xl font-extrabold text-slate-300">
                           {p.name.charAt(0).toUpperCase()}
-                        </div>
+                        </span>
                       )}
-                      {inCartQty > 0 && (
-                        <span className="absolute right-2 top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-600 px-1.5 text-xs font-bold text-white shadow">
-                          {inCartQty}
+
+                      {/* Type d'enregistrement du produit */}
+                      <span
+                        className={`absolute left-2.5 top-2.5 z-20 rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-tight shadow-xs backdrop-blur-xs ${unitBadge.cls}`}
+                      >
+                        {unitBadge.label}
+                      </span>
+
+                      {inCartCount > 0 && (
+                        <span className="absolute right-2.5 top-2.5 z-20 flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-600 px-1.5 text-xs font-bold text-white shadow">
+                          {inCartCount}
                         </span>
                       )}
                     </div>
-                    <div className="px-3 py-2.5">
-                      <p
-                        className="text-sm font-semibold text-slate-800 truncate"
-                        title={p.name}
-                      >
-                        {p.name}
-                      </p>
-                      <p className="text-sm font-bold text-emerald-600">
-                        {p.salePrice.toLocaleString("fr-FR")} F
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {p.quantity} en stock
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => openAddModal(p)}
-                        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-700"
-                      >
-                        <Plus size={13} /> Ajouter au panier
-                      </button>
+
+                    {/* Contenu équilibré et aligné */}
+                    <div className="flex flex-1 flex-col justify-between gap-2.5 p-3.5">
+                      <div className="space-y-1">
+                        <p
+                          className="text-sm font-semibold text-slate-800 line-clamp-2 leading-snug"
+                          title={p.name}
+                        >
+                          {p.name}
+                        </p>
+
+                        {isPack && p.packSalePrice ? (
+                          <div className="pt-0.5">
+                            <p className="text-base font-bold text-emerald-700 leading-tight">
+                              {p.packSalePrice.toLocaleString("fr-FR")} F{" "}
+                              <span className="text-[11px] font-medium text-slate-500">
+                                / {unitLabel(productUnit)}
+                              </span>
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {p.salePrice.toLocaleString("fr-FR")} F / pièce
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="pt-0.5 text-base font-bold text-emerald-700 leading-tight">
+                            {p.salePrice.toLocaleString("fr-FR")} F{" "}
+                            <span className="text-[11px] font-medium text-slate-500">
+                              / pièce
+                            </span>
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 pt-1 border-t border-slate-100">
+                        <p
+                          className={`text-xs font-medium truncate ${
+                            isLowStock ? "text-amber-600" : "text-slate-500"
+                          }`}
+                          title={formatStockDisplay(
+                            p.quantity,
+                            productUnit,
+                            unitsPerPack,
+                          )}
+                        >
+                          Stock :{" "}
+                          <span className="font-semibold">
+                            {formatStockDisplay(
+                              p.quantity,
+                              productUnit,
+                              unitsPerPack,
+                            )}
+                          </span>
+                        </p>
+
+                        <button
+                          type="button"
+                          onClick={() => openAddModal(p)}
+                          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 active:scale-[0.98]"
+                        >
+                          <Plus size={14} /> Ajouter au panier
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -645,79 +870,121 @@ export default function Sales() {
 
               {/* Articles */}
               <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
-                {cart.map((item) => (
-                  <div
-                    key={item.productId}
-                    className="rounded-xl border border-gray-200 p-2.5"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-medium text-slate-800 leading-tight">
-                        {item.productName}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => removeFromCart(item.productId)}
-                        className="shrink-0 text-red-400 hover:text-red-600"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                    <div className="mt-2 flex items-center gap-2">
-                      <div className="flex items-center rounded-lg border border-gray-300">
+                {cart.map((item) => {
+                  const lineKey = cartLineKey(item.productId, item.soldUnit);
+                  const mult =
+                    item.soldUnit === "PIECE"
+                      ? 1
+                      : Math.max(1, item.unitsPerPack);
+                  const otherPieces = piecesInCartForProduct(
+                    item.productId,
+                    lineKey,
+                  );
+                  const maxQty = Math.max(
+                    1,
+                    Math.floor((item.stock - otherPieces) / mult),
+                  );
+                  return (
+                    <div
+                      key={lineKey}
+                      className="rounded-xl border border-gray-200 p-2.5"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-medium text-slate-800 leading-tight">
+                            {item.productName}
+                          </p>
+                          <p className="text-[11px] text-emerald-700 font-medium mt-0.5">
+                            {item.soldUnit === "PIECE"
+                              ? "Vente à la pièce"
+                              : `${unitLabel(item.soldUnit, item.quantity > 1)} (${item.quantity * mult} pcs)`}
+                          </p>
+                        </div>
                         <button
                           type="button"
                           onClick={() =>
-                            updateCartQty(item.productId, item.quantity - 1)
+                            removeFromCart(item.productId, item.soldUnit)
                           }
-                          className="px-2 py-1 text-gray-500 hover:text-slate-900"
+                          className="shrink-0 text-red-400 hover:text-red-600"
                         >
-                          <Minus size={12} />
+                          <Trash2 size={14} />
                         </button>
+                      </div>
+                      <div className="mt-2 flex items-center gap-2">
+                        <div className="flex items-center rounded-lg border border-gray-300">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateCartQty(
+                                item.productId,
+                                item.soldUnit,
+                                item.quantity - 1,
+                              )
+                            }
+                            className="px-2 py-1 text-gray-500 hover:text-slate-900"
+                          >
+                            <Minus size={12} />
+                          </button>
+                          <input
+                            type="number"
+                            min={1}
+                            max={maxQty}
+                            value={item.quantity}
+                            onChange={(e) =>
+                              updateCartQty(
+                                item.productId,
+                                item.soldUnit,
+                                Number(e.target.value),
+                              )
+                            }
+                            className="w-10 border-x border-gray-300 py-1 text-center text-sm outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateCartQty(
+                                item.productId,
+                                item.soldUnit,
+                                item.quantity + 1,
+                              )
+                            }
+                            disabled={item.quantity >= maxQty}
+                            className="px-2 py-1 text-gray-500 hover:text-slate-900 disabled:opacity-30"
+                          >
+                            <Plus size={12} />
+                          </button>
+                        </div>
                         <input
                           type="number"
                           min={1}
-                          max={item.stock}
-                          value={item.quantity}
+                          value={item.unitPrice}
+                          readOnly={!admin}
+                          disabled={!admin}
+                          title={
+                            admin
+                              ? "Prix unitaire modifiable"
+                              : "Tarif appliqué automatiquement selon le palier"
+                          }
                           onChange={(e) =>
-                            updateCartQty(item.productId, Number(e.target.value))
+                            updateCartPrice(
+                              item.productId,
+                              item.soldUnit,
+                              Number(e.target.value),
+                            )
                           }
-                          className="w-10 border-x border-gray-300 py-1 text-center text-sm outline-none"
+                          className={`w-full rounded-lg border border-gray-300 px-2 py-1 text-right text-sm outline-none focus:border-emerald-500 ${
+                            !admin
+                              ? "bg-gray-100 text-gray-600 cursor-not-allowed"
+                              : ""
+                          }`}
                         />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateCartQty(item.productId, item.quantity + 1)
-                          }
-                          disabled={item.quantity >= item.stock}
-                          className="px-2 py-1 text-gray-500 hover:text-slate-900 disabled:opacity-30"
-                        >
-                          <Plus size={12} />
-                        </button>
                       </div>
-                      <input
-                        type="number"
-                        min={1}
-                        value={item.unitPrice}
-                        readOnly={!admin}
-                        disabled={!admin}
-                        title={
-                          admin
-                            ? "Prix unitaire modifiable"
-                            : "Tarif appliqué automatiquement selon le palier"
-                        }
-                        onChange={(e) =>
-                          updateCartPrice(item.productId, Number(e.target.value))
-                        }
-                        className={`w-full rounded-lg border border-gray-300 px-2 py-1 text-right text-sm outline-none focus:border-emerald-500 ${
-                          !admin ? "bg-gray-100 text-gray-600 cursor-not-allowed" : ""
-                        }`}
-                      />
+                      <p className="mt-1 text-right text-xs font-semibold text-slate-600">
+                        = {fmt(item.unitPrice * item.quantity)}
+                      </p>
                     </div>
-                    <p className="mt-1 text-right text-xs font-semibold text-slate-600">
-                      = {fmt(item.unitPrice * item.quantity)}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="flex items-center justify-between border-t border-gray-100 pt-3">
@@ -792,58 +1059,155 @@ export default function Sales() {
 
               {/* Client / note */}
               <div className="space-y-3 border-t border-gray-100 pt-3">
+                {paidAmount < cartTotal && !clientId && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 flex items-center justify-between gap-2">
+                    <span>
+                      Vente à crédit : sélectionnez ou créez une fiche client.
+                    </span>
+                    {!showQuickClientForm && (
+                      <button
+                        type="button"
+                        onClick={() => openQuickClientForm()}
+                        className="shrink-0 font-semibold text-emerald-700 hover:underline"
+                      >
+                        + Créer
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-700">
-                    Client enregistré
-                  </label>
-                  <input
-                    type="search"
-                    value={
-                      clientId
-                        ? clients.find((client) => client.id === clientId)?.name || ""
-                        : clientSearch
-                    }
-                    onChange={(event) => {
-                      setClientId("");
-                      setCustomerName("");
-                      setClientSearch(event.target.value);
-                    }}
-                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                    placeholder="Rechercher par nom, téléphone ou email..."
-                  />
-                  {!clientId && clientSearch.trim() && (
-                    <div className="mt-2 max-h-32 overflow-y-auto rounded-xl border border-gray-200 bg-white">
-                      {clients.length ? (
-                        clients.map((client) => (
-                          <button
-                            key={client.id}
-                            type="button"
-                            onClick={() => {
-                              setClientId(client.id);
-                              setClientSearch("");
-                              setCustomerName("");
-                            }}
-                            className="block w-full border-b border-gray-100 px-3 py-2 text-left text-sm hover:bg-emerald-50"
-                          >
-                            <span className="font-medium">{client.name}</span>
-                            <span className="ml-2 text-gray-500">{client.phone}</span>
-                          </button>
-                        ))
-                      ) : (
-                        <p className="px-3 py-2 text-sm text-gray-400">
-                          Aucun client trouvé
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  {clientId && (
+                  <div className="mb-1 flex items-center justify-between">
+                    <label className="block text-xs font-medium text-gray-700">
+                      Client enregistré {paidAmount < cartTotal ? "*" : ""}
+                    </label>
                     <button
                       type="button"
-                      onClick={() => setClientId("")}
-                      className="mt-1 text-xs text-emerald-700 hover:underline"
+                      onClick={() =>
+                        showQuickClientForm
+                          ? setShowQuickClientForm(false)
+                          : openQuickClientForm()
+                      }
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-800"
                     >
-                      Changer de client
+                      <UserPlus size={13} />
+                      {showQuickClientForm ? "Fermer" : "Nouveau client"}
                     </button>
+                  </div>
+
+                  {showQuickClientForm ? (
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 space-y-2">
+                      <p className="text-xs font-semibold text-emerald-900">
+                        Création rapide de client
+                      </p>
+                      <input
+                        type="text"
+                        value={quickClientName}
+                        onChange={(e) => setQuickClientName(e.target.value)}
+                        placeholder="Nom complet *"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                      />
+                      <input
+                        type="tel"
+                        value={quickClientPhone}
+                        onChange={(e) => setQuickClientPhone(e.target.value)}
+                        placeholder="Téléphone *"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                      />
+                      <input
+                        type="text"
+                        value={quickClientAddress}
+                        onChange={(e) => setQuickClientAddress(e.target.value)}
+                        placeholder="Adresse (optionnel)"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                      />
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          type="button"
+                          disabled={creatingClient}
+                          onClick={handleQuickCreateClient}
+                          className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          {creatingClient ? "Création..." : "Créer et sélectionner"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowQuickClientForm(false)}
+                          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-600 hover:bg-gray-50"
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        type="search"
+                        value={
+                          clientId
+                            ? selectedClient?.name ||
+                              clients.find((client) => client.id === clientId)?.name ||
+                              ""
+                            : clientSearch
+                        }
+                        onChange={(event) => {
+                          setClientId("");
+                          setSelectedClient(null);
+                          setCustomerName("");
+                          setClientSearch(event.target.value);
+                        }}
+                        className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                        placeholder="Rechercher par nom, téléphone ou email..."
+                      />
+                      {!clientId && clientSearch.trim() && (
+                        <div className="mt-2 max-h-40 overflow-y-auto rounded-xl border border-gray-200 bg-white">
+                          {clients.length ? (
+                            clients.map((client) => (
+                              <button
+                                key={client.id}
+                                type="button"
+                                onClick={() => {
+                                  setClientId(client.id);
+                                  setSelectedClient(client);
+                                  setClientSearch("");
+                                  setCustomerName("");
+                                }}
+                                className="block w-full border-b border-gray-100 px-3 py-2 text-left text-sm hover:bg-emerald-50"
+                              >
+                                <span className="font-medium">{client.name}</span>
+                                <span className="ml-2 text-gray-500">{client.phone}</span>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="px-3 py-2.5 space-y-2">
+                              <p className="text-xs text-gray-400">
+                                Aucun client trouvé pour « {clientSearch.trim()} »
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => openQuickClientForm(clientSearch)}
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                              >
+                                <UserPlus size={13} />
+                                Créer « {clientSearch.trim()} » maintenant
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {clientId && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setClientId("");
+                            setSelectedClient(null);
+                          }}
+                          className="mt-1 text-xs text-emerald-700 hover:underline"
+                        >
+                          Changer de client
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
                 <div>
@@ -855,11 +1219,18 @@ export default function Sales() {
                     value={customerName}
                     onChange={(e) => {
                       setCustomerName(e.target.value);
-                      if (e.target.value) setClientId("");
+                      if (e.target.value) {
+                        setClientId("");
+                        setSelectedClient(null);
+                      }
                     }}
-                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                    placeholder="Nom du client..."
-                    disabled={!!clientId}
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    placeholder={
+                      paidAmount < cartTotal
+                        ? "Indisponible pour une vente à crédit"
+                        : "Nom du client..."
+                    }
+                    disabled={!!clientId || paidAmount < cartTotal}
                   />
                 </div>
                 <div>
@@ -920,28 +1291,90 @@ export default function Sales() {
                   {modalProduct.name}
                 </p>
                 <p className="text-xs text-gray-400">
-                  {modalProduct.quantity} en stock
+                  En stock :{" "}
+                  {formatStockDisplay(
+                    modalProduct.quantity,
+                    modalProduct.unitType,
+                    modalProduct.unitsPerPack,
+                  )}
                 </p>
               </div>
             </div>
 
+            {modalProduct.unitType && modalProduct.unitType !== "PIECE" && (
+              <div className="mt-4">
+                <label className="mb-1.5 block text-xs font-medium text-gray-600">
+                  Vendre en :
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      {
+                        unit: modalProduct.unitType,
+                        label: `${
+                          modalProduct.unitType === "CARTON"
+                            ? "Carton"
+                            : "Douzaine"
+                        } (${modalProduct.unitsPerPack || 12} pcs)`,
+                        disabled:
+                          modalProduct.quantity <
+                          (modalProduct.unitsPerPack || 12),
+                      },
+                      {
+                        unit: "PIECE" as PackagingUnit,
+                        label: "Pièce (détail)",
+                        disabled: false,
+                      },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.unit}
+                      type="button"
+                      disabled={opt.disabled}
+                      onClick={() => handleModalUnitChange(opt.unit)}
+                      className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                        modalUnit === opt.unit
+                          ? "border-emerald-600 bg-emerald-50 text-emerald-800"
+                          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                      } disabled:opacity-40 disabled:cursor-not-allowed`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="mt-5 grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1 block text-xs text-gray-600">
-                  Quantité
+                  Quantité ({unitLabel(modalUnit, true)})
                 </label>
                 <input
                   type="number"
                   min={1}
-                  max={modalProduct.quantity}
+                  max={Math.max(
+                    1,
+                    Math.floor(
+                      modalProduct.quantity /
+                        (modalUnit === "PIECE"
+                          ? 1
+                          : modalProduct.unitsPerPack || 1),
+                    ),
+                  )}
                   value={modalQty}
                   onChange={(e) => handleModalQtyChange(Number(e.target.value))}
                   className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
                 />
+                {modalUnit !== "PIECE" && (
+                  <p className="mt-1 text-[11px] font-medium text-emerald-700">
+                    = {modalQty * (modalProduct.unitsPerPack || 1)} pièces
+                  </p>
+                )}
               </div>
               <div>
                 <label className="mb-1 block text-xs text-gray-600">
-                  Prix (FCFA)
+                  Prix / {unitLabel(modalUnit)} (FCFA)
                 </label>
                 <input
                   type="number"
