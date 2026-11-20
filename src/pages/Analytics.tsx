@@ -73,7 +73,7 @@ const sections: Array<{ id: Section; label: string; icon: React.ReactNode }> = [
   { id: "customers", label: "Clients", icon: <Users size={16} /> },
   { id: "cash", label: "Trésorerie", icon: <Wallet size={16} /> },
   { id: "trends", label: "Tendances", icon: <BarChart3 size={16} /> },
-  { id: "insights", label: "Insights", icon: <Lightbulb size={16} /> },
+  { id: "insights", label: "Alertes & Conseils", icon: <Lightbulb size={16} /> },
 ];
 
 const minimumPlan: Record<Section, PlanCode> = {
@@ -85,6 +85,13 @@ const minimumPlan: Record<Section, PlanCode> = {
   customers: "BASIC",
   trends: "BASIC",
   insights: "PRO",
+};
+
+const planDisplayNames: Record<PlanCode, string> = {
+  FREE: "Gratuit",
+  BASIC: "Starter",
+  PRO: "Pro",
+  PREMIUM: "Signature",
 };
 
 const planRank: Record<PlanCode, number> = { FREE: 0, BASIC: 1, PRO: 2, PREMIUM: 3 };
@@ -351,8 +358,8 @@ export default function Analytics() {
     if (sectionLocked) {
       setError(
         section === "insights"
-          ? "Les insights automatiques nécessitent le plan PRO et les rapports avancés."
-          : `Cette analyse est disponible à partir du plan ${minimumPlan[section]}.`,
+          ? "Les alertes et conseils automatiques nécessitent le plan Pro et les rapports avancés."
+          : `Cette analyse est disponible à partir du plan ${planDisplayNames[minimumPlan[section]]}.`,
       );
       setLoading(false);
       return;
@@ -405,7 +412,7 @@ export default function Analytics() {
 
   useEffect(() => {
     if (subscription) void load();
-  }, [section, subscription, multiStoreMode, page]);
+  }, [section, subscription, multiStoreMode, page, filters]);
 
   const activeKpis = multiStoreMode ? multiStoreData?.consolidated : data?.kpis;
   const activeComparison = multiStoreMode
@@ -486,7 +493,8 @@ export default function Analytics() {
           className="flex flex-wrap items-end gap-2"
           onSubmit={(event) => {
             event.preventDefault();
-            load();
+            setPage(1);
+            void load({ ...params, page: 1 });
           }}
         >
           <label className="text-xs font-medium text-slate-500">
@@ -537,8 +545,8 @@ export default function Analytics() {
               if (locked) {
                 setError(
                   item.id === "insights"
-                    ? "Les insights automatiques nécessitent le plan PRO et les rapports avancés."
-                    : `Cette analyse est disponible à partir du plan ${minimumPlan[item.id]}.`,
+                    ? "Les alertes et conseils automatiques nécessitent le plan Pro et les rapports avancés."
+                    : `Cette analyse est disponible à partir du plan ${planDisplayNames[minimumPlan[item.id]]}.`,
                 );
                 return;
               }
@@ -857,6 +865,19 @@ function SalesAnalyticsSection({ detail }: { detail: any }) {
   );
   const maxRowRevenue = Math.max(...timeline.map((r) => r.revenue || 0), 1);
 
+  const summaryPageSize = 10;
+  const [summaryPage, setSummaryPage] = useState(1);
+  const summaryTotalPages = Math.max(1, Math.ceil(timeline.length / summaryPageSize));
+  const safeSummaryPage = Math.min(summaryPage, summaryTotalPages);
+  const pagedTimeline = timeline.slice(
+    (safeSummaryPage - 1) * summaryPageSize,
+    safeSummaryPage * summaryPageSize,
+  );
+
+  useEffect(() => {
+    setSummaryPage(1);
+  }, [detail]);
+
   const chartOptions = {
     responsive: true,
     plugins: {
@@ -956,7 +977,7 @@ function SalesAnalyticsSection({ detail }: { detail: any }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {timeline.map((row) => {
+                  {pagedTimeline.map((row) => {
                     const pct = Math.round((row.revenue / maxRowRevenue) * 100);
                     return (
                       <tr key={row.bucket} className="hover:bg-slate-50/60">
@@ -995,6 +1016,14 @@ function SalesAnalyticsSection({ detail }: { detail: any }) {
                 </tbody>
               </table>
             </div>
+            <Pagination
+              pagination={{
+                page: safeSummaryPage,
+                totalPages: summaryTotalPages,
+                total: timeline.length,
+              }}
+              onPageChange={setSummaryPage}
+            />
           </div>
         ) : viewMode === "bars" ? (
           <Bar
@@ -1149,7 +1178,7 @@ function InsightsSection({
           </div>
         ))
       ) : (
-        <EmptyState message="Aucun insight pour ce filtre et cette période." />
+        <EmptyState message="Aucune alerte ni conseil pour ce filtre et cette période." />
       )}
       <Pagination pagination={pagination} onPageChange={onPageChange} />
     </div>
