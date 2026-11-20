@@ -505,7 +505,12 @@ export const getDashboardStats = async (): Promise<DashboardStats> =>
 // ── Analytics ──────────────────────────────────────────────────
 export type AnalyticsOverview = {
   period: { startDate: string; endDate: string };
-  comparison: { revenueChange: number | null } | null;
+  comparison: {
+    revenueChange: number | null;
+    previousRevenue?: number;
+    previousSalesCount?: number;
+    previousPeriod?: { startDate: string; endDate: string } | null;
+  } | null;
   kpis: {
     revenue: number;
     salesCount: number;
@@ -648,6 +653,7 @@ export const getAnalyticsMultiStoreOverview = async (params: {
   const res = await api.get("/analytics/overview/multi-store", { params });
   return res.data as {
     period: { startDate: string; endDate: string } | null;
+    comparison?: AnalyticsOverview["comparison"];
     shops: Array<{
       shop: { id: number; name: string };
       overview: AnalyticsOverview;

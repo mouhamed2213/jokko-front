@@ -314,6 +314,19 @@ export default function Analytics() {
   const [multiStoreData, setMultiStoreData] = useState<Awaited<ReturnType<typeof getAnalyticsMultiStoreOverview>> | null>(null);
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<Record<string, string>>({});
+  const [overviewViewMode, setOverviewViewMode] = useState<
+    "bars" | "summary" | "line"
+  >(() => {
+    const saved = localStorage.getItem("analytics_overview_chart_mode");
+    return saved === "summary" || saved === "line" || saved === "bars"
+      ? saved
+      : "bars";
+  });
+
+  const changeOverviewViewMode = (mode: "bars" | "summary" | "line") => {
+    setOverviewViewMode(mode);
+    localStorage.setItem("analytics_overview_chart_mode", mode);
+  };
 
   const params = useMemo(() => ({ startDate, endDate, limit: 50, page, pageSize: 20, ...filters }), [startDate, endDate, page, filters]);
   const dateError =
@@ -387,26 +400,70 @@ export default function Analytics() {
     if (subscription) void load();
   }, [section, subscription, multiStoreMode, page]);
 
-  const overviewChart = data
+  const activeKpis = multiStoreMode ? multiStoreData?.consolidated : data?.kpis;
+  const activeComparison = multiStoreMode
+    ? (multiStoreData?.comparison ?? null)
+    : (data?.comparison ?? null);
+  const currentRevenue = activeKpis?.revenue ?? 0;
+  const previousRevenue = activeComparison?.previousRevenue ?? 0;
+  const hasPreviousData = activeComparison?.previousRevenue !== undefined;
+  const revenueDelta = currentRevenue - previousRevenue;
+
+  // Ordre chronologique exact : Période précédente (gauche) -> Période actuelle (droite)
+  const overviewChartLabels = ["Période précédente", "Période actuelle"];
+  const overviewBarChart = activeKpis
     ? {
-        labels: ["Période sélectionnée", "Période précédente"],
+        labels: overviewChartLabels,
         datasets: [
           {
-            label: "Chiffre d'affaires",
-            data: [
-              data.kpis.revenue,
-              data.comparison?.revenueChange === null
-                ? 0
-                : data.kpis.revenue / (1 + (data.comparison?.revenueChange ?? 0) / 100),
-            ],
-            borderColor: "#059669",
-            backgroundColor: "rgba(5, 150, 105, 0.12)",
-            fill: true,
-            tension: 0.35,
+            label: "Chiffre d'affaires (FCFA)",
+            data: [previousRevenue, currentRevenue],
+            backgroundColor: ["#cbd5e1", "#059669"],
+            borderRadius: 10,
+            maxBarThickness: 72,
           },
         ],
       }
     : null;
+
+  const overviewLineChart = activeKpis
+    ? {
+        labels: overviewChartLabels,
+        datasets: [
+          {
+            label: "Chiffre d'affaires (FCFA)",
+            data: [previousRevenue, currentRevenue],
+            borderColor: "#059669",
+            backgroundColor: "rgba(5, 150, 105, 0.12)",
+            pointBackgroundColor: ["#64748b", "#059669"],
+            pointRadius: 5,
+            fill: true,
+            tension: 0.3,
+          },
+        ],
+      }
+    : null;
+
+  const overviewChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx: any) => formatMoney(Number(ctx.raw) || 0),
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: (value: any) =>
+            `${Number(value).toLocaleString("fr-FR")} F`,
+        },
+      },
+    },
+  };
 
   return (
     <section className="space-y-5">
@@ -530,15 +587,199 @@ export default function Analytics() {
             </div>
           )}
           <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-            <Kpi title="CA de la période" value={formatMoney((multiStoreMode ? multiStoreData?.consolidated.revenue : data?.kpis.revenue) ?? 0)} icon={<BarChart3 size={18} />} />
-            <Kpi title="Ventes" value={(multiStoreMode ? multiStoreData?.consolidated.salesCount : data?.kpis.salesCount) ?? 0} icon={<CreditCard size={18} />} />
-            <Kpi title="Panier moyen" value={formatMoney((multiStoreMode ? multiStoreData?.consolidated.averageBasket : data?.kpis.averageBasket) ?? 0)} icon={<Wallet size={18} />} />
-            <Kpi title="Variation CA" value={data?.comparison?.revenueChange === null || data?.comparison?.revenueChange === undefined ? "N/D" : `${data.comparison.revenueChange >= 0 ? "+" : ""}${data.comparison.revenueChange}%`} icon={<BarChart3 size={18} />} />
+            <Kpi title="CA de la période" value={formatMoney(activeKpis?.revenue ?? 0)} icon={<BarChart3 size={18} />} />
+            <Kpi title="Ventes" value={activeKpis?.salesCount ?? 0} icon={<CreditCard size={18} />} />
+            <Kpi title="Panier moyen" value={formatMoney(activeKpis?.averageBasket ?? 0)} icon={<Wallet size={18} />} />
+            <Kpi
+              title="Variation CA"
+              value={
+                activeComparison?.revenueChange === null ||
+                activeComparison?.revenueChange === undefined
+                  ? "N/D"
+                  : `${activeComparison.revenueChange >= 0 ? "+" : ""}${activeComparison.revenueChange}%`
+              }
+              icon={<BarChart3 size={18} />}
+            />
           </div>
           <div className="grid gap-5 lg:grid-cols-[1.4fr_0.6fr]">
             <div className="rounded-2xl bg-white p-5 shadow-sm">
-              <h2 className="mb-4 font-semibold text-slate-900">Comparaison du chiffre d'affaires</h2>
-              {overviewChart ? <Line data={overviewChart} options={{ responsive: true, plugins: { legend: { display: false } } }} /> : <EmptyState message="Aucune donnée disponible." />}
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="font-semibold text-slate-900">
+                    Comparaison du chiffre d'affaires
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Période précédente comparée à la période sélectionnée (chiffres réels)
+                  </p>
+                </div>
+                <div className="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+                  {(
+                    [
+                      { id: "bars", label: "Barres" },
+                      { id: "summary", label: "Synthèse" },
+                      { id: "line", label: "Courbe" },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => changeOverviewViewMode(opt.id)}
+                      className={`rounded-lg px-3 py-1.5 transition ${
+                        overviewViewMode === opt.id
+                          ? "bg-white text-emerald-700 shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {!activeKpis ? (
+                <EmptyState message="Aucune donnée disponible." />
+              ) : overviewViewMode === "summary" ? (
+                <div className="space-y-5 py-2">
+                  {/* Résumé en français simple */}
+                  <div
+                    className={`rounded-xl border px-4 py-3 text-sm ${
+                      revenueDelta > 0
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                        : revenueDelta < 0
+                          ? "border-amber-200 bg-amber-50 text-amber-900"
+                          : "border-slate-200 bg-slate-50 text-slate-800"
+                    }`}
+                  >
+                    {!hasPreviousData ? (
+                      <span>
+                        Chiffre d'affaires sur la période :{" "}
+                        <strong>{formatMoney(currentRevenue)}</strong>.
+                      </span>
+                    ) : revenueDelta > 0 ? (
+                      <span>
+                        Vos ventes sont en <strong>hausse de {formatMoney(revenueDelta)}</strong>
+                        {activeComparison?.revenueChange !== null &&
+                        activeComparison?.revenueChange !== undefined
+                          ? ` (+${activeComparison.revenueChange}%)`
+                          : ""}{" "}
+                        par rapport à la période précédente.
+                      </span>
+                    ) : revenueDelta < 0 ? (
+                      <span>
+                        Vos ventes sont en{" "}
+                        <strong>baisse de {formatMoney(Math.abs(revenueDelta))}</strong>
+                        {activeComparison?.revenueChange !== null &&
+                        activeComparison?.revenueChange !== undefined
+                          ? ` (${activeComparison.revenueChange}%)`
+                          : ""}{" "}
+                        par rapport à la période précédente.
+                      </span>
+                    ) : (
+                      <span>
+                        Chiffre d'affaires <strong>stable</strong> par rapport à la période précédente (
+                        {formatMoney(currentRevenue)}).
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Comparaison visuelle par barres horizontales */}
+                  {(() => {
+                    const maxRev = Math.max(currentRevenue, previousRevenue, 1);
+                    const prevPct = Math.round((previousRevenue / maxRev) * 100);
+                    const currPct = Math.round((currentRevenue / maxRev) * 100);
+                    return (
+                      <div className="space-y-3">
+                        <div>
+                          <div className="mb-1 flex items-center justify-between text-xs">
+                            <span className="font-medium text-slate-500">
+                              Période précédente
+                            </span>
+                            <span className="font-semibold text-slate-700">
+                              {formatMoney(previousRevenue)}
+                            </span>
+                          </div>
+                          <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100">
+                            <div
+                              className="h-full rounded-full bg-slate-400 transition-all"
+                              style={{ width: `${prevPct}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="mb-1 flex items-center justify-between text-xs">
+                            <span className="font-semibold text-emerald-800">
+                              Période actuelle
+                            </span>
+                            <span className="font-bold text-emerald-700">
+                              {formatMoney(currentRevenue)}
+                            </span>
+                          </div>
+                          <div className="h-3 w-full overflow-hidden rounded-full bg-emerald-100">
+                            <div
+                              className="h-full rounded-full bg-emerald-600 transition-all"
+                              style={{ width: `${currPct}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Jauge Encaissé vs Créances (données réelles) */}
+                  {(() => {
+                    const collected = activeKpis.collected ?? 0;
+                    const receivables = activeKpis.receivables ?? 0;
+                    const totalBilled = collected + receivables;
+                    const collectedPct =
+                      totalBilled > 0
+                        ? Math.round((collected / totalBilled) * 100)
+                        : 0;
+                    const receivablesPct =
+                      totalBilled > 0 ? 100 - collectedPct : 0;
+                    return (
+                      <div className="border-t border-slate-100 pt-4">
+                        <div className="mb-2 flex items-center justify-between text-xs">
+                          <span className="font-medium text-slate-600">
+                            Répartition des encaissements
+                          </span>
+                          <span className="text-slate-500">
+                            {totalBilled > 0
+                              ? `${collectedPct}% encaissé · ${receivablesPct}% à recouvrer`
+                              : "Aucun mouvement sur la période"}
+                          </span>
+                        </div>
+                        <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className="h-full bg-emerald-500 transition-all"
+                            style={{ width: `${collectedPct}%` }}
+                          />
+                          <div
+                            className="h-full bg-amber-400 transition-all"
+                            style={{ width: `${receivablesPct}%` }}
+                          />
+                        </div>
+                        <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-slate-600">
+                          <span>
+                            <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-emerald-500" />
+                            Encaissé : <strong>{formatMoney(collected)}</strong>
+                          </span>
+                          <span>
+                            <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-amber-400" />
+                            Créances : <strong>{formatMoney(receivables)}</strong>
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              ) : overviewViewMode === "bars" && overviewBarChart ? (
+                <Bar data={overviewBarChart} options={overviewChartOptions} />
+              ) : overviewLineChart ? (
+                <Line data={overviewLineChart} options={overviewChartOptions} />
+              ) : (
+                <EmptyState message="Aucune donnée disponible." />
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <Kpi title="Encaissé" value={formatMoney((multiStoreMode ? multiStoreData?.consolidated.collected : data?.kpis.collected) ?? 0)} icon={<Wallet size={18} />} />
