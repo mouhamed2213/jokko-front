@@ -1,5 +1,6 @@
 import type { AuthUser } from "../types/auth";
 import type { Sale } from "../types/index";
+import { formatSaleItemQty } from "./packaging";
 
 // ============================================================
 //  Format A4 — facture professionnelle complète
@@ -63,9 +64,9 @@ function buildA4(invoice: Sale, shopName: string, logoUrl?: string): string {
             <span style="font-weight:500;color:#0f172a">${item.productName}</span>
           </div>
         </td>
-        <td style="padding:12px 16px;text-align:center;color:#64748b">${item.quantity}</td>
+        <td style="padding:12px 16px;text-align:center;color:#64748b">${formatSaleItemQty(item)}</td>
         <td style="padding:12px 16px;text-align:right;color:#64748b;white-space:nowrap">
-          ${item.unitPrice.toLocaleString("fr-FR")} FCFA
+          ${(item.soldUnitPrice ?? item.unitPrice).toLocaleString("fr-FR")} FCFA
         </td>
         <td style="padding:12px 16px;text-align:right;font-weight:600;color:#0f172a;white-space:nowrap">
           ${item.totalAmount.toLocaleString("fr-FR")} FCFA

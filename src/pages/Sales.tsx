@@ -25,11 +25,18 @@ import { getStoredUser, isAdmin } from "../types/auth";
 import type {
   Category,
   Client,
+  PackagingUnit,
   Product,
   Sale,
   SubscriptionInfo,
 } from "../types/index";
 import { showModal } from "../components/upgradeModal";
+import {
+  computeUnitPrice,
+  formatStockDisplay,
+  unitLabel,
+  type PriceTier,
+} from "../utils/packaging";
 
 const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
@@ -37,10 +44,14 @@ type CartItem = {
   productId: number;
   productName: string;
   imageUrl?: string | null;
-  quantity: number;
-  unitPrice: number;
-  stock: number;
+  soldUnit: PackagingUnit;
+  unitType: PackagingUnit;
+  unitsPerPack: number;
+  quantity: number; // quantité dans soldUnit
+  unitPrice: number; // prix par soldUnit
+  stock: number; // stock total du produit en pièces
   salePrice: number;
+  packSalePrice?: number | null;
   semiWholesalePrice?: number | null;
   semiWholesaleMinQty?: number | null;
   wholesalePrice?: number | null;
@@ -48,34 +59,8 @@ type CartItem = {
   priceOverridden?: boolean;
 };
 
-type PriceTier = "detail" | "semiWholesale" | "wholesale";
-
-function computeTierPrice(
-  product: {
-    salePrice: number;
-    semiWholesalePrice?: number | null;
-    semiWholesaleMinQty?: number | null;
-    wholesalePrice?: number | null;
-    wholesaleMinQty?: number | null;
-  },
-  quantity: number,
-): { price: number; tier: PriceTier } {
-  if (
-    product.wholesalePrice &&
-    product.wholesaleMinQty &&
-    quantity >= product.wholesaleMinQty
-  ) {
-    return { price: product.wholesalePrice, tier: "wholesale" };
-  }
-  if (
-    product.semiWholesalePrice &&
-    product.semiWholesaleMinQty &&
-    quantity >= product.semiWholesaleMinQty
-  ) {
-    return { price: product.semiWholesalePrice, tier: "semiWholesale" };
-  }
-  return { price: product.salePrice, tier: "detail" };
-}
+const cartLineKey = (productId: number, soldUnit: PackagingUnit) =>
+  `${productId}:${soldUnit}`;
 
 const statusBadge: Record<string, string> = {
   PAID: "bg-emerald-100 text-emerald-700",
@@ -121,6 +106,7 @@ export default function Sales() {
 
   // Modal "Ajouter au panier"
   const [modalProduct, setModalProduct] = useState<Product | null>(null);
+  const [modalUnit, setModalUnit] = useState<PackagingUnit>("PIECE");
   const [modalQty, setModalQty] = useState(1);
   const [modalPrice, setModalPrice] = useState(0);
   const [modalTier, setModalTier] = useState<PriceTier>("detail");
@@ -242,74 +228,145 @@ export default function Sales() {
       );
     });
 
-  const updatePriceSuggestion = (tier: PriceTier, tiers: any) => {
+  const updatePriceSuggestion = (tier: PriceTier, tiers: any, unit: PackagingUnit) => {
+    const label = unitLabel(unit, true);
     if (tier === "wholesale" && tiers.wholesale) {
-      setModalSuggestion(`Prix Gros appliqué (≥${tiers.wholesale.minQty} unités)`);
+      setModalSuggestion(`Prix Gros appliqué (≥${tiers.wholesale.minQty} ${label})`);
     } else if (tier === "semiWholesale" && tiers.semiWholesale) {
       setModalSuggestion(
-        `Prix Demi-gros appliqué (≥${tiers.semiWholesale.minQty} unités)`,
+        `Prix Demi-gros appliqué (≥${tiers.semiWholesale.minQty} ${label})`,
       );
     } else {
-      setModalSuggestion("Prix Détail");
+      setModalSuggestion(
+        unit === "PIECE" ? "Prix Détail (à la pièce)" : `Prix standard par ${unitLabel(unit)}`,
+      );
     }
   };
 
   const openAddModal = (product: Product) => {
+    const productUnit: PackagingUnit = product.unitType || "PIECE";
+    const unitsPerPack = product.unitsPerPack || 1;
+    // Si le produit est en carton/douzaine et qu'il y a au moins 1 pack en stock, on pré-sélectionne son unité
+    const defaultUnit: PackagingUnit =
+      productUnit !== "PIECE" && product.quantity >= unitsPerPack
+        ? productUnit
+        : "PIECE";
+    const initial = computeUnitPrice(product, 1, defaultUnit);
     setModalProduct(product);
+    setModalUnit(defaultUnit);
     setModalQty(1);
-    setModalPrice(product.salePrice);
-    setModalTier("detail");
-    setModalSuggestion("");
+    setModalPrice(initial.price);
+    setModalTier(initial.tier);
+    setModalSuggestion(
+      defaultUnit === "PIECE"
+        ? "Prix Détail (à la pièce)"
+        : `Prix standard par ${unitLabel(defaultUnit)}`,
+    );
   };
 
   const closeAddModal = () => setModalProduct(null);
 
-  const handleModalQtyChange = async (qty: number) => {
-    setModalQty(qty);
-    if (!modalProduct || qty <= 0) return;
-    if (!modalProduct.semiWholesalePrice && !modalProduct.wholesalePrice) return;
-    try {
-      const suggestion = await getSuggestedPrice(modalProduct.id, qty);
-      setModalPrice(suggestion.suggestedPrice);
-      setModalTier(suggestion.tier);
-      updatePriceSuggestion(suggestion.tier, suggestion.tiers);
-    } catch {
-      /* silencieux */
+  const refreshModalPrice = async (
+    product: Product,
+    qty: number,
+    unit: PackagingUnit,
+  ) => {
+    if (qty <= 0) return;
+    const local = computeUnitPrice(product, qty, unit);
+    setModalPrice(local.price);
+    setModalTier(local.tier);
+    if (unit === (product.unitType || "PIECE") && (product.semiWholesalePrice || product.wholesalePrice)) {
+      try {
+        const suggestion = await getSuggestedPrice(product.id, qty, unit);
+        setModalPrice(suggestion.suggestedPrice);
+        setModalTier(suggestion.tier);
+        updatePriceSuggestion(suggestion.tier, suggestion.tiers, unit);
+      } catch {
+        /* silencieux */
+      }
+    } else {
+      setModalSuggestion(
+        unit === "PIECE"
+          ? "Prix Détail (à la pièce)"
+          : `Prix standard par ${unitLabel(unit)}`,
+      );
     }
   };
+
+  const handleModalQtyChange = async (qty: number) => {
+    setModalQty(qty);
+    if (!modalProduct) return;
+    await refreshModalPrice(modalProduct, qty, modalUnit);
+  };
+
+  const handleModalUnitChange = async (unit: PackagingUnit) => {
+    setModalUnit(unit);
+    setModalQty(1);
+    if (!modalProduct) return;
+    await refreshModalPrice(modalProduct, 1, unit);
+  };
+
+  const piecesInCartForProduct = (productId: number, excludeKey?: string) =>
+    cart.reduce((sum, item) => {
+      if (item.productId !== productId) return sum;
+      if (excludeKey && cartLineKey(item.productId, item.soldUnit) === excludeKey) {
+        return sum;
+      }
+      const mult = item.soldUnit === "PIECE" ? 1 : Math.max(1, item.unitsPerPack);
+      return sum + item.quantity * mult;
+    }, 0);
 
   const confirmAddToCart = () => {
     if (!modalProduct || !Number.isInteger(modalQty) || modalQty <= 0 || modalPrice <= 0) {
       return toast.error("Quantité et prix invalides");
     }
-    const alreadyInCart =
-      cart.find((c) => c.productId === modalProduct.id)?.quantity || 0;
-    const totalQty = alreadyInCart + modalQty;
-    if (totalQty > modalProduct.quantity) {
+    const productUnit: PackagingUnit = modalProduct.unitType || "PIECE";
+    const unitsPerPack = modalProduct.unitsPerPack || 1;
+    const multiplier = modalUnit === "PIECE" ? 1 : Math.max(1, unitsPerPack);
+    const addedPieces = modalQty * multiplier;
+    const alreadyPieces = piecesInCartForProduct(modalProduct.id);
+
+    if (alreadyPieces + addedPieces > modalProduct.quantity) {
       return toast.error(
-        `Stock insuffisant (${modalProduct.quantity} disponibles)`,
+        `Stock insuffisant (${formatStockDisplay(
+          modalProduct.quantity,
+          productUnit,
+          unitsPerPack,
+        )} disponibles)`,
       );
     }
 
-    const tierForModalQty = computeTierPrice(modalProduct, modalQty);
+    const lineKey = cartLineKey(modalProduct.id, modalUnit);
+    const existingLine = cart.find(
+      (c) => cartLineKey(c.productId, c.soldUnit) === lineKey,
+    );
+    const totalQtyInUnit = (existingLine?.quantity || 0) + modalQty;
+
+    const tierForModalQty = computeUnitPrice(modalProduct, modalQty, modalUnit);
     const adminOverrode = admin && modalPrice !== tierForModalQty.price;
-    const tierForTotalQty = computeTierPrice(modalProduct, totalQty);
+    const tierForTotalQty = computeUnitPrice(
+      modalProduct,
+      totalQtyInUnit,
+      modalUnit,
+    );
     const resolvedUnitPrice = adminOverrode ? modalPrice : tierForTotalQty.price;
 
     setCart((prev) => {
-      const existing = prev.findIndex((c) => c.productId === modalProduct.id);
-      if (existing >= 0) {
+      const existingIdx = prev.findIndex(
+        (c) => cartLineKey(c.productId, c.soldUnit) === lineKey,
+      );
+      if (existingIdx >= 0) {
         const updated = [...prev];
-        const prevItem = updated[existing];
+        const prevItem = updated[existingIdx];
         const nextOverridden = adminOverrode || prevItem.priceOverridden;
         const nextPrice = adminOverrode
           ? modalPrice
           : prevItem.priceOverridden
             ? prevItem.unitPrice
             : tierForTotalQty.price;
-        updated[existing] = {
+        updated[existingIdx] = {
           ...prevItem,
-          quantity: totalQty,
+          quantity: totalQtyInUnit,
           unitPrice: nextPrice,
           priceOverridden: nextOverridden,
         };
@@ -321,10 +378,14 @@ export default function Sales() {
           productId: modalProduct.id,
           productName: modalProduct.name,
           imageUrl: modalProduct.imageUrl,
+          soldUnit: modalUnit,
+          unitType: productUnit,
+          unitsPerPack,
           quantity: modalQty,
           unitPrice: resolvedUnitPrice,
           stock: modalProduct.quantity,
           salePrice: modalProduct.salePrice,
+          packSalePrice: modalProduct.packSalePrice,
           semiWholesalePrice: modalProduct.semiWholesalePrice,
           semiWholesaleMinQty: modalProduct.semiWholesaleMinQty,
           wholesalePrice: modalProduct.wholesalePrice,
@@ -333,37 +394,59 @@ export default function Sales() {
         },
       ];
     });
-    toast.success(`${modalProduct.name} ajouté au panier`);
+    toast.success(
+      `${modalProduct.name} (${modalQty} ${unitLabel(modalUnit, modalQty > 1)}) ajouté au panier`,
+    );
     closeAddModal();
   };
 
-  const updateCartQty = (productId: number, quantity: number) => {
-    if (quantity <= 0) return removeFromCart(productId);
+  const updateCartQty = (
+    productId: number,
+    soldUnit: PackagingUnit,
+    quantity: number,
+  ) => {
+    const key = cartLineKey(productId, soldUnit);
+    if (quantity <= 0) return removeFromCart(productId, soldUnit);
+    const otherPieces = piecesInCartForProduct(productId, key);
+
     setCart((prev) =>
       prev.map((c) => {
-        if (c.productId !== productId) return c;
-        const nextQty = Math.min(quantity, c.stock);
+        if (cartLineKey(c.productId, c.soldUnit) !== key) return c;
+        const mult = c.soldUnit === "PIECE" ? 1 : Math.max(1, c.unitsPerPack);
+        const maxQtyInUnit = Math.max(
+          1,
+          Math.floor((c.stock - otherPieces) / mult),
+        );
+        const nextQty = Math.min(quantity, maxQtyInUnit);
         const nextPrice = c.priceOverridden
           ? c.unitPrice
-          : computeTierPrice(c, nextQty).price;
+          : computeUnitPrice(c, nextQty, c.soldUnit).price;
         return { ...c, quantity: nextQty, unitPrice: nextPrice };
       }),
     );
   };
 
-  const updateCartPrice = (productId: number, unitPrice: number) => {
+  const updateCartPrice = (
+    productId: number,
+    soldUnit: PackagingUnit,
+    unitPrice: number,
+  ) => {
     if (!admin) return;
+    const key = cartLineKey(productId, soldUnit);
     setCart((prev) =>
       prev.map((c) =>
-        c.productId === productId
+        cartLineKey(c.productId, c.soldUnit) === key
           ? { ...c, unitPrice, priceOverridden: true }
           : c,
       ),
     );
   };
 
-  const removeFromCart = (productId: number) => {
-    setCart((prev) => prev.filter((c) => c.productId !== productId));
+  const removeFromCart = (productId: number, soldUnit: PackagingUnit) => {
+    const key = cartLineKey(productId, soldUnit);
+    setCart((prev) =>
+      prev.filter((c) => cartLineKey(c.productId, c.soldUnit) !== key),
+    );
   };
 
   const resetCartAndClient = () => {
@@ -408,6 +491,7 @@ export default function Sales() {
           productId: c.productId,
           quantity: c.quantity,
           unitPrice: c.unitPrice,
+          soldUnit: c.soldUnit,
         })),
       } as any);
       toast.success("Vente enregistrée avec succès");
@@ -645,79 +729,121 @@ export default function Sales() {
 
               {/* Articles */}
               <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
-                {cart.map((item) => (
-                  <div
-                    key={item.productId}
-                    className="rounded-xl border border-gray-200 p-2.5"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-medium text-slate-800 leading-tight">
-                        {item.productName}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => removeFromCart(item.productId)}
-                        className="shrink-0 text-red-400 hover:text-red-600"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                    <div className="mt-2 flex items-center gap-2">
-                      <div className="flex items-center rounded-lg border border-gray-300">
+                {cart.map((item) => {
+                  const lineKey = cartLineKey(item.productId, item.soldUnit);
+                  const mult =
+                    item.soldUnit === "PIECE"
+                      ? 1
+                      : Math.max(1, item.unitsPerPack);
+                  const otherPieces = piecesInCartForProduct(
+                    item.productId,
+                    lineKey,
+                  );
+                  const maxQty = Math.max(
+                    1,
+                    Math.floor((item.stock - otherPieces) / mult),
+                  );
+                  return (
+                    <div
+                      key={lineKey}
+                      className="rounded-xl border border-gray-200 p-2.5"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-medium text-slate-800 leading-tight">
+                            {item.productName}
+                          </p>
+                          <p className="text-[11px] text-emerald-700 font-medium mt-0.5">
+                            {item.soldUnit === "PIECE"
+                              ? "Vente à la pièce"
+                              : `${unitLabel(item.soldUnit, item.quantity > 1)} (${item.quantity * mult} pcs)`}
+                          </p>
+                        </div>
                         <button
                           type="button"
                           onClick={() =>
-                            updateCartQty(item.productId, item.quantity - 1)
+                            removeFromCart(item.productId, item.soldUnit)
                           }
-                          className="px-2 py-1 text-gray-500 hover:text-slate-900"
+                          className="shrink-0 text-red-400 hover:text-red-600"
                         >
-                          <Minus size={12} />
+                          <Trash2 size={14} />
                         </button>
+                      </div>
+                      <div className="mt-2 flex items-center gap-2">
+                        <div className="flex items-center rounded-lg border border-gray-300">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateCartQty(
+                                item.productId,
+                                item.soldUnit,
+                                item.quantity - 1,
+                              )
+                            }
+                            className="px-2 py-1 text-gray-500 hover:text-slate-900"
+                          >
+                            <Minus size={12} />
+                          </button>
+                          <input
+                            type="number"
+                            min={1}
+                            max={maxQty}
+                            value={item.quantity}
+                            onChange={(e) =>
+                              updateCartQty(
+                                item.productId,
+                                item.soldUnit,
+                                Number(e.target.value),
+                              )
+                            }
+                            className="w-10 border-x border-gray-300 py-1 text-center text-sm outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateCartQty(
+                                item.productId,
+                                item.soldUnit,
+                                item.quantity + 1,
+                              )
+                            }
+                            disabled={item.quantity >= maxQty}
+                            className="px-2 py-1 text-gray-500 hover:text-slate-900 disabled:opacity-30"
+                          >
+                            <Plus size={12} />
+                          </button>
+                        </div>
                         <input
                           type="number"
                           min={1}
-                          max={item.stock}
-                          value={item.quantity}
+                          value={item.unitPrice}
+                          readOnly={!admin}
+                          disabled={!admin}
+                          title={
+                            admin
+                              ? "Prix unitaire modifiable"
+                              : "Tarif appliqué automatiquement selon le palier"
+                          }
                           onChange={(e) =>
-                            updateCartQty(item.productId, Number(e.target.value))
+                            updateCartPrice(
+                              item.productId,
+                              item.soldUnit,
+                              Number(e.target.value),
+                            )
                           }
-                          className="w-10 border-x border-gray-300 py-1 text-center text-sm outline-none"
+                          className={`w-full rounded-lg border border-gray-300 px-2 py-1 text-right text-sm outline-none focus:border-emerald-500 ${
+                            !admin
+                              ? "bg-gray-100 text-gray-600 cursor-not-allowed"
+                              : ""
+                          }`}
                         />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateCartQty(item.productId, item.quantity + 1)
-                          }
-                          disabled={item.quantity >= item.stock}
-                          className="px-2 py-1 text-gray-500 hover:text-slate-900 disabled:opacity-30"
-                        >
-                          <Plus size={12} />
-                        </button>
                       </div>
-                      <input
-                        type="number"
-                        min={1}
-                        value={item.unitPrice}
-                        readOnly={!admin}
-                        disabled={!admin}
-                        title={
-                          admin
-                            ? "Prix unitaire modifiable"
-                            : "Tarif appliqué automatiquement selon le palier"
-                        }
-                        onChange={(e) =>
-                          updateCartPrice(item.productId, Number(e.target.value))
-                        }
-                        className={`w-full rounded-lg border border-gray-300 px-2 py-1 text-right text-sm outline-none focus:border-emerald-500 ${
-                          !admin ? "bg-gray-100 text-gray-600 cursor-not-allowed" : ""
-                        }`}
-                      />
+                      <p className="mt-1 text-right text-xs font-semibold text-slate-600">
+                        = {fmt(item.unitPrice * item.quantity)}
+                      </p>
                     </div>
-                    <p className="mt-1 text-right text-xs font-semibold text-slate-600">
-                      = {fmt(item.unitPrice * item.quantity)}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="flex items-center justify-between border-t border-gray-100 pt-3">
@@ -920,28 +1046,90 @@ export default function Sales() {
                   {modalProduct.name}
                 </p>
                 <p className="text-xs text-gray-400">
-                  {modalProduct.quantity} en stock
+                  En stock :{" "}
+                  {formatStockDisplay(
+                    modalProduct.quantity,
+                    modalProduct.unitType,
+                    modalProduct.unitsPerPack,
+                  )}
                 </p>
               </div>
             </div>
 
+            {modalProduct.unitType && modalProduct.unitType !== "PIECE" && (
+              <div className="mt-4">
+                <label className="mb-1.5 block text-xs font-medium text-gray-600">
+                  Vendre en :
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      {
+                        unit: modalProduct.unitType,
+                        label: `${
+                          modalProduct.unitType === "CARTON"
+                            ? "Carton"
+                            : "Douzaine"
+                        } (${modalProduct.unitsPerPack || 12} pcs)`,
+                        disabled:
+                          modalProduct.quantity <
+                          (modalProduct.unitsPerPack || 12),
+                      },
+                      {
+                        unit: "PIECE" as PackagingUnit,
+                        label: "Pièce (détail)",
+                        disabled: false,
+                      },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.unit}
+                      type="button"
+                      disabled={opt.disabled}
+                      onClick={() => handleModalUnitChange(opt.unit)}
+                      className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                        modalUnit === opt.unit
+                          ? "border-emerald-600 bg-emerald-50 text-emerald-800"
+                          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                      } disabled:opacity-40 disabled:cursor-not-allowed`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="mt-5 grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1 block text-xs text-gray-600">
-                  Quantité
+                  Quantité ({unitLabel(modalUnit, true)})
                 </label>
                 <input
                   type="number"
                   min={1}
-                  max={modalProduct.quantity}
+                  max={Math.max(
+                    1,
+                    Math.floor(
+                      modalProduct.quantity /
+                        (modalUnit === "PIECE"
+                          ? 1
+                          : modalProduct.unitsPerPack || 1),
+                    ),
+                  )}
                   value={modalQty}
                   onChange={(e) => handleModalQtyChange(Number(e.target.value))}
                   className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
                 />
+                {modalUnit !== "PIECE" && (
+                  <p className="mt-1 text-[11px] font-medium text-emerald-700">
+                    = {modalQty * (modalProduct.unitsPerPack || 1)} pièces
+                  </p>
+                )}
               </div>
               <div>
                 <label className="mb-1 block text-xs text-gray-600">
-                  Prix (FCFA)
+                  Prix / {unitLabel(modalUnit)} (FCFA)
                 </label>
                 <input
                   type="number"

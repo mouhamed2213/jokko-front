@@ -196,12 +196,15 @@ export const getLowStockProducts = async (): Promise<Product[]> =>
 export const getSuggestedPrice = async (
   productId: number,
   quantity: number,
+  unit?: "PIECE" | "DOZEN" | "CARTON",
 ) => {
   const res = await api.get(`/products/${productId}/price`, {
-    params: { quantity },
+    params: { quantity, ...(unit ? { unit } : {}) },
   });
   return res.data as {
     quantity: number;
+    soldUnit?: "PIECE" | "DOZEN" | "CARTON";
+    piecesCount?: number;
     suggestedPrice: number;
     tier: "detail" | "semiWholesale" | "wholesale";
     tiers: {
@@ -369,6 +372,7 @@ export type SaleItemPayload = {
   productId: number;
   quantity: number;
   unitPrice: number;
+  soldUnit?: "PIECE" | "DOZEN" | "CARTON";
 };
 export type CreateSalePayload = {
   clientId?: number | null;
@@ -455,6 +459,7 @@ export const addInvoicePayment = async (
 export type StockPayload = {
   productId: number;
   quantity: number;
+  unit?: "PIECE" | "DOZEN" | "CARTON";
   supplierId?: number;
   unitCost?: number;
   paidAmount?: number;

@@ -33,19 +33,26 @@ import {
 import { getStoredUser, isAdmin } from "../types/auth";
 import type {
   Category,
+  PackagingUnit,
   Product,
   SubscriptionInfo,
   Supplier,
 } from "../types/index";
+import { formatStockDisplay, unitLabel } from "../utils/packaging";
 
 const emptyForm = {
   name: "",
   description: "",
   reference: "",
   categoryId: "" as string | number,
+  unitType: "PIECE" as PackagingUnit,
+  unitsPerPack: 24,
   quantity: 0,
   purchasePrice: 0,
   salePrice: 0,
+  packPurchasePrice: 0,
+  packSalePrice: 0,
+  pieceSalePrice: "" as number | string,
   alertThreshold: 5,
   imageUrl: "",
   semiWholesalePrice: "" as number | string,
@@ -96,6 +103,7 @@ export default function Products() {
     mode: "ENTRY" | "OUT";
   } | null>(null);
   const [stockQty, setStockQty] = useState(1);
+  const [stockUnit, setStockUnit] = useState<PackagingUnit>("PIECE");
   const [stockNote, setStockNote] = useState("");
   const [stockSupplierForm, setStockSupplierForm] =
     useState<SupplierDebtFormState>(emptySupplierForm);
@@ -180,6 +188,31 @@ export default function Products() {
       .catch(() => toast.error("Erreur recherche fournisseurs"));
   }, [supplierSearch, showSupplierSection]);
 
+  const effectiveUnitsPerPack =
+    form.unitType === "PIECE"
+      ? 1
+      : form.unitType === "DOZEN"
+        ? 12
+        : Math.max(2, Number(form.unitsPerPack) || 2);
+
+  const isPackMode = form.unitType !== "PIECE";
+  const formUnitPurchase = isPackMode
+    ? Number(form.packPurchasePrice) || 0
+    : Number(form.purchasePrice) || 0;
+  const formUnitSale = isPackMode
+    ? Number(form.packSalePrice) || 0
+    : Number(form.salePrice) || 0;
+  const computedPieceCost =
+    isPackMode && effectiveUnitsPerPack > 0
+      ? formUnitPurchase / effectiveUnitsPerPack
+      : formUnitPurchase;
+  const suggestedPieceSale =
+    isPackMode && effectiveUnitsPerPack > 0 && formUnitSale > 0
+      ? Math.max(1, Math.round(formUnitSale / effectiveUnitsPerPack))
+      : 0;
+  const totalInitialPieces = (Number(form.quantity) || 0) * effectiveUnitsPerPack;
+  const initialStockValue = (Number(form.quantity) || 0) * formUnitPurchase;
+
   const totalCost =
     supplierForm.unitCost > 0 && form.quantity > 0
       ? supplierForm.unitCost * Number(form.quantity)
@@ -219,8 +252,24 @@ export default function Products() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const purchasePrice = Number(form.purchasePrice);
-    const salePrice = Number(form.salePrice);
+    const isPack = form.unitType !== "PIECE";
+    const unitsPerPack =
+      form.unitType === "PIECE"
+        ? 1
+        : form.unitType === "DOZEN"
+          ? 12
+          : Number(form.unitsPerPack);
+
+    if (form.unitType === "CARTON" && (!Number.isInteger(unitsPerPack) || unitsPerPack < 2)) {
+      return toast.error("Le nombre de pièces par carton doit être un entier ≥ 2");
+    }
+
+    const purchasePrice = isPack
+      ? Number(form.packPurchasePrice)
+      : Number(form.purchasePrice);
+    const salePrice = isPack
+      ? Number(form.packSalePrice)
+      : Number(form.salePrice);
     const quantity = Number(form.quantity);
 
     if (
@@ -231,7 +280,7 @@ export default function Products() {
       salePrice <= 0
     ) {
       return toast.error(
-        "Nom obligatoire, prix d'achat ≥ 0 et prix de vente > 0",
+        `Nom obligatoire, prix d'achat ≥ 0 et prix de vente > 0`,
       );
     }
 
@@ -241,11 +290,24 @@ export default function Products() {
       );
     }
 
+    if (isPack && form.pieceSalePrice !== "") {
+      const pieceSale = Number(form.pieceSalePrice);
+      const pieceCost = purchasePrice / unitsPerPack;
+      if (Number.isNaN(pieceSale) || pieceSale <= 0) {
+        return toast.error("Le prix de vente à la pièce doit être > 0");
+      }
+      if (pieceSale < pieceCost) {
+        return toast.error(
+          "Le prix de vente à la pièce ne peut pas être inférieur au coût de revient à la pièce",
+        );
+      }
+    }
+
     if (!editingId && (!Number.isInteger(quantity) || quantity < 0)) {
       return toast.error("La quantité initiale doit être un entier ≥ 0");
     }
 
-    // Validation des paliers tarifaires
+    // Validation des paliers tarifaires (sur l'unité principale du produit)
     const hasSemiPrice = form.semiWholesalePrice !== "";
     const hasSemiQty = form.semiWholesaleMinQty !== "";
     const semiPrice = hasSemiPrice ? Number(form.semiWholesalePrice) : null;
@@ -262,7 +324,7 @@ export default function Products() {
       }
       if (semiPrice <= 0 || semiPrice >= salePrice) {
         return toast.error(
-          "Le prix Demi-gros doit être inférieur au prix de vente détail",
+          "Le prix Demi-gros doit être inférieur au prix de vente",
         );
       }
       if (semiPrice < purchasePrice) {
@@ -288,7 +350,7 @@ export default function Products() {
       }
       if (wholePrice <= 0 || wholePrice >= salePrice) {
         return toast.error(
-          "Le prix Gros doit être inférieur au prix de vente détail",
+          "Le prix Gros doit être inférieur au prix de vente",
         );
       }
       if (wholePrice < purchasePrice) {
@@ -343,8 +405,10 @@ export default function Products() {
       const formDataToSend = new FormData();
 
       formDataToSend.append("name", form.name.trim());
+      formDataToSend.append("unitType", form.unitType);
+      formDataToSend.append("unitsPerPack", String(unitsPerPack));
+
       if (editingId) {
-        // En édition, on envoie explicitement les chaînes vides pour permettre d'effacer un champ optionnel.
         formDataToSend.append("description", form.description);
         formDataToSend.append("reference", form.reference);
         formDataToSend.append("categoryId", String(form.categoryId));
@@ -358,8 +422,17 @@ export default function Products() {
           formDataToSend.append("quantity", String(form.quantity));
       }
 
-      formDataToSend.append("purchasePrice", String(purchasePrice));
-      formDataToSend.append("salePrice", String(salePrice));
+      if (isPack) {
+        formDataToSend.append("packPurchasePrice", String(purchasePrice));
+        formDataToSend.append("packSalePrice", String(salePrice));
+        if (form.pieceSalePrice !== "") {
+          formDataToSend.append("salePrice", String(form.pieceSalePrice));
+        }
+      } else {
+        formDataToSend.append("purchasePrice", String(purchasePrice));
+        formDataToSend.append("salePrice", String(salePrice));
+      }
+
       formDataToSend.append("alertThreshold", String(form.alertThreshold));
 
       // Niveaux tarifaires : envoyés même vides en édition pour permettre leur suppression
@@ -412,15 +485,25 @@ export default function Products() {
   };
 
   const handleEdit = (p: Product) => {
+    const unitType: PackagingUnit = p.unitType || "PIECE";
+    const unitsPerPack = p.unitsPerPack || 1;
+    const isPack = unitType !== "PIECE";
     setForm({
       name: p.name,
       description: p.description || "",
       reference: p.reference || "",
       categoryId: p.categoryId || "",
+      unitType,
+      unitsPerPack: isPack ? unitsPerPack : 24,
       quantity: p.quantity,
       purchasePrice: p.purchasePrice,
       salePrice: p.salePrice,
-      alertThreshold: p.alertThreshold,
+      packPurchasePrice: p.packPurchasePrice ?? Math.round(p.purchasePrice * unitsPerPack),
+      packSalePrice: p.packSalePrice ?? Math.round(p.salePrice * unitsPerPack),
+      pieceSalePrice: isPack ? p.salePrice : "",
+      alertThreshold: isPack
+        ? Math.max(0, Math.round(p.alertThreshold / unitsPerPack))
+        : p.alertThreshold,
       imageUrl: p.imageUrl || "",
       semiWholesalePrice: p.semiWholesalePrice ?? "",
       semiWholesaleMinQty: p.semiWholesaleMinQty ?? "",
@@ -447,12 +530,22 @@ export default function Products() {
 
   // ── Mouvements de stock rapides ─────────────────────────────
   const openStockModal = (product: Product, mode: "ENTRY" | "OUT") => {
+    const defaultUnit: PackagingUnit =
+      mode === "ENTRY" && product.unitType && product.unitType !== "PIECE"
+        ? product.unitType
+        : "PIECE";
+    const defaultCost =
+      defaultUnit !== "PIECE"
+        ? (product.packPurchasePrice ??
+          Math.round(product.purchasePrice * (product.unitsPerPack || 1)))
+        : product.purchasePrice;
     setStockModal({ product, mode });
     setStockQty(1);
+    setStockUnit(defaultUnit);
     setStockNote("");
     setStockSupplierForm({
       ...emptySupplierForm,
-      unitCost: product.purchasePrice,
+      unitCost: defaultCost,
     });
     setStockSupplierSearch("");
     setShowStockSupplierSection(false);
@@ -465,6 +558,9 @@ export default function Products() {
     if (!stockModal || stockQty <= 0) {
       return toast.error("Quantité invalide");
     }
+    const multiplier =
+      stockUnit === "PIECE" ? 1 : Math.max(1, stockModal.product.unitsPerPack || 1);
+    const totalPiecesDelta = stockQty * multiplier;
     if (
       stockModal.mode === "ENTRY" &&
       showStockSupplierSection &&
@@ -487,6 +583,7 @@ export default function Products() {
         await addStockEntry({
           productId: stockModal.product.id,
           quantity: stockQty,
+          unit: stockUnit,
           note: stockNote || undefined,
           supplierId:
             showStockSupplierSection && stockSupplierForm.supplierId
@@ -504,15 +601,20 @@ export default function Products() {
         });
         toast.success("Entrée de stock enregistrée");
       } else {
-        if (stockQty > stockModal.product.quantity) {
+        if (totalPiecesDelta > stockModal.product.quantity) {
           setSubmittingStock(false);
           return toast.error(
-            `Stock insuffisant (${stockModal.product.quantity} disponibles)`,
+            `Stock insuffisant (${formatStockDisplay(
+              stockModal.product.quantity,
+              stockModal.product.unitType,
+              stockModal.product.unitsPerPack,
+            )} disponibles)`,
           );
         }
         await addStockOut({
           productId: stockModal.product.id,
           quantity: stockQty,
+          unit: stockUnit,
           note: stockNote || undefined,
         });
         toast.success("Sortie de stock enregistrée");
@@ -757,6 +859,109 @@ export default function Products() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* ── Étape 1 : Mode de vente / conditionnement ───────── */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    1. Comment vendez-vous ce produit ? *
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Le stock est toujours suivi en pièces en interne : vous pourrez vendre au conditionnement choisi et à la pièce.
+                  </p>
+                </div>
+                {editingId && form.quantity > 0 && (
+                  <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-medium text-amber-800">
+                    Conditionnement verrouillé (stock en cours)
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {(
+                  [
+                    {
+                      value: "PIECE" as PackagingUnit,
+                      title: "Par pièce",
+                      desc: "Vente à l'unité classique",
+                    },
+                    {
+                      value: "DOZEN" as PackagingUnit,
+                      title: "Par douzaine",
+                      desc: "1 douzaine = 12 pièces",
+                    },
+                    {
+                      value: "CARTON" as PackagingUnit,
+                      title: "Par carton",
+                      desc: "Nombre de pièces par carton au choix",
+                    },
+                  ] as const
+                ).map((opt) => {
+                  const selected = form.unitType === opt.value;
+                  const locked = Boolean(editingId && form.quantity > 0);
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      disabled={locked}
+                      onClick={() => {
+                        setForm((p) => ({
+                          ...p,
+                          unitType: opt.value,
+                          unitsPerPack:
+                            opt.value === "DOZEN"
+                              ? 12
+                              : opt.value === "CARTON"
+                                ? Math.max(2, Number(p.unitsPerPack) || 24)
+                                : 1,
+                          alertThreshold:
+                            opt.value === "PIECE" ? 5 : 1,
+                        }));
+                      }}
+                      className={`rounded-xl border p-3.5 text-left transition ${
+                        selected
+                          ? "border-emerald-600 bg-emerald-50 ring-2 ring-emerald-500/20"
+                          : "border-gray-200 bg-white hover:border-slate-300"
+                      } ${locked ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+                    >
+                      <p
+                        className={`text-sm font-bold ${
+                          selected ? "text-emerald-900" : "text-slate-800"
+                        }`}
+                      >
+                        {opt.title}
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-500">{opt.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {form.unitType === "CARTON" && (
+                <div className="pt-1 max-w-xs">
+                  <label className="mb-1 block text-xs font-semibold text-slate-700">
+                    Combien de pièces contient 1 carton ? *
+                  </label>
+                  <input
+                    type="number"
+                    min={2}
+                    disabled={Boolean(editingId && form.quantity > 0)}
+                    onFocus={(e) => e.target.select()}
+                    value={form.unitsPerPack}
+                    onChange={(e) =>
+                      setForm((p) => ({
+                        ...p,
+                        unitsPerPack: Number(e.target.value),
+                      }))
+                    }
+                    className="w-full rounded-xl border border-emerald-300 bg-white px-4 py-2.5 text-sm font-semibold outline-none focus:border-emerald-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    placeholder="Ex: 24"
+                    required
+                  />
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {/* ── Upload image ──────────────────────────── */}
               <div className="sm:col-span-2">
@@ -908,55 +1113,114 @@ export default function Products() {
               {/* Prix achat */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Prix d'achat (FCFA) *
+                  {isPackMode
+                    ? `Prix d'achat par ${unitLabel(form.unitType)} (FCFA) *`
+                    : "Prix d'achat (FCFA) *"}
                 </label>
                 <input
                   type="number"
                   min={0}
                   onFocus={(e) => e.target.select()}
-                  value={form.purchasePrice}
-                  onChange={(e) =>
-                    setForm((p) => ({
-                      ...p,
-                      purchasePrice: Number(e.target.value),
-                    }))
-                  }
+                  value={isPackMode ? form.packPurchasePrice : form.purchasePrice}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setForm((p) =>
+                      isPackMode
+                        ? { ...p, packPurchasePrice: val }
+                        : { ...p, purchasePrice: val },
+                    );
+                  }}
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                   required
                 />
+                {isPackMode && formUnitPurchase > 0 && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    Coût de revient :{" "}
+                    <strong className="text-slate-700">
+                      {Math.round(computedPieceCost).toLocaleString("fr-FR")} FCFA / pièce
+                    </strong>
+                  </p>
+                )}
               </div>
 
               {/* Prix vente */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Prix de vente conseillé (FCFA) *
+                  {isPackMode
+                    ? `Prix de vente par ${unitLabel(form.unitType)} (FCFA) *`
+                    : "Prix de vente conseillé (FCFA) *"}
                 </label>
                 <input
                   type="number"
                   min={0}
                   onFocus={(e) => e.target.select()}
-                  value={form.salePrice}
-                  onChange={(e) =>
-                    setForm((p) => ({
-                      ...p,
-                      salePrice: Number(e.target.value),
-                    }))
-                  }
+                  value={isPackMode ? form.packSalePrice : form.salePrice}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setForm((p) =>
+                      isPackMode
+                        ? { ...p, packSalePrice: val }
+                        : { ...p, salePrice: val },
+                    );
+                  }}
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                   required
                 />
+                {isPackMode && formUnitSale > 0 && formUnitSale >= formUnitPurchase && (
+                  <p className="mt-1 text-xs text-emerald-700">
+                    Marge :{" "}
+                    <strong>
+                      {fmt(formUnitSale - formUnitPurchase)} / {unitLabel(form.unitType)}
+                    </strong>
+                  </p>
+                )}
               </div>
+
+              {/* Prix de vente à la pièce (optionnel pour Douzaine / Carton) */}
+              {isPackMode && (
+                <div className="sm:col-span-2">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Prix de vente à la pièce (FCFA){" "}
+                    <span className="font-normal text-gray-400">
+                      — optionnel (pour les ventes au détail à l'unité)
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    onFocus={(e) => e.target.select()}
+                    value={form.pieceSalePrice}
+                    onChange={(e) =>
+                      setForm((p) => ({ ...p, pieceSalePrice: e.target.value }))
+                    }
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
+                    placeholder={
+                      suggestedPieceSale > 0
+                        ? `Par défaut : ${suggestedPieceSale} FCFA / pièce`
+                        : "Ex: 500"
+                    }
+                  />
+                </div>
+              )}
 
               {/* Quantité */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  {editingId ? "Stock actuel" : "Quantité initiale"}
+                  {editingId
+                    ? "Stock actuel"
+                    : isPackMode
+                      ? `Nombre de ${unitLabel(form.unitType, true)} en stock`
+                      : "Quantité initiale (pièces)"}
                 </label>
                 {editingId ? (
                   <div>
                     <input
-                      type="number"
-                      value={form.quantity}
+                      type="text"
+                      value={formatStockDisplay(
+                        form.quantity,
+                        form.unitType,
+                        effectiveUnitsPerPack,
+                      )}
                       disabled
                       className="w-full cursor-not-allowed rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-500 outline-none"
                     />
@@ -966,26 +1230,35 @@ export default function Products() {
                     </p>
                   </div>
                 ) : (
-                  <input
-                    type="number"
-                    min={0}
-                    onFocus={(e) => e.target.select()}
-                    value={form.quantity}
-                    onChange={(e) =>
-                      setForm((p) => ({
-                        ...p,
-                        quantity: Number(e.target.value),
-                      }))
-                    }
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                  />
+                  <div>
+                    <input
+                      type="number"
+                      min={0}
+                      onFocus={(e) => e.target.select()}
+                      value={form.quantity}
+                      onChange={(e) =>
+                        setForm((p) => ({
+                          ...p,
+                          quantity: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
+                    />
+                    {isPackMode && (
+                      <p className="mt-1 text-xs font-medium text-emerald-700">
+                        = {totalInitialPieces.toLocaleString("fr-FR")} pièces au total
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
 
               {/* Seuil alerte */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Seuil d'alerte
+                  {isPackMode
+                    ? `Seuil d'alerte (${unitLabel(form.unitType, true)})`
+                    : "Seuil d'alerte (pièces)"}
                 </label>
                 <input
                   type="number"
@@ -1000,7 +1273,38 @@ export default function Products() {
                   }
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                 />
+                {isPackMode && (
+                  <p className="mt-1 text-xs text-gray-400">
+                    Alerte déclenchée dès ≤{" "}
+                    {(Number(form.alertThreshold) || 0) * effectiveUnitsPerPack} pièces
+                  </p>
+                )}
               </div>
+
+              {/* Récapitulatif chiffré en direct (Douzaine / Carton) */}
+              {isPackMode && !editingId && (
+                <div className="sm:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 py-3 grid grid-cols-1 gap-2 sm:grid-cols-3 text-xs">
+                  <div>
+                    <p className="text-emerald-700">Stock total enregistré</p>
+                    <p className="font-bold text-emerald-950 text-sm">
+                      {form.quantity} {unitLabel(form.unitType, form.quantity > 1)} ={" "}
+                      {totalInitialPieces.toLocaleString("fr-FR")} pcs
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-emerald-700">Prix de revient / pièce</p>
+                    <p className="font-bold text-emerald-950 text-sm">
+                      {Math.round(computedPieceCost).toLocaleString("fr-FR")} FCFA
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-emerald-700">Valeur du stock initial</p>
+                    <p className="font-bold text-emerald-950 text-sm">
+                      {fmt(initialStockValue)}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Description */}
               {/* Niveaux tarifaires */}
@@ -1134,7 +1438,7 @@ export default function Products() {
                   form={supplierForm}
                   onFormChange={setSupplierForm}
                   quantity={Number(form.quantity)}
-                  fallbackUnitCost={Number(form.purchasePrice) || 0}
+                  fallbackUnitCost={formUnitPurchase}
                 />
               </div>
             )}
@@ -1314,12 +1618,26 @@ export default function Products() {
 
                   {/* Footer : Quantité + Actions Mouvement */}
                   <div className="space-y-2 pt-1">
+                    {product.unitType && product.unitType !== "PIECE" && (
+                      <div className="flex items-center justify-between rounded-lg bg-slate-50 px-2 py-1 text-[11px] text-slate-600">
+                        <span className="font-medium">
+                          {product.unitType === "CARTON"
+                            ? `Carton (${product.unitsPerPack} pcs)`
+                            : "Douzaine (12 pcs)"}
+                        </span>
+                        {product.packSalePrice && (
+                          <span className="font-bold text-emerald-700">
+                            {fmt(product.packSalePrice)}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     <div className="flex items-center justify-between text-xs px-1">
                       <span className="text-slate-500 text-[11px]">
                         En stock:
                       </span>
                       <span
-                        className={`font-bold ${
+                        className={`font-bold text-right ${
                           isOut
                             ? "text-red-600"
                             : isLow
@@ -1327,7 +1645,11 @@ export default function Products() {
                               : "text-slate-900"
                         }`}
                       >
-                        {product.quantity} unité(s)
+                        {formatStockDisplay(
+                          product.quantity,
+                          product.unitType,
+                          product.unitsPerPack,
+                        )}
                       </span>
                     </div>
 
@@ -1417,24 +1739,85 @@ export default function Products() {
                   {stockModal.product.name}
                 </p>
                 <p className="text-xs text-gray-400">
-                  Stock actuel : {stockModal.product.quantity}
+                  Stock actuel :{" "}
+                  {formatStockDisplay(
+                    stockModal.product.quantity,
+                    stockModal.product.unitType,
+                    stockModal.product.unitsPerPack,
+                  )}
                 </p>
               </div>
             </div>
 
             <form onSubmit={handleStockSubmit} className="mt-5 space-y-4">
+              {stockModal.product.unitType &&
+                stockModal.product.unitType !== "PIECE" && (
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">
+                      Unité du mouvement
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(
+                        [
+                          {
+                            unit: stockModal.product.unitType,
+                            label: `${
+                              stockModal.product.unitType === "CARTON"
+                                ? "Carton"
+                                : "Douzaine"
+                            } (${stockModal.product.unitsPerPack || 12} pcs)`,
+                          },
+                          { unit: "PIECE" as PackagingUnit, label: "Pièce" },
+                        ] as const
+                      ).map((opt) => (
+                        <button
+                          key={opt.unit}
+                          type="button"
+                          onClick={() => {
+                            setStockUnit(opt.unit);
+                            const nextCost =
+                              opt.unit === "PIECE"
+                                ? stockModal.product.purchasePrice
+                                : (stockModal.product.packPurchasePrice ??
+                                  Math.round(
+                                    stockModal.product.purchasePrice *
+                                      (stockModal.product.unitsPerPack || 1),
+                                  ));
+                            setStockSupplierForm((p) => ({
+                              ...p,
+                              unitCost: nextCost,
+                            }));
+                          }}
+                          className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                            stockUnit === opt.unit
+                              ? "border-emerald-600 bg-emerald-50 text-emerald-800"
+                              : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
                   {stockModal.mode === "ENTRY"
-                    ? "Quantité à ajouter *"
-                    : "Quantité à retirer *"}
+                    ? `Quantité à ajouter (${unitLabel(stockUnit, true)}) *`
+                    : `Quantité à retirer (${unitLabel(stockUnit, true)}) *`}
                 </label>
                 <input
                   type="number"
                   min={1}
                   max={
                     stockModal.mode === "OUT"
-                      ? stockModal.product.quantity
+                      ? Math.floor(
+                          stockModal.product.quantity /
+                            (stockUnit === "PIECE"
+                              ? 1
+                              : stockModal.product.unitsPerPack || 1),
+                        )
                       : undefined
                   }
                   onFocus={(e) => e.target.select()}
@@ -1443,6 +1826,11 @@ export default function Products() {
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
                   required
                 />
+                {stockUnit !== "PIECE" && (
+                  <p className="mt-1 text-xs font-medium text-emerald-700">
+                    = {stockQty * (stockModal.product.unitsPerPack || 1)} pièces
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1473,7 +1861,15 @@ export default function Products() {
                   form={stockSupplierForm}
                   onFormChange={setStockSupplierForm}
                   quantity={stockQty}
-                  fallbackUnitCost={stockModal.product.purchasePrice}
+                  fallbackUnitCost={
+                    stockUnit === "PIECE"
+                      ? stockModal.product.purchasePrice
+                      : (stockModal.product.packPurchasePrice ??
+                        Math.round(
+                          stockModal.product.purchasePrice *
+                            (stockModal.product.unitsPerPack || 1),
+                        ))
+                  }
                 />
               )}
 
