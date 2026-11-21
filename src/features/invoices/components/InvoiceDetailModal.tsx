@@ -1,8 +1,13 @@
 import { CreditCard, Pencil, Printer, X } from "lucide-react";
 import { useState } from "react";
+import { PaymentMethodBadges } from "../../../components/PaymentMethodBadges";
 import type { PackagingUnit, Sale } from "../../../types/index";
 import { formatMoney } from "../../../utils/format";
 import { unitLabel } from "../../../utils/packaging";
+import {
+  getPaymentMethodBadgeClass,
+  getPaymentMethodLabel,
+} from "../../../utils/paymentMethods";
 import { SALE_STATUS_BADGE, SALE_STATUS_LABEL } from "../../sales/types";
 
 interface InvoiceDetailModalProps {
@@ -112,6 +117,12 @@ export function InvoiceDetailModal({
               {formatMoney(invoice.paidAmount)}
             </span>
           </div>
+          {invoice.payments.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <span className="text-gray-500">Modes de paiement</span>
+              <PaymentMethodBadges payments={invoice.payments} showAmounts />
+            </div>
+          )}
           {invoice.remaining > 0 && (
             <div className="flex justify-between border-t pt-2">
               <span className="text-red-600">Reste</span>
@@ -135,9 +146,18 @@ export function InvoiceDetailModal({
                   className="flex items-center justify-between rounded-xl bg-emerald-50 px-4 py-2.5"
                 >
                   <div>
-                    <p className="text-sm font-medium text-emerald-800">
-                      {formatMoney(p.amount)}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-emerald-800">
+                        {formatMoney(p.amount)}
+                      </p>
+                      <span
+                        className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${getPaymentMethodBadgeClass(
+                          p.paymentMethod,
+                        )}`}
+                      >
+                        {getPaymentMethodLabel(p.paymentMethod)}
+                      </span>
+                    </div>
                     <p className="text-xs text-emerald-600">
                       {new Date(p.paidAt).toLocaleString("fr-FR")}
                     </p>

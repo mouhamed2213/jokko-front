@@ -2,12 +2,14 @@ import { Download, Search } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { deleteSale, getSales } from "../services/index";
+import { PaymentMethodBadges } from "../components/PaymentMethodBadges";
 import { useAuth } from "../contexts/AuthContext";
+import { deleteSale, getSales } from "../services/index";
 import type { Sale } from "../types/index";
 import { exportSalesToExcel } from "../utils/exportExcel";
 import { exportSalesPDF } from "../utils/exportPDF";
 import { formatMoney } from "../utils/format";
+import { PAYMENT_METHOD_OPTIONS } from "../utils/paymentMethods";
 
 const statusBadge: Record<string, string> = {
   PAID: "bg-emerald-100 text-emerald-700",
@@ -28,6 +30,7 @@ export default function SalesHistory() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState("");
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const { user, isAdmin: admin } = useAuth();
@@ -37,6 +40,7 @@ export default function SalesHistory() {
     try {
       const salesRes = await getSales({
         status: statusFilter || undefined,
+        paymentMethod: paymentMethodFilter || undefined,
         search: search.trim() || undefined,
         page,
         limit: 10,
@@ -49,7 +53,7 @@ export default function SalesHistory() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, search, page]);
+  }, [statusFilter, paymentMethodFilter, search, page]);
 
   useEffect(() => {
     fetchData();
@@ -121,6 +125,22 @@ export default function SalesHistory() {
           <option value="PARTIAL">Partielles</option>
           <option value="UNPAID">Non réglées</option>
         </select>
+        <select
+          value={paymentMethodFilter}
+          onChange={(e) => {
+            setPaymentMethodFilter(e.target.value);
+            setPage(1);
+          }}
+          className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+        >
+          <option value="">Tous paiements</option>
+          <option value="MIXED">Paiement mixte</option>
+          {PAYMENT_METHOD_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
         <div className="flex gap-2">
           <button
             onClick={() => exportSalesToExcel(sales, user)}
@@ -160,7 +180,7 @@ export default function SalesHistory() {
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold text-slate-900">
                       {sale.items.map((item) => item.productName).join(", ")}
                     </p>
@@ -169,6 +189,7 @@ export default function SalesHistory() {
                     >
                       {statusLabel[sale.status]}
                     </span>
+                    <PaymentMethodBadges payments={sale.payments} />
                   </div>
                   <p className="text-sm text-gray-500 mt-0.5">
                     {sale.client?.name ||

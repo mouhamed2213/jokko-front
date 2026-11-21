@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PaymentMethodBadges } from "../../../components/PaymentMethodBadges";
 import type { Sale } from "../../../types/index";
 import { formatMoney } from "../../../utils/format";
 import { SALE_STATUS_BADGE, SALE_STATUS_LABEL } from "../types";
@@ -44,7 +45,7 @@ export function RecentSalesModal({
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-semibold text-slate-900">
                         {sale.items.map((item) => item.productName).join(", ")}
                       </p>
@@ -53,6 +54,7 @@ export function RecentSalesModal({
                       >
                         {SALE_STATUS_LABEL[sale.status]}
                       </span>
+                      <PaymentMethodBadges payments={sale.payments} />
                     </div>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {sale.client?.name ||

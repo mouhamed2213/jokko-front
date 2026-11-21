@@ -1,6 +1,7 @@
 import * as XLSX from "xlsx";
 import type { AuthUser } from "../types/auth";
 import type { Client, Sale, StockMovement, Supplier } from "../types/index";
+import { summarizePayments } from "./paymentMethods";
 
 // ── Helper formatage date ─────────────────────────────────────
 const fmtDate = (d: string) => new Date(d).toLocaleDateString("fr-FR");
@@ -24,6 +25,7 @@ export function exportSalesToExcel(sales: Sale[], user: AuthUser) {
       "Montant article (FCFA)": item.totalAmount,
       "Total facture (FCFA)": sale.totalAmount,
       "Montant payé (FCFA)": sale.paidAmount,
+      "Mode(s) de paiement": summarizePayments(sale.payments).summaryText,
       "Reste à payer (FCFA)": sale.remaining,
       Statut:
         sale.status === "PAID"
@@ -55,6 +57,7 @@ export function exportSalesToExcel(sales: Sale[], user: AuthUser) {
     "Montant article (FCFA)": 0,
     "Total facture (FCFA)": totalCA,
     "Montant payé (FCFA)": totalPaid,
+    "Mode(s) de paiement": "",
     "Reste à payer (FCFA)": totalRemaining,
     Statut: "",
     Note: "",

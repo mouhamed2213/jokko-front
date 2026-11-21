@@ -1,12 +1,13 @@
 import { Minus, Plus, ShoppingCart, Trash2, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import PaymentMethodSelect from "../../../components/Paymentmethodselect";
+import { PaymentSplitInput } from "../../../components/PaymentSplitInput";
 import { createClient, getClients } from "../../clients/api";
 import { createSale } from "../api";
 import type { Client, PackagingUnit } from "../../../types/index";
 import { formatMoney } from "../../../utils/format";
 import { unitLabel } from "../../../utils/packaging";
+import type { PaymentSplit } from "../../../utils/paymentMethods";
 import { cartLineKey, type CartItem } from "../types";
 
 interface SalesCartPanelProps {
@@ -54,7 +55,13 @@ export function SalesCartPanel({
   const [paidAmount, setPaidAmount] = useState(0);
   const [paidAmountTouched, setPaidAmountTouched] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("CASH");
+  const [splitMode, setSplitMode] = useState(false);
+  const [paymentSplits, setPaymentSplits] = useState<PaymentSplit[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  const effectivePaidAmount = splitMode
+    ? paymentSplits.reduce((sum, s) => sum + (Number(s.amount) || 0), 0)
+    : paidAmount;
 
   const cartTotal = cart.reduce(
     (sum, item) => sum + item.unitPrice * item.quantity,
@@ -101,6 +108,8 @@ export function SalesCartPanel({
     setPaidAmount(0);
     setPaidAmountTouched(false);
     setPaymentMethod("CASH");
+    setSplitMode(false);
+    setPaymentSplits([]);
   };
 
   const handleClear = () => {
@@ -163,10 +172,18 @@ export function SalesCartPanel({
     if (!clientId && !customerName.trim()) {
       return toast.error("Client ou nom du client requis");
     }
-    if (paidAmount < 0 || paidAmount > cartTotal) {
+    if (effectivePaidAmount < 0 || effectivePaidAmount > cartTotal) {
       return toast.error("Montant payé invalide");
     }
-    if (paidAmount < cartTotal && !clientId) {
+    const validSplits = splitMode
+      ? paymentSplits.filter((s) => Number(s.amount) > 0)
+      : [];
+    if (splitMode && validSplits.length === 0) {
+      return toast.error(
+        "Indiquez un montant supérieur à 0 sur au moins un moyen de paiement",
+      );
+    }
+    if (effectivePaidAmount < cartTotal && !clientId) {
       return toast.error(
         "Sélectionnez un client enregistré pour une vente partielle ou à crédit.",
       );
@@ -176,8 +193,9 @@ export function SalesCartPanel({
       await createSale({
         clientId: clientId ? Number(clientId) : null,
         customerName: customerName || undefined,
-        paidAmount,
-        paymentMethod,
+        paidAmount: effectivePaidAmount,
+        paymentMethod: splitMode ? undefined : paymentMethod,
+        payments: splitMode ? validSplits : undefined,
         note: note || undefined,
         items: cart.map((c) => ({
           productId: c.productId,
@@ -185,7 +203,7 @@ export function SalesCartPanel({
           unitPrice: c.unitPrice,
           soldUnit: c.soldUnit,
         })),
-      } as any);
+      });
       toast.success("Vente enregistrée avec succès");
       handleClear();
       await onSaleCreated();
@@ -345,68 +363,77 @@ export function SalesCartPanel({
 
         {/* Paiement */}
         <div className="space-y-3 border-t border-gray-100 pt-3">
-          <div>
-            <div className="mb-1 flex items-center justify-between">
-              <label className="block text-xs font-medium text-gray-700">
-                Montant payé
-              </label>
-              {paidAmountTouched && paidAmount !== cartTotal && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPaidAmountTouched(false);
-                    setPaidAmount(cartTotal);
-                  }}
-                  className="text-xs text-emerald-700 hover:underline"
-                >
-                  Payer la totalité
-                </button>
-              )}
-            </div>
-            <input
-              type="number"
-              min={0}
-              max={cartTotal}
-              value={paidAmount}
-              onChange={(e) => {
-                setPaidAmountTouched(true);
-                setPaidAmount(Number(e.target.value));
-              }}
-              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-            />
-            <p className="mt-1 text-xs text-gray-400">
-              {paidAmount >= cartTotal ? (
-                <span className="text-emerald-600 font-medium">
-                  Vente payée intégralement
-                </span>
-              ) : paidAmount > 0 ? (
-                <span className="text-yellow-600 font-medium">
-                  Paiement partiel — reste {formatMoney(cartTotal - paidAmount)}
-                </span>
-              ) : (
-                <span className="text-red-500 font-medium">
-                  Vente à crédit — rien n'est encaissé maintenant
-                </span>
-              )}
-            </p>
-          </div>
-          {paidAmount > 0 && (
+          {!splitMode && (
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
-                Méthode de paiement
-              </label>
-              <PaymentMethodSelect
-                value={paymentMethod}
-                onChange={setPaymentMethod}
-                className="w-full"
+              <div className="mb-1 flex items-center justify-between">
+                <label className="block text-xs font-medium text-gray-700">
+                  Montant payé
+                </label>
+                {paidAmountTouched && paidAmount !== cartTotal && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPaidAmountTouched(false);
+                      setPaidAmount(cartTotal);
+                    }}
+                    className="text-xs text-emerald-700 hover:underline"
+                  >
+                    Payer la totalité
+                  </button>
+                )}
+              </div>
+              <input
+                type="number"
+                min={0}
+                max={cartTotal}
+                value={paidAmount}
+                onChange={(e) => {
+                  setPaidAmountTouched(true);
+                  setPaidAmount(Number(e.target.value));
+                }}
+                className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
               />
             </div>
           )}
+
+          <PaymentSplitInput
+            targetAmount={cartTotal}
+            splitMode={splitMode}
+            onToggleSplitMode={(next) => {
+              setSplitMode(next);
+              if (!next) {
+                setPaidAmount(effectivePaidAmount || cartTotal);
+              }
+            }}
+            singleMethod={paymentMethod}
+            onSingleMethodChange={setPaymentMethod}
+            splits={paymentSplits}
+            onSplitsChange={setPaymentSplits}
+            hideWhenZero
+            singleAmount={paidAmount}
+          />
+
+          <p className="text-xs text-gray-400">
+            {effectivePaidAmount >= cartTotal ? (
+              <span className="text-emerald-600 font-medium">
+                Vente payée intégralement
+              </span>
+            ) : effectivePaidAmount > 0 ? (
+              <span className="text-yellow-600 font-medium">
+                Paiement partiel — reste{" "}
+                {formatMoney(cartTotal - effectivePaidAmount)}
+              </span>
+            ) : (
+              <span className="text-red-500 font-medium">
+                Vente à crédit — rien n'est encaissé maintenant
+              </span>
+            )}
+          </p>
         </div>
 
         {/* Client / note */}
         <div className="space-y-3 border-t border-gray-100 pt-3">
-          {paidAmount < cartTotal && !clientId && (
+          {effectivePaidAmount < cartTotal && !clientId && (
             <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 flex items-center justify-between gap-2">
               <span>
                 Vente à crédit : sélectionnez ou créez une fiche client.
@@ -426,7 +453,7 @@ export function SalesCartPanel({
           <div>
             <div className="mb-1 flex items-center justify-between">
               <label className="block text-xs font-medium text-gray-700">
-                Client enregistré {paidAmount < cartTotal ? "*" : ""}
+                Client enregistré {effectivePaidAmount < cartTotal ? "*" : ""}
               </label>
               <button
                 type="button"
@@ -577,11 +604,11 @@ export function SalesCartPanel({
               }}
               className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               placeholder={
-                paidAmount < cartTotal
+                effectivePaidAmount < cartTotal
                   ? "Indisponible pour une vente à crédit"
                   : "Nom du client..."
               }
-              disabled={!!clientId || paidAmount < cartTotal}
+              disabled={!!clientId || effectivePaidAmount < cartTotal}
             />
           </div>
 

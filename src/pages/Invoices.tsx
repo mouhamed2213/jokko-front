@@ -1,6 +1,7 @@
 import { CreditCard, Filter, Lock, Pencil, Printer, Search } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { PaymentMethodBadges } from "../components/PaymentMethodBadges";
 import { showModal } from "../components/upgradeModal";
 import { InvoiceDetailModal } from "../features/invoices/components/InvoiceDetailModal";
 import { InvoiceEditModal } from "../features/invoices/components/InvoiceEditModal";
@@ -15,6 +16,7 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import type { Client, Product, Sale } from "../types/index";
 import { formatMoney } from "../utils/format";
+import { PAYMENT_METHOD_OPTIONS } from "../utils/paymentMethods";
 import { printInvoice as doPrint } from "../utils/printInvoice";
 
 export default function Invoices() {
@@ -36,6 +38,7 @@ export default function Invoices() {
     () => new URLSearchParams(window.location.search).get("search") || "",
   );
   const [status, setStatus] = useState("");
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -66,6 +69,7 @@ export default function Invoices() {
       const res = await getInvoices({
         search: search || undefined,
         status: status || undefined,
+        paymentMethod: paymentMethodFilter || undefined,
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
         page,
@@ -80,7 +84,7 @@ export default function Invoices() {
     } finally {
       setLoading(false);
     }
-  }, [search, status, dateFrom, dateTo, page]);
+  }, [search, status, paymentMethodFilter, dateFrom, dateTo, page]);
 
   useEffect(() => {
     fetchInvoices();
@@ -203,6 +207,22 @@ export default function Invoices() {
             <option value="PAID">Payées</option>
             <option value="PARTIAL">Partielles</option>
             <option value="UNPAID">Non réglées</option>
+          </select>
+          <select
+            value={paymentMethodFilter}
+            onChange={(e) => {
+              setPaymentMethodFilter(e.target.value);
+              setPage(1);
+            }}
+            className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+          >
+            <option value="">Tous paiements</option>
+            <option value="MIXED">Paiement mixte</option>
+            {PAYMENT_METHOD_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </select>
           <button
             onClick={() => setShowFilters((v) => !v)}
@@ -340,6 +360,7 @@ export default function Invoices() {
                     >
                       {SALE_STATUS_LABEL[invoice.status]}
                     </span>
+                    <PaymentMethodBadges payments={invoice.payments} />
                   </div>
                   <p className="text-sm text-gray-500 mt-0.5">
                     {invoice.client?.name ||

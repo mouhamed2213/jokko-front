@@ -1,7 +1,7 @@
 import { Download, Lock, TrendingDown, TrendingUp, Wallet, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import PaymentMethodSelect from "../components/Paymentmethodselect";
+import { PaymentSplitInput } from "../components/PaymentSplitInput";
 import { CashHistorySection } from "../features/cash/components/CashHistorySection";
 import { ClosureSummaryCard } from "../features/cash/components/ClosureSummaryCard";
 import {
@@ -25,6 +25,7 @@ import type {
   SubscriptionInfo,
 } from "../types/index";
 import { formatMoney } from "../utils/format";
+import type { PaymentSplit } from "../utils/paymentMethods";
 import { hasFeatures } from "../utils/subscription.checker";
 
 export default function Cash() {
@@ -53,6 +54,8 @@ export default function Cash() {
   const [txAmount, setTxAmount] = useState("");
   const [txLabel, setTxLabel] = useState("");
   const [txMethod, setTxMethod] = useState("CASH");
+  const [txSplitMode, setTxSplitMode] = useState(false);
+  const [txSplits, setTxSplits] = useState<PaymentSplit[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
@@ -117,21 +120,32 @@ export default function Cash() {
 
   const handleAddTx = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!txAmount || !txLabel)
+    const validSplits = txSplitMode
+      ? txSplits.filter((s) => Number(s.amount) > 0)
+      : undefined;
+    const totalAmount = txSplitMode
+      ? (validSplits || []).reduce((sum, s) => sum + Number(s.amount), 0)
+      : Number(txAmount);
+
+    if (!totalAmount || totalAmount <= 0 || !txLabel.trim()) {
       return toast.error("Montant et libellé obligatoires");
+    }
     setSubmitting(true);
     try {
       await addCashTransaction({
         type: txType,
-        amount: Number(txAmount),
+        amount: totalAmount,
         label: txLabel,
-        paymentMethod: txMethod,
-      } as any);
+        paymentMethod: txSplitMode ? undefined : txMethod,
+        payments: validSplits,
+      });
       toast.success("Transaction enregistrée");
       setShowTxForm(false);
       setTxAmount("");
       setTxLabel("");
       setTxMethod("CASH");
+      setTxSplitMode(false);
+      setTxSplits([]);
       await fetchData();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Erreur");
@@ -376,46 +390,58 @@ export default function Cash() {
               </div>
               <form
                 onSubmit={handleAddTx}
-                className="grid grid-cols-1 gap-4 sm:grid-cols-3"
+                className="grid grid-cols-1 gap-4 sm:grid-cols-2"
               >
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
-                    Montant (FCFA)
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={txAmount}
-                    onChange={(e) => setTxAmount(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                    placeholder="Ex: 5000"
-                    required
+                {!txSplitMode && (
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-700">
+                      Montant (FCFA)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={txAmount}
+                      onChange={(e) => setTxAmount(e.target.value)}
+                      className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+                      placeholder="Ex: 5000"
+                      required
+                    />
+                  </div>
+                )}
+                <div className={txSplitMode ? "sm:col-span-2" : ""}>
+                  <PaymentSplitInput
+                    splitMode={txSplitMode}
+                    onToggleSplitMode={(next) => {
+                      setTxSplitMode(next);
+                      if (!next) {
+                        const sum = txSplits.reduce(
+                          (acc, s) => acc + (Number(s.amount) || 0),
+                          0,
+                        );
+                        if (sum > 0) setTxAmount(String(sum));
+                      }
+                    }}
+                    singleMethod={txMethod}
+                    onSingleMethodChange={setTxMethod}
+                    splits={txSplits}
+                    onSplitsChange={setTxSplits}
+                    singleAmount={Number(txAmount) || 0}
                   />
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
-                    Mode de paiement
-                  </label>
-                  <PaymentMethodSelect
-                    value={txMethod}
-                    onChange={setTxMethod}
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                <div className="sm:col-span-2">
+                  <label className="mb-1 block text-xs font-medium text-gray-700">
                     Libellé
                   </label>
                   <input
                     type="text"
                     value={txLabel}
                     onChange={(e) => setTxLabel(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
                     placeholder="Ex: Achat fournitures..."
                     required
                   />
                 </div>
-                <div className="flex gap-3 sm:col-span-3">
+                <div className="flex gap-3 sm:col-span-2">
                   <button
                     type="submit"
                     disabled={submitting}

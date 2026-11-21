@@ -21,6 +21,7 @@ export type SalePayment = {
   saleId: number;
   amount: number;
   note?: string | null;
+  paymentMethod?: string;
   paidAt: string;
 };
 

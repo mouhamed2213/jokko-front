@@ -116,7 +116,12 @@ export const addSupplierDebt = async (
 export const addSupplierPayment = async (
   supplierId: number,
   debtId: number,
-  data: { amount: number; note?: string },
+  data: {
+    amount?: number;
+    note?: string;
+    paymentMethod?: string;
+    payments?: Array<{ paymentMethod: string; amount: number }>;
+  },
 ) =>
   (await api.post(`/suppliers/${supplierId}/debts/${debtId}/payments`, data))
     .data;

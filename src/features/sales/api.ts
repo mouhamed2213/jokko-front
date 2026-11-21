@@ -1,5 +1,6 @@
 import { api } from "../../services/api";
 import type { Sale } from "../../types/index";
+import type { PaymentSplit } from "../../utils/paymentMethods";
 
 export type SaleItemPayload = {
   productId: number;
@@ -13,6 +14,7 @@ export type CreateSalePayload = {
   customerName?: string;
   paidAmount?: number;
   paymentMethod?: string;
+  payments?: PaymentSplit[];
   note?: string;
   items: SaleItemPayload[];
 };
@@ -30,6 +32,7 @@ export type SaleListResponse = {
 
 export const getSales = async (params?: {
   status?: string;
+  paymentMethod?: string;
   page?: number;
   limit?: number;
   search?: string;
@@ -81,6 +84,7 @@ export type InvoiceListResponse = {
 export const getInvoices = async (params?: {
   search?: string;
   status?: string;
+  paymentMethod?: string;
   dateFrom?: string;
   dateTo?: string;
   page?: number;
@@ -96,6 +100,13 @@ export const addInvoicePayment = async (
   amount: number,
   note?: string,
   paymentMethod = "CASH",
+  payments?: PaymentSplit[],
 ) =>
-  (await api.patch(`/invoices/${id}/payment`, { amount, note, paymentMethod }))
-    .data;
+  (
+    await api.patch(`/invoices/${id}/payment`, {
+      amount,
+      note,
+      paymentMethod,
+      payments,
+    })
+  ).data;

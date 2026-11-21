@@ -1,10 +1,11 @@
 import { Check, Lightbulb, X } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import PaymentMethodSelect from "../../../components/Paymentmethodselect";
-import { addSupplierPayment } from "../api";
+import { PaymentSplitInput } from "../../../components/PaymentSplitInput";
 import type { SupplierDebt } from "../../../types/index";
 import { formatMoney } from "../../../utils/format";
+import type { PaymentSplit } from "../../../utils/paymentMethods";
+import { addSupplierPayment } from "../api";
 
 interface SupplierDebtPaymentCardProps {
   supplierId: number;
@@ -24,7 +25,13 @@ export function SupplierDebtPaymentCard({
   const [payAmount, setPayAmount] = useState(String(debt.remaining));
   const [payNote, setPayNote] = useState("");
   const [payMethod, setPayMethod] = useState("CASH");
+  const [splitMode, setSplitMode] = useState(false);
+  const [paymentSplits, setPaymentSplits] = useState<PaymentSplit[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  const effectiveAmount = splitMode
+    ? paymentSplits.reduce((sum, s) => sum + (Number(s.amount) || 0), 0)
+    : Number(payAmount);
 
   const handlePayment = async () => {
     if (!cashOpen) {
@@ -33,15 +40,29 @@ export function SupplierDebtPaymentCard({
         { duration: 5000 },
       );
     }
-    if (!payAmount || Number(payAmount) <= 0) {
+    if (!effectiveAmount || effectiveAmount <= 0) {
       return toast.error("Montant invalide");
     }
+    if (effectiveAmount > debt.remaining) {
+      return toast.error(
+        `Le montant dépasse le reste dû (${formatMoney(debt.remaining)})`,
+      );
+    }
+    const validSplits = splitMode
+      ? paymentSplits.filter((s) => Number(s.amount) > 0)
+      : undefined;
+    if (splitMode && (!validSplits || validSplits.length === 0)) {
+      return toast.error("Indiquez un montant supérieur à 0");
+    }
+
     setSubmitting(true);
     try {
       await addSupplierPayment(supplierId, debt.id, {
-        amount: Number(payAmount),
+        amount: effectiveAmount,
         note: payNote || undefined,
-      } as any);
+        paymentMethod: splitMode ? undefined : payMethod,
+        payments: validSplits,
+      });
       toast.success("Paiement enregistré — caisse mise à jour");
       onClose();
       await onSuccess();
@@ -53,8 +74,8 @@ export function SupplierDebtPaymentCard({
   };
 
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-sm border-l-4 border-emerald-500">
-      <div className="flex items-center justify-between mb-4">
+    <div className="rounded-2xl bg-white p-6 shadow-sm border-l-4 border-emerald-500 space-y-4">
+      <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-slate-900">
             Payer une dette fournisseur
@@ -71,57 +92,70 @@ export function SupplierDebtPaymentCard({
           <X size={20} className="text-gray-400" />
         </button>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Montant à payer (FCFA)
-          </label>
-          <input
-            type="number"
-            min={1}
-            max={debt.remaining}
-            value={payAmount}
-            onChange={(e) => setPayAmount(e.target.value)}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {!splitMode && (
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-700">
+              Montant à payer (FCFA)
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={debt.remaining}
+              value={payAmount}
+              onChange={(e) => setPayAmount(e.target.value)}
+              className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+            />
+          </div>
+        )}
+
+        <div className={splitMode ? "sm:col-span-2" : ""}>
+          <PaymentSplitInput
+            targetAmount={debt.remaining}
+            splitMode={splitMode}
+            onToggleSplitMode={(next) => {
+              setSplitMode(next);
+              if (!next) setPayAmount(String(effectiveAmount || debt.remaining));
+            }}
+            singleMethod={payMethod}
+            onSingleMethodChange={setPayMethod}
+            splits={paymentSplits}
+            onSplitsChange={setPaymentSplits}
+            singleAmount={Number(payAmount) || 0}
           />
         </div>
+
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Mode de paiement
-          </label>
-          <PaymentMethodSelect
-            value={payMethod}
-            onChange={setPayMethod}
-            className="w-full"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="mb-1 block text-xs font-medium text-gray-700">
             Note (optionnel)
           </label>
           <input
             type="text"
             value={payNote}
             onChange={(e) => setPayNote(e.target.value)}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
+            className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
             placeholder="Ex: Règlement partiel..."
           />
         </div>
+
         <div className="flex items-end">
           <button
             type="button"
             onClick={handlePayment}
             disabled={submitting}
-            className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
           >
             {!submitting && <Check size={15} />}
             {submitting ? "Paiement..." : "Confirmer le paiement"}
           </button>
         </div>
       </div>
-      <p className="mt-3 flex items-center gap-1.5 text-xs text-emerald-600">
+
+      <p className="flex items-center gap-1.5 text-xs text-emerald-600">
         <Lightbulb size={13} className="shrink-0" />
-        Ce paiement sera automatiquement décaissé de la caisse si elle est ouverte.
+        Ce paiement sera automatiquement décaissé de la caisse si elle est
+        ouverte.
       </p>
     </div>
   );

@@ -1,6 +1,7 @@
 import toast from "react-hot-toast";
 import type { AuthUser } from "../types/auth";
 import type { CashRegister, CashTransaction, Sale } from "../types/index";
+import { summarizePayments } from "./paymentMethods";
 
 const fmtAmount = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 const fmtDate = (d: string) =>
@@ -246,6 +247,7 @@ export function exportSalesPDF(
         <td style="padding:9px 12px;font-size:12px;font-weight:600">${sale.invoiceNumber || `#${sale.id}`}</td>
         <td style="padding:9px 12px;font-size:12px;color:#475569">${new Date(sale.createdAt).toLocaleDateString("fr-FR")}</td>
         <td style="padding:9px 12px;font-size:12px">${sale.client?.name || sale.customerName || "—"}</td>
+        <td style="padding:9px 12px;font-size:11px;color:#475569">${summarizePayments(sale.payments).shortText}</td>
         <td style="padding:9px 12px;font-size:12px;text-align:right">${fmtAmount(sale.totalAmount)}</td>
         <td style="padding:9px 12px;font-size:12px;text-align:right;color:#059669">${fmtAmount(sale.paidAmount)}</td>
         <td style="padding:9px 12px;font-size:12px;text-align:right;color:#dc2626">${sale.remaining > 0 ? fmtAmount(sale.remaining) : "—"}</td>
@@ -305,6 +307,7 @@ export function exportSalesPDF(
           <th style="padding:11px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Facture</th>
           <th style="padding:11px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Date</th>
           <th style="padding:11px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Client</th>
+          <th style="padding:11px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Paiement</th>
           <th style="padding:11px 12px;text-align:right;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Total</th>
           <th style="padding:11px 12px;text-align:right;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Payé</th>
           <th style="padding:11px 12px;text-align:right;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Reste</th>

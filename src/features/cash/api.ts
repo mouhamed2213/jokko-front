@@ -1,4 +1,5 @@
 import { api } from "../../services/api";
+import type { PaymentSplit } from "../../utils/paymentMethods";
 
 export const getCurrentCash = async () =>
   (await api.get("/cash/current")).data;
@@ -21,7 +22,9 @@ export const closeCash = async (id: number, data?: { note?: string }) =>
 
 export const addCashTransaction = async (data: {
   type: "IN" | "OUT";
-  amount: number;
+  amount?: number;
   label: string;
   reference?: string;
+  paymentMethod?: string;
+  payments?: PaymentSplit[];
 }) => (await api.post("/cash/transactions", data)).data;

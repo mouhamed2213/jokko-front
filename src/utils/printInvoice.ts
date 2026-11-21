@@ -1,6 +1,10 @@
 import type { AuthUser } from "../types/auth";
 import type { Sale } from "../types/index";
 import { formatSaleItemQty } from "./packaging";
+import {
+  getPaymentMethodLabel,
+  summarizePayments,
+} from "./paymentMethods";
 
 // ============================================================
 //  Format A4 — facture professionnelle complète
@@ -75,12 +79,17 @@ function buildA4(invoice: Sale, shopName: string, logoUrl?: string): string {
     })
     .join("");
 
+  const paymentSummary = summarizePayments(invoice.payments);
+
   const paymentRows = invoice.payments
     .map(
       (p) => `
     <tr>
       <td style="padding:8px 16px;font-size:13px;color:#475569">
         ${new Date(p.paidAt).toLocaleString("fr-FR")}
+      </td>
+      <td style="padding:8px 16px;font-size:12px;color:#0f172a;font-weight:600">
+        ${getPaymentMethodLabel(p.paymentMethod)}
       </td>
       <td style="padding:8px 16px;font-size:13px;font-weight:600;color:#059669;text-align:right;white-space:nowrap">
         +${p.amount.toLocaleString("fr-FR")} FCFA
@@ -180,6 +189,14 @@ function buildA4(invoice: Sale, shopName: string, logoUrl?: string): string {
         <span>+${invoice.paidAmount.toLocaleString("fr-FR")} FCFA</span>
       </div>
       ${
+        paymentSummary.entries.length > 0
+          ? `
+      <div style="padding:9px 16px;border-bottom:1px solid #e2e8f0;font-size:11px;color:#475569;background:#f8fafc">
+        <strong>Règlement :</strong> ${paymentSummary.summaryText}
+      </div>`
+          : ""
+      }
+      ${
         invoice.remaining > 0
           ? `
       <div style="padding:11px 16px;display:flex;justify-content:space-between;
@@ -211,6 +228,7 @@ function buildA4(invoice: Sale, shopName: string, logoUrl?: string): string {
       <thead>
         <tr style="background:#f8fafc">
           <th style="padding:9px 16px;text-align:left;font-size:11px;color:#64748b;font-weight:600">Date</th>
+          <th style="padding:9px 16px;text-align:left;font-size:11px;color:#64748b;font-weight:600">Mode</th>
           <th style="padding:9px 16px;text-align:right;font-size:11px;color:#64748b;font-weight:600">Montant</th>
           <th style="padding:9px 16px;text-align:left;font-size:11px;color:#64748b;font-weight:600">Note</th>
         </tr>
@@ -306,7 +324,10 @@ function buildThermal(invoice: Sale, shopName: string): string {
               hour: "2-digit",
               minute: "2-digit",
             });
-            return line(`  ${d}`, `+${p.amount.toLocaleString("fr-FR")} F`);
+            return line(
+              `  ${getPaymentMethodLabel(p.paymentMethod)} ${d}`,
+              `+${p.amount.toLocaleString("fr-FR")} F`,
+            );
           })
           .join("\n")
       : "";
