@@ -1,118 +1,55 @@
-import {
-  AlertTriangle,
-  Lock,
-  Minus,
-  Pen,
-  Plus,
-  Search,
-  Trash,
-  Trash2,
-  Upload,
-  X,
-} from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { AlertTriangle, Lock, Plus, Search } from "lucide-react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
-import SupplierDebtSection, {
-  type SupplierDebtFormState,
-} from "../components/SupplierDebtSection";
 import { showModal } from "../components/upgradeModal";
+import { HighlightedProductBanner } from "../features/products/components/HighlightedProductBanner";
+import { ProductCard } from "../features/products/components/ProductCard";
+import { ProductForm } from "../features/products/components/ProductForm";
+import { StockMovementModal } from "../features/products/components/StockMovementModal";
 import {
-  addStockEntry,
-  addStockOut,
   createCategory,
-  createProduct,
   deleteProduct,
   getCategories,
   getProductById,
   getProducts,
-  getSubscription,
   getSuppliers,
-  updateProduct,
 } from "../services/index";
-import { getStoredUser, isAdmin } from "../types/auth";
-import type {
-  Category,
-  PackagingUnit,
-  Product,
-  SubscriptionInfo,
-  Supplier,
-} from "../types/index";
-import { formatStockDisplay, unitLabel } from "../utils/packaging";
-
-const emptyForm = {
-  name: "",
-  description: "",
-  reference: "",
-  categoryId: "" as string | number,
-  unitType: "PIECE" as PackagingUnit,
-  unitsPerPack: 24,
-  quantity: 0,
-  purchasePrice: 0,
-  salePrice: 0,
-  packPurchasePrice: 0,
-  packSalePrice: 0,
-  pieceSalePrice: "" as number | string,
-  alertThreshold: 5,
-  imageUrl: "",
-  semiWholesalePrice: "" as number | string,
-  semiWholesaleMinQty: "" as number | string,
-  wholesalePrice: "" as number | string,
-  wholesaleMinQty: "" as number | string,
-};
-const emptySupplierForm = {
-  supplierId: 0,
-  createDebt: false,
-  unitCost: 0,
-  paidAmount: 0,
-};
-const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
+import { useSubscription } from "../hooks/useSubscription";
+import { isAdmin } from "../types/auth";
+import type { Category, Product, Supplier } from "../types/index";
 
 export default function Products() {
-  const user = getStoredUser();
-  const [subscription, setSubscription] = useState<SubscriptionInfo>();
+  const { subscription } = useSubscription();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [supplierSearch, setSupplierSearch] = useState("");
   const [total, setTotal] = useState(0);
+  const [totalProducts, setTotalProducts] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<number | undefined>();
   const [loading, setLoading] = useState(true);
+
+  // Formulaire création / édition
   const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState(emptyForm);
-  const [supplierForm, setSupplierForm] = useState(emptySupplierForm);
-  const [showSupplierSection, setShowSupplierSection] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  // Création catégorie rapide
   const [newCategoryName, setNewCategoryName] = useState("");
   const [showCategoryForm, setShowCategoryForm] = useState(false);
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  // Upload image
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [imagePreview, setImagePreview] = useState<string>("");
-  const [uploading, setUploading] = useState(false);
-  const [totalProducts, setTotalProducts] = useState(0);
 
-  // ── Mouvements de stock rapides (Entrée / Sortie) ──────────────
+  // Modal limite abonnement
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+
+  // Mouvements de stock rapides
   const [stockModal, setStockModal] = useState<{
     product: Product;
     mode: "ENTRY" | "OUT";
   } | null>(null);
-  const [stockQty, setStockQty] = useState(1);
-  const [stockUnit, setStockUnit] = useState<PackagingUnit>("PIECE");
-  const [stockNote, setStockNote] = useState("");
-  const [stockSupplierForm, setStockSupplierForm] =
-    useState<SupplierDebtFormState>(emptySupplierForm);
-  const [stockSupplierSearch, setStockSupplierSearch] = useState("");
-  const [showStockSupplierSection, setShowStockSupplierSection] =
-    useState(false);
-  const [submittingStock, setSubmittingStock] = useState(false);
 
-  // ── Produit signalé depuis une alerte de stock ─────────────────
+  // Produit signalé depuis une alerte de stock
   const [searchParams, setSearchParams] = useSearchParams();
   const highlightId = searchParams.get("highlight");
   const [highlightedProduct, setHighlightedProduct] = useState<Product | null>(
@@ -136,8 +73,6 @@ export default function Products() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      getSubscription().then(setSubscription);
-
       const [prodRes, cats, sups] = await Promise.all([
         getProducts({ search, categoryId: categoryFilter, page, limit: 25 }),
         getCategories(),
@@ -181,338 +116,13 @@ export default function Products() {
     setSearchParams(next);
   };
 
-  useEffect(() => {
-    if (!showSupplierSection) return;
-    getSuppliers({ page: 1, limit: 20, search: supplierSearch || undefined })
-      .then((result) => setSuppliers(result.data))
-      .catch(() => toast.error("Erreur recherche fournisseurs"));
-  }, [supplierSearch, showSupplierSection]);
-
-  const effectiveUnitsPerPack =
-    form.unitType === "PIECE"
-      ? 1
-      : form.unitType === "DOZEN"
-        ? 12
-        : Math.max(2, Number(form.unitsPerPack) || 2);
-
-  const isPackMode = form.unitType !== "PIECE";
-  const formUnitPurchase = isPackMode
-    ? Number(form.packPurchasePrice) || 0
-    : Number(form.purchasePrice) || 0;
-  const formUnitSale = isPackMode
-    ? Number(form.packSalePrice) || 0
-    : Number(form.salePrice) || 0;
-  const computedPieceCost =
-    isPackMode && effectiveUnitsPerPack > 0
-      ? formUnitPurchase / effectiveUnitsPerPack
-      : formUnitPurchase;
-  const suggestedPieceSale =
-    isPackMode && effectiveUnitsPerPack > 0 && formUnitSale > 0
-      ? Math.max(1, Math.round(formUnitSale / effectiveUnitsPerPack))
-      : 0;
-  const totalInitialPieces = (Number(form.quantity) || 0) * effectiveUnitsPerPack;
-  const initialStockValue = (Number(form.quantity) || 0) * formUnitPurchase;
-
-  const totalCost =
-    supplierForm.unitCost > 0 && form.quantity > 0
-      ? supplierForm.unitCost * Number(form.quantity)
-      : 0;
-
-  // ── Upload image ──────────────────────────────────────────
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // 1. Stocker le fichier
-    setSelectedFile(file);
-
-    // 2. Générer le preview local pour l'UI
-    const reader = new FileReader();
-    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const handleRemoveImage = () => {
-    setForm((p) => ({ ...p, imageUrl: "" }));
-    setImagePreview("");
-    setSelectedFile(null); // Clear le fichier sélectionné
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const resetForm = () => {
-    setForm(emptyForm);
-    setSupplierForm(emptySupplierForm);
-    setShowSupplierSection(false);
-    setEditingId(null);
+  const closeForm = () => {
+    setEditingProduct(null);
     setShowForm(false);
-    setSupplierSearch("");
-    setImagePreview("");
-    setSelectedFile(null); // Reset du fichier
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const isPack = form.unitType !== "PIECE";
-    const unitsPerPack =
-      form.unitType === "PIECE"
-        ? 1
-        : form.unitType === "DOZEN"
-          ? 12
-          : Number(form.unitsPerPack);
-
-    if (form.unitType === "CARTON" && (!Number.isInteger(unitsPerPack) || unitsPerPack < 2)) {
-      return toast.error("Le nombre de pièces par carton doit être un entier ≥ 2");
-    }
-
-    const purchasePrice = isPack
-      ? Number(form.packPurchasePrice)
-      : Number(form.purchasePrice);
-    const salePrice = isPack
-      ? Number(form.packSalePrice)
-      : Number(form.salePrice);
-    const quantity = Number(form.quantity);
-
-    if (
-      !form.name.trim() ||
-      Number.isNaN(purchasePrice) ||
-      purchasePrice < 0 ||
-      Number.isNaN(salePrice) ||
-      salePrice <= 0
-    ) {
-      return toast.error(
-        `Nom obligatoire, prix d'achat ≥ 0 et prix de vente > 0`,
-      );
-    }
-
-    if (salePrice < purchasePrice) {
-      return toast.error(
-        "Le prix de vente ne peut pas être inférieur au prix d'achat",
-      );
-    }
-
-    if (isPack && form.pieceSalePrice !== "") {
-      const pieceSale = Number(form.pieceSalePrice);
-      const pieceCost = purchasePrice / unitsPerPack;
-      if (Number.isNaN(pieceSale) || pieceSale <= 0) {
-        return toast.error("Le prix de vente à la pièce doit être > 0");
-      }
-      if (pieceSale < pieceCost) {
-        return toast.error(
-          "Le prix de vente à la pièce ne peut pas être inférieur au coût de revient à la pièce",
-        );
-      }
-    }
-
-    if (!editingId && (!Number.isInteger(quantity) || quantity < 0)) {
-      return toast.error("La quantité initiale doit être un entier ≥ 0");
-    }
-
-    // Validation des paliers tarifaires (sur l'unité principale du produit)
-    const hasSemiPrice = form.semiWholesalePrice !== "";
-    const hasSemiQty = form.semiWholesaleMinQty !== "";
-    const semiPrice = hasSemiPrice ? Number(form.semiWholesalePrice) : null;
-    const semiQty = hasSemiQty ? Number(form.semiWholesaleMinQty) : null;
-
-    if (hasSemiPrice !== hasSemiQty) {
-      return toast.error(
-        "Le palier Demi-gros requiert une quantité minimum et un prix",
-      );
-    }
-    if (semiPrice !== null && semiQty !== null) {
-      if (!Number.isInteger(semiQty) || semiQty < 2) {
-        return toast.error("La quantité minimum Demi-gros doit être ≥ 2");
-      }
-      if (semiPrice <= 0 || semiPrice >= salePrice) {
-        return toast.error(
-          "Le prix Demi-gros doit être inférieur au prix de vente",
-        );
-      }
-      if (semiPrice < purchasePrice) {
-        return toast.error(
-          "Le prix Demi-gros ne peut pas être inférieur au prix d'achat",
-        );
-      }
-    }
-
-    const hasWholePrice = form.wholesalePrice !== "";
-    const hasWholeQty = form.wholesaleMinQty !== "";
-    const wholePrice = hasWholePrice ? Number(form.wholesalePrice) : null;
-    const wholeQty = hasWholeQty ? Number(form.wholesaleMinQty) : null;
-
-    if (hasWholePrice !== hasWholeQty) {
-      return toast.error(
-        "Le palier Gros requiert une quantité minimum et un prix",
-      );
-    }
-    if (wholePrice !== null && wholeQty !== null) {
-      if (!Number.isInteger(wholeQty) || wholeQty < 2) {
-        return toast.error("La quantité minimum Gros doit être ≥ 2");
-      }
-      if (wholePrice <= 0 || wholePrice >= salePrice) {
-        return toast.error(
-          "Le prix Gros doit être inférieur au prix de vente",
-        );
-      }
-      if (wholePrice < purchasePrice) {
-        return toast.error(
-          "Le prix Gros ne peut pas être inférieur au prix d'achat",
-        );
-      }
-    }
-
-    if (
-      semiPrice !== null &&
-      semiQty !== null &&
-      wholePrice !== null &&
-      wholeQty !== null
-    ) {
-      if (wholeQty <= semiQty) {
-        return toast.error(
-          "La quantité minimum Gros doit être supérieure à celle du Demi-gros",
-        );
-      }
-      if (wholePrice >= semiPrice) {
-        return toast.error(
-          "Le prix Gros doit être inférieur au prix Demi-gros",
-        );
-      }
-    }
-
-    if (
-      showSupplierSection &&
-      supplierForm.createDebt &&
-      !supplierForm.supplierId
-    ) {
-      return toast.error("Sélectionnez un fournisseur");
-    }
-    if (
-      showSupplierSection &&
-      supplierForm.createDebt &&
-      supplierForm.unitCost <= 0
-    ) {
-      return toast.error("Entrez le coût unitaire");
-    }
-    if (
-      showSupplierSection &&
-      supplierForm.createDebt &&
-      supplierForm.paidAmount > totalCost
-    ) {
-      return toast.error("L'acompte ne peut pas dépasser le montant total");
-    }
-
-    setSubmitting(true);
-    try {
-      const formDataToSend = new FormData();
-
-      formDataToSend.append("name", form.name.trim());
-      formDataToSend.append("unitType", form.unitType);
-      formDataToSend.append("unitsPerPack", String(unitsPerPack));
-
-      if (editingId) {
-        formDataToSend.append("description", form.description);
-        formDataToSend.append("reference", form.reference);
-        formDataToSend.append("categoryId", String(form.categoryId));
-      } else {
-        if (form.description)
-          formDataToSend.append("description", form.description);
-        if (form.reference) formDataToSend.append("reference", form.reference);
-        if (form.categoryId)
-          formDataToSend.append("categoryId", String(form.categoryId));
-        if (form.quantity)
-          formDataToSend.append("quantity", String(form.quantity));
-      }
-
-      if (isPack) {
-        formDataToSend.append("packPurchasePrice", String(purchasePrice));
-        formDataToSend.append("packSalePrice", String(salePrice));
-        if (form.pieceSalePrice !== "") {
-          formDataToSend.append("salePrice", String(form.pieceSalePrice));
-        }
-      } else {
-        formDataToSend.append("purchasePrice", String(purchasePrice));
-        formDataToSend.append("salePrice", String(salePrice));
-      }
-
-      formDataToSend.append("alertThreshold", String(form.alertThreshold));
-
-      // Niveaux tarifaires : envoyés même vides en édition pour permettre leur suppression
-      if (editingId || form.semiWholesalePrice !== "")
-        formDataToSend.append(
-          "semiWholesalePrice",
-          String(form.semiWholesalePrice),
-        );
-      if (editingId || form.semiWholesaleMinQty !== "")
-        formDataToSend.append(
-          "semiWholesaleMinQty",
-          String(form.semiWholesaleMinQty),
-        );
-      if (editingId || form.wholesalePrice !== "")
-        formDataToSend.append("wholesalePrice", String(form.wholesalePrice));
-      if (editingId || form.wholesaleMinQty !== "")
-        formDataToSend.append("wholesaleMinQty", String(form.wholesaleMinQty));
-
-      if (selectedFile) {
-        formDataToSend.append("image", selectedFile);
-      } else if (editingId || form.imageUrl) {
-        formDataToSend.append("imageUrl", form.imageUrl);
-      }
-
-      if (editingId) {
-        // Pour l'édition
-        await updateProduct(editingId, formDataToSend);
-        toast.success("Produit modifié");
-      } else {
-        if (showSupplierSection && supplierForm.supplierId) {
-          formDataToSend.append("supplierId", String(supplierForm.supplierId));
-          formDataToSend.append("unitCost", String(supplierForm.unitCost));
-          formDataToSend.append("paidAmount", String(supplierForm.paidAmount));
-          formDataToSend.append("createDebt", String(supplierForm.createDebt));
-        }
-        await createProduct(formDataToSend);
-
-        toast.success("Produit créé");
-      }
-
-      resetForm();
-      await fetchData();
-    } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message || "Erreur lors de l'enregistrement",
-      );
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   const handleEdit = (p: Product) => {
-    const unitType: PackagingUnit = p.unitType || "PIECE";
-    const unitsPerPack = p.unitsPerPack || 1;
-    const isPack = unitType !== "PIECE";
-    setForm({
-      name: p.name,
-      description: p.description || "",
-      reference: p.reference || "",
-      categoryId: p.categoryId || "",
-      unitType,
-      unitsPerPack: isPack ? unitsPerPack : 24,
-      quantity: p.quantity,
-      purchasePrice: p.purchasePrice,
-      salePrice: p.salePrice,
-      packPurchasePrice: p.packPurchasePrice ?? Math.round(p.purchasePrice * unitsPerPack),
-      packSalePrice: p.packSalePrice ?? Math.round(p.salePrice * unitsPerPack),
-      pieceSalePrice: isPack ? p.salePrice : "",
-      alertThreshold: isPack
-        ? Math.max(0, Math.round(p.alertThreshold / unitsPerPack))
-        : p.alertThreshold,
-      imageUrl: p.imageUrl || "",
-      semiWholesalePrice: p.semiWholesalePrice ?? "",
-      semiWholesaleMinQty: p.semiWholesaleMinQty ?? "",
-      wholesalePrice: p.wholesalePrice ?? "",
-      wholesaleMinQty: p.wholesaleMinQty ?? "",
-    });
-    setImagePreview(p.imageUrl || "");
-    setEditingId(p.id);
-    setShowSupplierSection(false);
+    setEditingProduct(p);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -525,111 +135,6 @@ export default function Products() {
       await fetchData();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Erreur");
-    }
-  };
-
-  // ── Mouvements de stock rapides ─────────────────────────────
-  const openStockModal = (product: Product, mode: "ENTRY" | "OUT") => {
-    const defaultUnit: PackagingUnit =
-      mode === "ENTRY" && product.unitType && product.unitType !== "PIECE"
-        ? product.unitType
-        : "PIECE";
-    const defaultCost =
-      defaultUnit !== "PIECE"
-        ? (product.packPurchasePrice ??
-          Math.round(product.purchasePrice * (product.unitsPerPack || 1)))
-        : product.purchasePrice;
-    setStockModal({ product, mode });
-    setStockQty(1);
-    setStockUnit(defaultUnit);
-    setStockNote("");
-    setStockSupplierForm({
-      ...emptySupplierForm,
-      unitCost: defaultCost,
-    });
-    setStockSupplierSearch("");
-    setShowStockSupplierSection(false);
-  };
-
-  const closeStockModal = () => setStockModal(null);
-
-  const handleStockSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!stockModal || stockQty <= 0) {
-      return toast.error("Quantité invalide");
-    }
-    const multiplier =
-      stockUnit === "PIECE" ? 1 : Math.max(1, stockModal.product.unitsPerPack || 1);
-    const totalPiecesDelta = stockQty * multiplier;
-    if (
-      stockModal.mode === "ENTRY" &&
-      showStockSupplierSection &&
-      stockSupplierForm.createDebt &&
-      !stockSupplierForm.supplierId
-    ) {
-      return toast.error("Sélectionnez un fournisseur");
-    }
-    if (
-      stockModal.mode === "ENTRY" &&
-      showStockSupplierSection &&
-      stockSupplierForm.createDebt &&
-      stockSupplierForm.unitCost <= 0
-    ) {
-      return toast.error("Entrez le coût unitaire");
-    }
-    setSubmittingStock(true);
-    try {
-      if (stockModal.mode === "ENTRY") {
-        await addStockEntry({
-          productId: stockModal.product.id,
-          quantity: stockQty,
-          unit: stockUnit,
-          note: stockNote || undefined,
-          supplierId:
-            showStockSupplierSection && stockSupplierForm.supplierId
-              ? stockSupplierForm.supplierId
-              : undefined,
-          unitCost:
-            showStockSupplierSection && stockSupplierForm.unitCost
-              ? stockSupplierForm.unitCost
-              : undefined,
-          paidAmount:
-            showStockSupplierSection && stockSupplierForm.paidAmount
-              ? stockSupplierForm.paidAmount
-              : undefined,
-          createDebt: showStockSupplierSection && stockSupplierForm.createDebt,
-        });
-        toast.success("Entrée de stock enregistrée");
-      } else {
-        if (totalPiecesDelta > stockModal.product.quantity) {
-          setSubmittingStock(false);
-          return toast.error(
-            `Stock insuffisant (${formatStockDisplay(
-              stockModal.product.quantity,
-              stockModal.product.unitType,
-              stockModal.product.unitsPerPack,
-            )} disponibles)`,
-          );
-        }
-        await addStockOut({
-          productId: stockModal.product.id,
-          quantity: stockQty,
-          unit: stockUnit,
-          note: stockNote || undefined,
-        });
-        toast.success("Sortie de stock enregistrée");
-      }
-      closeStockModal();
-      await fetchData();
-      if (highlightId && Number(highlightId) === stockModal.product.id) {
-        getProductById(Number(highlightId)).then(setHighlightedProduct);
-      }
-    } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message || "Erreur mouvement de stock",
-      );
-    } finally {
-      setSubmittingStock(false);
     }
   };
 
@@ -670,9 +175,7 @@ export default function Products() {
           </div>
 
           <a
-            onClick={() => {
-              setIsUpgradeModalOpen(true);
-            }}
+            onClick={() => setIsUpgradeModalOpen(true)}
             className={
               limiteReached
                 ? "shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
@@ -686,75 +189,14 @@ export default function Products() {
 
       {/* Produit signalé depuis une alerte de stock */}
       {highlightId && (
-        <div className="rounded-2xl border-2 border-emerald-400 bg-emerald-50/60 p-4 shadow-sm">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
-              Produit signalé par une alerte de stock
-            </span>
-            <button
-              type="button"
-              onClick={clearHighlight}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <X size={16} />
-            </button>
-          </div>
-          {loadingHighlight ? (
-            <p className="text-sm text-gray-500">Chargement...</p>
-          ) : !highlightedProduct ? (
-            <p className="text-sm text-gray-500">Produit introuvable.</p>
-          ) : (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                  {highlightedProduct.imageUrl ? (
-                    <img
-                      src={highlightedProduct.imageUrl}
-                      alt={highlightedProduct.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-lg font-bold text-slate-300">
-                      {highlightedProduct.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900">
-                    {highlightedProduct.name}
-                  </p>
-                  <p
-                    className={`text-xs font-medium ${
-                      highlightedProduct.quantity === 0
-                        ? "text-red-600"
-                        : "text-yellow-600"
-                    }`}
-                  >
-                    {highlightedProduct.quantity === 0
-                      ? "Rupture de stock"
-                      : `Stock faible — ${highlightedProduct.quantity} restant(s)`}
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => openStockModal(highlightedProduct, "ENTRY")}
-                  className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700"
-                >
-                  <Plus size={13} /> Entrée
-                </button>
-                {admin && (
-                  <button
-                    onClick={() => handleEdit(highlightedProduct)}
-                    className="rounded-xl border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                  >
-                    Modifier
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        <HighlightedProductBanner
+          loading={loadingHighlight}
+          product={highlightedProduct}
+          admin={admin}
+          onClear={clearHighlight}
+          onStockEntry={(p) => setStockModal({ product: p, mode: "ENTRY" })}
+          onEdit={handleEdit}
+        />
       )}
 
       {/* Barre de recherche */}
@@ -805,13 +247,13 @@ export default function Products() {
                 if (limiteReached) {
                   setIsUpgradeModalOpen(true);
                 }
-                resetForm();
+                setEditingProduct(null);
                 setShowForm(true);
               }}
               className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition ${
                 limiteReached
-                  ? "bg-amber-600 hover:bg-amber-700 shadow-sm" // Style si limite atteinte
-                  : "bg-emerald-600 hover:bg-emerald-700" // Style normal
+                  ? "bg-amber-600 hover:bg-amber-700 shadow-sm"
+                  : "bg-emerald-600 hover:bg-emerald-700"
               }`}
             >
               {limiteReached ? <Lock size={16} /> : <Plus size={16} />}
@@ -848,628 +290,22 @@ export default function Products() {
 
       {/* Formulaire produit */}
       {showForm && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="text-lg font-bold text-slate-900">
-              {editingId ? "Modifier le produit" : "Nouveau produit"}
-            </h3>
-            <button onClick={resetForm}>
-              <X size={20} className="text-gray-400" />
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* ── Étape 1 : Mode de vente / conditionnement ───────── */}
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">
-                    1. Comment vendez-vous ce produit ? *
-                  </p>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Le stock est toujours suivi en pièces en interne : vous pourrez vendre au conditionnement choisi et à la pièce.
-                  </p>
-                </div>
-                {editingId && form.quantity > 0 && (
-                  <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-medium text-amber-800">
-                    Conditionnement verrouillé (stock en cours)
-                  </span>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {(
-                  [
-                    {
-                      value: "PIECE" as PackagingUnit,
-                      title: "Par pièce",
-                      desc: "Vente à l'unité classique",
-                    },
-                    {
-                      value: "DOZEN" as PackagingUnit,
-                      title: "Par douzaine",
-                      desc: "1 douzaine = 12 pièces",
-                    },
-                    {
-                      value: "CARTON" as PackagingUnit,
-                      title: "Par carton",
-                      desc: "Nombre de pièces par carton au choix",
-                    },
-                  ] as const
-                ).map((opt) => {
-                  const selected = form.unitType === opt.value;
-                  const locked = Boolean(editingId && form.quantity > 0);
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      disabled={locked}
-                      onClick={() => {
-                        setForm((p) => ({
-                          ...p,
-                          unitType: opt.value,
-                          unitsPerPack:
-                            opt.value === "DOZEN"
-                              ? 12
-                              : opt.value === "CARTON"
-                                ? Math.max(2, Number(p.unitsPerPack) || 24)
-                                : 1,
-                          alertThreshold:
-                            opt.value === "PIECE" ? 5 : 1,
-                        }));
-                      }}
-                      className={`rounded-xl border p-3.5 text-left transition ${
-                        selected
-                          ? "border-emerald-600 bg-emerald-50 ring-2 ring-emerald-500/20"
-                          : "border-gray-200 bg-white hover:border-slate-300"
-                      } ${locked ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
-                    >
-                      <p
-                        className={`text-sm font-bold ${
-                          selected ? "text-emerald-900" : "text-slate-800"
-                        }`}
-                      >
-                        {opt.title}
-                      </p>
-                      <p className="mt-0.5 text-xs text-slate-500">{opt.desc}</p>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {form.unitType === "CARTON" && (
-                <div className="pt-1 max-w-xs">
-                  <label className="mb-1 block text-xs font-semibold text-slate-700">
-                    Combien de pièces contient 1 carton ? *
-                  </label>
-                  <input
-                    type="number"
-                    min={2}
-                    disabled={Boolean(editingId && form.quantity > 0)}
-                    onFocus={(e) => e.target.select()}
-                    value={form.unitsPerPack}
-                    onChange={(e) =>
-                      setForm((p) => ({
-                        ...p,
-                        unitsPerPack: Number(e.target.value),
-                      }))
-                    }
-                    className="w-full rounded-xl border border-emerald-300 bg-white px-4 py-2.5 text-sm font-semibold outline-none focus:border-emerald-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    placeholder="Ex: 24"
-                    required
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {/* ── Upload image ──────────────────────────── */}
-              <div className="sm:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Image du produit
-                </label>
-                <div className="flex items-start gap-4">
-                  {/* Zone preview / placeholder */}
-                  <div
-                    onClick={() => !uploading && fileInputRef.current?.click()}
-                    className={`relative flex h-32 w-32 shrink-0 cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed transition overflow-hidden
-                      ${imagePreview ? "border-emerald-300 bg-emerald-50" : "border-gray-300 bg-gray-50 hover:border-emerald-400 hover:bg-emerald-50"}`}
-                  >
-                    {imagePreview ? (
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="h-full w-full object-cover rounded-2xl"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center gap-1 text-gray-400">
-                        <Upload size={24} />
-                        <span className="text-xs">Cliquer pour uploader</span>
-                      </div>
-                    )}
-                    {uploading && (
-                      <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-white/80">
-                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Infos + actions */}
-                  <div className="flex-1 space-y-2">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,image/gif"
-                      className="hidden"
-                      onChange={handleImageSelect}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                      className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                    >
-                      <Upload size={15} />
-                      {uploading
-                        ? "Upload en cours..."
-                        : imagePreview
-                          ? "Changer l'image"
-                          : "Choisir une image"}
-                    </button>
-
-                    {imagePreview && (
-                      <button
-                        type="button"
-                        onClick={handleRemoveImage}
-                        className="flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 size={14} /> Supprimer l'image
-                      </button>
-                    )}
-
-                    <p className="text-xs text-gray-400">
-                      JPG, PNG ou WebP — max 5MB
-                    </p>
-
-                    {/* URL manuelle en fallback */}
-                    {!imagePreview && (
-                      <div>
-                        <p className="text-xs text-gray-400 mb-1">
-                          Ou entrer une URL directe :
-                        </p>
-                        <input
-                          type="text"
-                          value={form.imageUrl}
-                          onChange={(e) => {
-                            setForm((p) => ({
-                              ...p,
-                              imageUrl: e.target.value,
-                            }));
-                            setImagePreview(e.target.value);
-                          }}
-                          className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                          placeholder="https://..."
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Nom */}
-              <div className="sm:col-span-2">
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Nom du produit *
-                </label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, name: e.target.value }))
-                  }
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                  placeholder="Ex: Chemise blanche taille M"
-                  required
-                />
-              </div>
-
-              {/* Référence */}
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Référence
-                </label>
-                <input
-                  type="text"
-                  value={form.reference}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, reference: e.target.value }))
-                  }
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                  placeholder="Ex: REF-001"
-                />
-              </div>
-
-              {/* Catégorie */}
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Catégorie
-                </label>
-                <select
-                  value={form.categoryId}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, categoryId: e.target.value }))
-                  }
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                >
-                  <option value="">Sans catégorie</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Prix achat */}
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  {isPackMode
-                    ? `Prix d'achat par ${unitLabel(form.unitType)} (FCFA) *`
-                    : "Prix d'achat (FCFA) *"}
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  onFocus={(e) => e.target.select()}
-                  value={isPackMode ? form.packPurchasePrice : form.purchasePrice}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    setForm((p) =>
-                      isPackMode
-                        ? { ...p, packPurchasePrice: val }
-                        : { ...p, purchasePrice: val },
-                    );
-                  }}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                  required
-                />
-                {isPackMode && formUnitPurchase > 0 && (
-                  <p className="mt-1 text-xs text-slate-500">
-                    Coût de revient :{" "}
-                    <strong className="text-slate-700">
-                      {Math.round(computedPieceCost).toLocaleString("fr-FR")} FCFA / pièce
-                    </strong>
-                  </p>
-                )}
-              </div>
-
-              {/* Prix vente */}
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  {isPackMode
-                    ? `Prix de vente par ${unitLabel(form.unitType)} (FCFA) *`
-                    : "Prix de vente conseillé (FCFA) *"}
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  onFocus={(e) => e.target.select()}
-                  value={isPackMode ? form.packSalePrice : form.salePrice}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    setForm((p) =>
-                      isPackMode
-                        ? { ...p, packSalePrice: val }
-                        : { ...p, salePrice: val },
-                    );
-                  }}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                  required
-                />
-                {isPackMode && formUnitSale > 0 && formUnitSale >= formUnitPurchase && (
-                  <p className="mt-1 text-xs text-emerald-700">
-                    Marge :{" "}
-                    <strong>
-                      {fmt(formUnitSale - formUnitPurchase)} / {unitLabel(form.unitType)}
-                    </strong>
-                  </p>
-                )}
-              </div>
-
-              {/* Prix de vente à la pièce (optionnel pour Douzaine / Carton) */}
-              {isPackMode && (
-                <div className="sm:col-span-2">
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
-                    Prix de vente à la pièce (FCFA){" "}
-                    <span className="font-normal text-gray-400">
-                      — optionnel (pour les ventes au détail à l'unité)
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    onFocus={(e) => e.target.select()}
-                    value={form.pieceSalePrice}
-                    onChange={(e) =>
-                      setForm((p) => ({ ...p, pieceSalePrice: e.target.value }))
-                    }
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                    placeholder={
-                      suggestedPieceSale > 0
-                        ? `Par défaut : ${suggestedPieceSale} FCFA / pièce`
-                        : "Ex: 500"
-                    }
-                  />
-                </div>
-              )}
-
-              {/* Quantité */}
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  {editingId
-                    ? "Stock actuel"
-                    : isPackMode
-                      ? `Nombre de ${unitLabel(form.unitType, true)} en stock`
-                      : "Quantité initiale (pièces)"}
-                </label>
-                {editingId ? (
-                  <div>
-                    <input
-                      type="text"
-                      value={formatStockDisplay(
-                        form.quantity,
-                        form.unitType,
-                        effectiveUnitsPerPack,
-                      )}
-                      disabled
-                      className="w-full cursor-not-allowed rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-500 outline-none"
-                    />
-                    <p className="mt-1 text-xs text-gray-400">
-                      Utilisez les boutons Entrée / Sortie sur la fiche produit
-                      pour ajuster le stock.
-                    </p>
-                  </div>
-                ) : (
-                  <div>
-                    <input
-                      type="number"
-                      min={0}
-                      onFocus={(e) => e.target.select()}
-                      value={form.quantity}
-                      onChange={(e) =>
-                        setForm((p) => ({
-                          ...p,
-                          quantity: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                    />
-                    {isPackMode && (
-                      <p className="mt-1 text-xs font-medium text-emerald-700">
-                        = {totalInitialPieces.toLocaleString("fr-FR")} pièces au total
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Seuil alerte */}
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  {isPackMode
-                    ? `Seuil d'alerte (${unitLabel(form.unitType, true)})`
-                    : "Seuil d'alerte (pièces)"}
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  value={form.alertThreshold}
-                  onFocus={(e) => e.target.select()}
-                  onChange={(e) =>
-                    setForm((p) => ({
-                      ...p,
-                      alertThreshold: Number(e.target.value),
-                    }))
-                  }
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                />
-                {isPackMode && (
-                  <p className="mt-1 text-xs text-gray-400">
-                    Alerte déclenchée dès ≤{" "}
-                    {(Number(form.alertThreshold) || 0) * effectiveUnitsPerPack} pièces
-                  </p>
-                )}
-              </div>
-
-              {/* Récapitulatif chiffré en direct (Douzaine / Carton) */}
-              {isPackMode && !editingId && (
-                <div className="sm:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 py-3 grid grid-cols-1 gap-2 sm:grid-cols-3 text-xs">
-                  <div>
-                    <p className="text-emerald-700">Stock total enregistré</p>
-                    <p className="font-bold text-emerald-950 text-sm">
-                      {form.quantity} {unitLabel(form.unitType, form.quantity > 1)} ={" "}
-                      {totalInitialPieces.toLocaleString("fr-FR")} pcs
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-emerald-700">Prix de revient / pièce</p>
-                    <p className="font-bold text-emerald-950 text-sm">
-                      {Math.round(computedPieceCost).toLocaleString("fr-FR")} FCFA
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-emerald-700">Valeur du stock initial</p>
-                    <p className="font-bold text-emerald-950 text-sm">
-                      {fmt(initialStockValue)}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Description */}
-              {/* Niveaux tarifaires */}
-              <div className="sm:col-span-2">
-                <div className="rounded-xl border border-dashed border-emerald-300 bg-emerald-50 p-4 space-y-4">
-                  <div>
-                    <p className="text-sm font-semibold text-emerald-800">
-                      Niveaux tarifaires
-                    </p>
-                    <p className="text-xs text-emerald-600 mt-0.5">
-                      Optionnel — le prix sera suggéré automatiquement selon la
-                      quantité à la vente.
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-xl bg-white p-3 space-y-2 border border-gray-200">
-                      <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">
-                        Demi-gros
-                      </p>
-                      <div>
-                        <label className="mb-1 block text-xs text-gray-600">
-                          Qté minimum
-                        </label>
-                        <input
-                          type="number"
-                          min={1}
-                          value={form.semiWholesaleMinQty}
-                          onChange={(e) =>
-                            setForm((p) => ({
-                              ...p,
-                              semiWholesaleMinQty: e.target.value,
-                            }))
-                          }
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                          placeholder="Ex: 10"
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-1 block text-xs text-gray-600">
-                          Prix demi-gros (FCFA)
-                        </label>
-                        <input
-                          type="number"
-                          min={0}
-                          value={form.semiWholesalePrice}
-                          onChange={(e) =>
-                            setForm((p) => ({
-                              ...p,
-                              semiWholesalePrice: e.target.value,
-                            }))
-                          }
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                          placeholder="Ex: 850"
-                        />
-                      </div>
-                    </div>
-                    <div className="rounded-xl bg-white p-3 space-y-2 border border-gray-200">
-                      <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">
-                        Gros
-                      </p>
-                      <div>
-                        <label className="mb-1 block text-xs text-gray-600">
-                          Qté minimum
-                        </label>
-                        <input
-                          type="number"
-                          min={1}
-                          value={form.wholesaleMinQty}
-                          onChange={(e) =>
-                            setForm((p) => ({
-                              ...p,
-                              wholesaleMinQty: e.target.value,
-                            }))
-                          }
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                          placeholder="Ex: 50"
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-1 block text-xs text-gray-600">
-                          Prix gros (FCFA)
-                        </label>
-                        <input
-                          type="number"
-                          min={0}
-                          value={form.wholesalePrice}
-                          onChange={(e) =>
-                            setForm((p) => ({
-                              ...p,
-                              wholesalePrice: e.target.value,
-                            }))
-                          }
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                          placeholder="Ex: 700"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Description
-                </label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, description: e.target.value }))
-                  }
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 min-h-[80px]"
-                  placeholder="Description optionnelle..."
-                />
-              </div>
-            </div>
-
-            {/* Section fournisseur (création uniquement) */}
-            {!editingId && (
-              <div className="border-t pt-4">
-                <SupplierDebtSection
-                  title="Fournisseur pour le stock initial"
-                  open={showSupplierSection}
-                  onToggle={() => {
-                    if (!subscription) return;
-                    setShowSupplierSection((v) => !v);
-                  }}
-                  disabled={!subscription}
-                  supplierSearch={supplierSearch}
-                  onSupplierSearchChange={setSupplierSearch}
-                  suppliers={suppliers}
-                  form={supplierForm}
-                  onFormChange={setSupplierForm}
-                  quantity={Number(form.quantity)}
-                  fallbackUnitCost={formUnitPurchase}
-                />
-              </div>
-            )}
-
-            {/* Boutons */}
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={submitting || uploading}
-                className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 transition"
-              >
-                {submitting
-                  ? "Enregistrement..."
-                  : editingId
-                    ? "Modifier"
-                    : "Créer le produit"}
-              </button>
-              <button
-                type="button"
-                onClick={resetForm}
-                className="rounded-xl border border-gray-300 px-6 py-3 text-sm text-gray-700 hover:bg-gray-50"
-              >
-                Annuler
-              </button>
-            </div>
-          </form>
-        </div>
+        <ProductForm
+          editingProduct={editingProduct}
+          categories={categories}
+          initialSuppliers={suppliers}
+          hasSubscription={Boolean(subscription)}
+          onSuccess={async () => {
+            closeForm();
+            await fetchData();
+          }}
+          onCancel={closeForm}
+        />
       )}
 
       <p className="text-sm text-gray-500">{total} produit(s)</p>
-      {/* Grille produits - Version Optimisée Mobile & Image */}
+
+      {/* Grille produits */}
       {loading ? (
         <div className="rounded-2xl bg-white p-12 text-center text-slate-400 font-medium">
           Chargement des produits...
@@ -1482,197 +318,16 @@ export default function Products() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {products.map((product) => {
-            const isLow =
-              product.quantity > 0 &&
-              product.quantity <= product.alertThreshold;
-            const isOut = product.quantity === 0;
-
-            return (
-              <div
-                key={product.id}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md transition-all"
-              >
-                {/* Top Bar : Conteneur Image avec fond dynamique flouté */}
-                <div className="relative h-40 w-full overflow-hidden bg-slate-100 flex items-center justify-center p-3">
-                  {product.imageUrl ? (
-                    <>
-                      {/* 1. Image de fond floutée pour remplir les vides */}
-                      <img
-                        src={product.imageUrl}
-                        alt=""
-                        aria-hidden="true"
-                        className="absolute inset-0 h-full w-full object-cover blur-md scale-125 opacity-30 pointer-events-none"
-                      />
-                      {/* 2. Image principale nette (Contain) */}
-                      <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="relative z-10 h-full w-full object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-105"
-                      />
-                    </>
-                  ) : (
-                    <span className="text-4xl font-extrabold text-slate-300">
-                      {product.name.charAt(0).toUpperCase()}
-                    </span>
-                  )}
-
-                  {/* Badges de Statut (Stock) */}
-                  {(isLow || isOut) && (
-                    <span
-                      className={`absolute top-2 left-2 z-20 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                        isOut
-                          ? "bg-red-500 text-white shadow-sm"
-                          : "bg-amber-400 text-amber-950 shadow-sm"
-                      }`}
-                    >
-                      <AlertTriangle size={10} />
-                      {isOut ? "Rupture" : "Alerte"}
-                    </span>
-                  )}
-
-                  {/* Admin Menu : Toujours visible sur mobile / Survol uniquement sur PC (sm:) */}
-                  {admin && (
-                    <div className="absolute top-2 right-2 z-20 flex gap-1 rounded-xl bg-white/90 p-1 shadow-sm backdrop-blur-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => handleEdit(product)}
-                        className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 active:bg-slate-200"
-                        title="Modifier"
-                      >
-                        <Pen size={15} color="green" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(product.id)}
-                        className="rounded-lg p-1.5 text-red-600 hover:bg-red-50 active:bg-red-100"
-                        title="Supprimer"
-                      >
-                        <Trash size={15} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Corps de la Carte */}
-                <div className="flex flex-1 flex-col justify-between p-3.5 space-y-3">
-                  <div>
-                    {/* Categorie & Ref */}
-                    <div className="flex items-center justify-between gap-1 text-[11px] text-slate-400">
-                      <span className="truncate font-medium text-emerald-600">
-                        {product.category?.name || "Sans catégorie"}
-                      </span>
-                      {product.reference && (
-                        <span className="font-mono text-slate-400">
-                          #{product.reference}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Titre */}
-                    <h4 className="mt-0.5 font-bold text-slate-800 text-sm leading-snug line-clamp-1">
-                      {product.name}
-                    </h4>
-                  </div>
-
-                  {/* Grille des Prix (Compact Box) */}
-                  <div className="rounded-xl bg-slate-50 p-2 space-y-1.5 border border-slate-100 text-xs">
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-500 text-[11px]">
-                        Prix Détail
-                      </span>
-                      <span className="font-extrabold text-slate-900 text-sm">
-                        {fmt(product.salePrice)}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-center text-[10px] text-slate-400 pt-1 border-t border-slate-200/60">
-                      <span>Prix Achat</span>
-                      <span className="font-medium">
-                        {fmt(product.purchasePrice)}
-                      </span>
-                    </div>
-
-                    {/* Tarifs Spéciaux Conditionnels */}
-                    {(product.semiWholesalePrice || product.wholesalePrice) && (
-                      <div className="pt-1 space-y-1 border-t border-slate-200/60 text-[10px]">
-                        {product.semiWholesalePrice && (
-                          <div className="flex justify-between text-blue-700">
-                            <span>
-                              Demi-gros (≥{product.semiWholesaleMinQty})
-                            </span>
-                            <span className="font-semibold">
-                              {fmt(product.semiWholesalePrice)}
-                            </span>
-                          </div>
-                        )}
-                        {product.wholesalePrice && (
-                          <div className="flex justify-between text-purple-700">
-                            <span>Gros (≥{product.wholesaleMinQty})</span>
-                            <span className="font-semibold">
-                              {fmt(product.wholesalePrice)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Footer : Quantité + Actions Mouvement */}
-                  <div className="space-y-2 pt-1">
-                    {product.unitType && product.unitType !== "PIECE" && (
-                      <div className="flex items-center justify-between rounded-lg bg-slate-50 px-2 py-1 text-[11px] text-slate-600">
-                        <span className="font-medium">
-                          {product.unitType === "CARTON"
-                            ? `Carton (${product.unitsPerPack} pcs)`
-                            : "Douzaine (12 pcs)"}
-                        </span>
-                        {product.packSalePrice && (
-                          <span className="font-bold text-emerald-700">
-                            {fmt(product.packSalePrice)}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between text-xs px-1">
-                      <span className="text-slate-500 text-[11px]">
-                        En stock:
-                      </span>
-                      <span
-                        className={`font-bold text-right ${
-                          isOut
-                            ? "text-red-600"
-                            : isLow
-                              ? "text-amber-600"
-                              : "text-slate-900"
-                        }`}
-                      >
-                        {formatStockDisplay(
-                          product.quantity,
-                          product.unitType,
-                          product.unitsPerPack,
-                        )}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-1.5">
-                      <button
-                        onClick={() => openStockModal(product, "ENTRY")}
-                        className="flex items-center justify-center gap-1 rounded-lg bg-emerald-50 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 active:scale-95 transition"
-                      >
-                        <Plus size={12} /> Entrée
-                      </button>
-                      <button
-                        onClick={() => openStockModal(product, "OUT")}
-                        disabled={product.quantity === 0}
-                        className="flex items-center justify-center gap-1 rounded-lg bg-red-50 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 transition"
-                      >
-                        <Minus size={12} /> Sortie
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              admin={admin}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onOpenStockModal={(p, mode) => setStockModal({ product: p, mode })}
+            />
+          ))}
         </div>
       )}
 
@@ -1698,6 +353,7 @@ export default function Products() {
           Suivant →
         </button>
       </div>
+
       {isUpgradeModalOpen &&
         showModal(
           isUpgradeModalOpen,
@@ -1707,199 +363,18 @@ export default function Products() {
 
       {/* Modal Entrée / Sortie de stock */}
       {stockModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900">
-                {stockModal.mode === "ENTRY"
-                  ? "Entrée de stock"
-                  : "Sortie de stock"}
-              </h3>
-              <button type="button" onClick={closeStockModal}>
-                <X size={20} className="text-gray-400 hover:text-gray-600" />
-              </button>
-            </div>
-
-            <div className="mt-4 flex items-center gap-3">
-              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                {stockModal.product.imageUrl ? (
-                  <img
-                    src={stockModal.product.imageUrl}
-                    alt={stockModal.product.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-lg font-bold text-slate-300">
-                    {stockModal.product.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div>
-                <p className="font-semibold text-slate-900">
-                  {stockModal.product.name}
-                </p>
-                <p className="text-xs text-gray-400">
-                  Stock actuel :{" "}
-                  {formatStockDisplay(
-                    stockModal.product.quantity,
-                    stockModal.product.unitType,
-                    stockModal.product.unitsPerPack,
-                  )}
-                </p>
-              </div>
-            </div>
-
-            <form onSubmit={handleStockSubmit} className="mt-5 space-y-4">
-              {stockModal.product.unitType &&
-                stockModal.product.unitType !== "PIECE" && (
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">
-                      Unité du mouvement
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {(
-                        [
-                          {
-                            unit: stockModal.product.unitType,
-                            label: `${
-                              stockModal.product.unitType === "CARTON"
-                                ? "Carton"
-                                : "Douzaine"
-                            } (${stockModal.product.unitsPerPack || 12} pcs)`,
-                          },
-                          { unit: "PIECE" as PackagingUnit, label: "Pièce" },
-                        ] as const
-                      ).map((opt) => (
-                        <button
-                          key={opt.unit}
-                          type="button"
-                          onClick={() => {
-                            setStockUnit(opt.unit);
-                            const nextCost =
-                              opt.unit === "PIECE"
-                                ? stockModal.product.purchasePrice
-                                : (stockModal.product.packPurchasePrice ??
-                                  Math.round(
-                                    stockModal.product.purchasePrice *
-                                      (stockModal.product.unitsPerPack || 1),
-                                  ));
-                            setStockSupplierForm((p) => ({
-                              ...p,
-                              unitCost: nextCost,
-                            }));
-                          }}
-                          className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
-                            stockUnit === opt.unit
-                              ? "border-emerald-600 bg-emerald-50 text-emerald-800"
-                              : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                          }`}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  {stockModal.mode === "ENTRY"
-                    ? `Quantité à ajouter (${unitLabel(stockUnit, true)}) *`
-                    : `Quantité à retirer (${unitLabel(stockUnit, true)}) *`}
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  max={
-                    stockModal.mode === "OUT"
-                      ? Math.floor(
-                          stockModal.product.quantity /
-                            (stockUnit === "PIECE"
-                              ? 1
-                              : stockModal.product.unitsPerPack || 1),
-                        )
-                      : undefined
-                  }
-                  onFocus={(e) => e.target.select()}
-                  value={stockQty}
-                  onChange={(e) => setStockQty(Number(e.target.value))}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500"
-                  required
-                />
-                {stockUnit !== "PIECE" && (
-                  <p className="mt-1 text-xs font-medium text-emerald-700">
-                    = {stockQty * (stockModal.product.unitsPerPack || 1)} pièces
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  {stockModal.mode === "ENTRY" ? "Note" : "Raison"}
-                </label>
-                <textarea
-                  value={stockNote}
-                  onFocus={(e) => e.target.select()}
-                  onChange={(e) => setStockNote(e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-emerald-500 min-h-20"
-                  placeholder={
-                    stockModal.mode === "ENTRY"
-                      ? "Ex: Réapprovisionnement..."
-                      : "Ex: Casse, perte, retour client..."
-                  }
-                />
-              </div>
-
-              {stockModal.mode === "ENTRY" && (
-                <SupplierDebtSection
-                  title="Informations fournisseur"
-                  open={showStockSupplierSection}
-                  onToggle={() => setShowStockSupplierSection((v) => !v)}
-                  supplierSearch={stockSupplierSearch}
-                  onSupplierSearchChange={setStockSupplierSearch}
-                  suppliers={suppliers}
-                  form={stockSupplierForm}
-                  onFormChange={setStockSupplierForm}
-                  quantity={stockQty}
-                  fallbackUnitCost={
-                    stockUnit === "PIECE"
-                      ? stockModal.product.purchasePrice
-                      : (stockModal.product.packPurchasePrice ??
-                        Math.round(
-                          stockModal.product.purchasePrice *
-                            (stockModal.product.unitsPerPack || 1),
-                        ))
-                  }
-                />
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={submittingStock}
-                  className={`flex-1 rounded-xl py-2.5 text-sm font-medium text-white transition disabled:opacity-60 ${
-                    stockModal.mode === "ENTRY"
-                      ? "bg-emerald-600 hover:bg-emerald-700"
-                      : "bg-red-500 hover:bg-red-600"
-                  }`}
-                >
-                  {submittingStock
-                    ? "Enregistrement..."
-                    : stockModal.mode === "ENTRY"
-                      ? "Ajouter au stock"
-                      : "Sortir du stock"}
-                </button>
-                <button
-                  type="button"
-                  onClick={closeStockModal}
-                  className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                >
-                  Annuler
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <StockMovementModal
+          product={stockModal.product}
+          mode={stockModal.mode}
+          initialSuppliers={suppliers}
+          onClose={() => setStockModal(null)}
+          onSuccess={async (productId) => {
+            await fetchData();
+            if (highlightId && Number(highlightId) === productId) {
+              getProductById(Number(highlightId)).then(setHighlightedProduct);
+            }
+          }}
+        />
       )}
     </section>
   );

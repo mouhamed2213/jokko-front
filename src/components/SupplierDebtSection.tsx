@@ -1,7 +1,6 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { Supplier } from "../types/index";
-
-const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
+import { formatMoney } from "../utils/format";
 
 export type SupplierDebtFormState = {
   supplierId: number;
@@ -169,7 +168,7 @@ export default function SupplierDebtSection({
                   }`}
                 >
                   {reste > 0
-                    ? `⚠️ Reste dû : ${fmt(reste)}`
+                    ? `⚠️ Reste dû : ${formatMoney(reste)}`
                     : "✅ Entièrement payé"}
                 </div>
               )}

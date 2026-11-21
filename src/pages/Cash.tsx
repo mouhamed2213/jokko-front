@@ -20,9 +20,9 @@ import {
   getCashById,
   getCashHistory,
   getCurrentCash,
-  getSubscription,
   openCash,
 } from "../services/index";
+import { useSubscription } from "../hooks/useSubscription";
 import { getStoredUser } from "../types/auth";
 import type {
   CashRegister,
@@ -30,9 +30,8 @@ import type {
   SubscriptionInfo,
 } from "../types/index";
 import { exportCashReportPDF } from "../utils/exportPDF";
+import { formatMoney } from "../utils/format";
 import { hasFeatures } from "../utils/subscription.checker";
-
-const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
 const METHOD_CONFIG: Record<
   string,
@@ -109,7 +108,7 @@ export default function Cash() {
     cashRegister: CashRegister | null;
   }>({ open: false, cashRegister: null });
   const [history, setHistory] = useState<CashRegister[]>([]);
-  const [subscription, setSubscription] = useState<SubscriptionInfo>();
+  const { subscription } = useSubscription();
   const [historyTotal, setHistoryTotal] = useState(0);
   const [historyPage, setHistoryPage] = useState(1);
   const [historyTotalPages, setHistoryTotalPages] = useState(1);
@@ -135,12 +134,10 @@ export default function Cash() {
 
   const fetchData = async () => {
     try {
-      const [subscription, current, hist] = await Promise.all([
-        getSubscription(),
+      const [current, hist] = await Promise.all([
         getCurrentCash(),
         getCashHistory({ page: historyPage, limit: 10 }),
       ]);
-      setSubscription(subscription);
       setCashState(current);
       setHistory(hist.data || []);
       setHistoryTotal(hist.pagination?.total || 0);
@@ -295,25 +292,25 @@ export default function Cash() {
               {[
                 {
                   label: "Ouverture",
-                  value: fmt(closureSummary.openingAmount),
+                  value: formatMoney(closureSummary.openingAmount),
                   bg: "bg-slate-100",
                   text: "text-slate-700",
                 },
                 {
                   label: "Entrées",
-                  value: fmt(closureSummary.totalIn),
+                  value: formatMoney(closureSummary.totalIn),
                   bg: "bg-emerald-100",
                   text: "text-emerald-700",
                 },
                 {
                   label: "Sorties",
-                  value: fmt(closureSummary.totalOut),
+                  value: formatMoney(closureSummary.totalOut),
                   bg: "bg-red-100",
                   text: "text-red-700",
                 },
                 {
                   label: "Clôture",
-                  value: fmt(closureSummary.closingAmount),
+                  value: formatMoney(closureSummary.closingAmount),
                   bg: "bg-slate-900",
                   text: "text-white",
                 },
@@ -354,15 +351,15 @@ export default function Cash() {
                               {config.name}
                             </p>
                             <p className="text-xs text-gray-400">
-                              +{fmt(m.totalIn)} entré
+                              +{formatMoney(m.totalIn)} entré
                               {m.totalOut > 0
-                                ? ` • -${fmt(m.totalOut)} sorti`
+                                ? ` • -${formatMoney(m.totalOut)} sorti`
                                 : ""}
                             </p>
                           </div>
                         </div>
                         <p className={`font-bold text-base ${config.text}`}>
-                          {fmt(m.net)}
+                          {formatMoney(m.net)}
                         </p>
                       </div>
                     );
@@ -371,7 +368,7 @@ export default function Cash() {
                 <div className="mt-3 flex items-center justify-between rounded-2xl bg-slate-900 px-5 py-4 text-white">
                   <span className="font-semibold">Total encaissé net</span>
                   <span className="font-bold text-lg">
-                    {fmt(closureSummary.totalIn - closureSummary.totalOut)}
+                    {formatMoney(closureSummary.totalIn - closureSummary.totalOut)}
                   </span>
                 </div>
               </div>
@@ -462,7 +459,7 @@ export default function Cash() {
             <div className="rounded-2xl bg-slate-900 p-5 text-white">
               <p className="text-xs text-white/60">Solde actuel</p>
               <p className="mt-2 text-2xl font-bold">
-                {fmt(cr?.currentBalance ?? 0)}
+                {formatMoney(cr?.currentBalance ?? 0)}
               </p>
               <p className="mt-1 text-xs text-white/40">
                 Ouvert à{" "}
@@ -475,19 +472,19 @@ export default function Cash() {
             <div className="rounded-2xl bg-white p-5 shadow-sm">
               <p className="text-xs text-gray-500">Montant d'ouverture</p>
               <p className="mt-2 text-xl font-bold text-slate-900">
-                {fmt(cr?.openingAmount ?? 0)}
+                {formatMoney(cr?.openingAmount ?? 0)}
               </p>
             </div>
             <div className="rounded-2xl bg-emerald-50 p-5">
               <p className="text-xs text-emerald-700">Total encaissements</p>
               <p className="mt-2 text-xl font-bold text-emerald-800">
-                {fmt(cr?.totalIn ?? 0)}
+                {formatMoney(cr?.totalIn ?? 0)}
               </p>
             </div>
             <div className="rounded-2xl bg-red-50 p-5">
               <p className="text-xs text-red-700">Total décaissements</p>
               <p className="mt-2 text-xl font-bold text-red-800">
-                {fmt(cr?.totalOut ?? 0)}
+                {formatMoney(cr?.totalOut ?? 0)}
               </p>
             </div>
           </div>
@@ -512,11 +509,11 @@ export default function Cash() {
                           {m.config.name}
                         </p>
                         <p className={`font-bold text-xl ${m.config.text}`}>
-                          {fmt(m.net)}
+                          {formatMoney(m.net)}
                         </p>
                         {m.totalOut > 0 && (
                           <p className="text-xs text-gray-400 ">
-                            +{fmt(m.totalIn)} entré • -{fmt(m.totalOut)} sorti
+                            +{formatMoney(m.totalIn)} entré • -{formatMoney(m.totalOut)} sorti
                           </p>
                         )}
                       </div>
@@ -525,7 +522,7 @@ export default function Cash() {
               </div>
               <div className="mt-4 flex items-center justify-between rounded-2xl bg-slate-900 px-5 py-4 text-white">
                 <span className="font-semibold">Total encaissé</span>
-                <span className="font-bold text-xl">{fmt(cr.totalIn)}</span>
+                <span className="font-bold text-xl">{formatMoney(cr.totalIn)}</span>
               </div>
             </div>
           ) : null}
@@ -692,7 +689,7 @@ export default function Cash() {
                         className={`text-sm font-bold ${tx.type === "IN" ? "text-emerald-600" : "text-red-600"}`}
                       >
                         {tx.type === "IN" ? "+" : "-"}
-                        {fmt(tx.amount)}
+                        {formatMoney(tx.amount)}
                       </span>
                     </div>
                   );
@@ -768,27 +765,27 @@ export default function Cash() {
                     <div className="text-right text-sm">
                       <p className="text-gray-400 text-xs">Ouverture</p>
                       <p className="font-medium">
-                        {fmt(session.openingAmount)}
+                        {formatMoney(session.openingAmount)}
                       </p>
                     </div>
                     <div className="text-right text-sm">
                       <p className="text-emerald-600 text-xs">+Entrées</p>
                       <p className="font-medium text-emerald-700">
-                        {fmt(session.totalIn)}
+                        {formatMoney(session.totalIn)}
                       </p>
                     </div>
                     <div className="text-right text-sm">
                       <p className="text-red-500 text-xs">-Sorties</p>
                       <p className="font-medium text-red-600">
-                        {fmt(session.totalOut)}
+                        {formatMoney(session.totalOut)}
                       </p>
                     </div>
                     <div className="text-right text-sm">
                       <p className="text-gray-400 text-xs">Clôture</p>
                       <p className="font-bold text-slate-900">
                         {session.closingAmount != null
-                          ? fmt(session.closingAmount)
-                          : fmt((session as any).currentBalance ?? 0)}
+                          ? formatMoney(session.closingAmount)
+                          : formatMoney((session as any).currentBalance ?? 0)}
                       </p>
                     </div>
                     <button
@@ -859,7 +856,7 @@ export default function Cash() {
                                     <p
                                       className={`text-sm font-bold ${m.config.text}`}
                                     >
-                                      {fmt(m.net)}
+                                      {formatMoney(m.net)}
                                     </p>
                                   </div>
                                 </div>
@@ -929,7 +926,7 @@ export default function Cash() {
                                     className={`text-xs font-bold ${tx.type === "IN" ? "text-emerald-600" : "text-red-600"}`}
                                   >
                                     {tx.type === "IN" ? "+" : "-"}
-                                    {fmt(tx.amount)}
+                                    {formatMoney(tx.amount)}
                                   </span>
                                 </div>
                               );

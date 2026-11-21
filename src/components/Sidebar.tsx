@@ -31,10 +31,13 @@ import { api } from "../services/api";
 import {
   createNewShop,
   getShopList,
-  getSubscription,
   switchShop,
 } from "../services";
-import type { FeatureCode, NewShopForm, SubscriptionInfo } from "../types";
+import {
+  invalidateSubscriptionCache,
+  useSubscription,
+} from "../hooks/useSubscription";
+import type { FeatureCode, NewShopForm } from "../types";
 import { hasFeature, hasFeatures } from "../utils/subscription.checker";
 
 
@@ -342,12 +345,10 @@ function ShopSwitcher({
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const [subscription, setSubscription] = useState<SubscriptionInfo | null>();
+  const { subscription } = useSubscription();
   const now = new Date(Date.now());
 
   useEffect(() => {
-    getSubscription().then(setSubscription);
-
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
@@ -744,7 +745,7 @@ function SidebarContent({
   const role = storedUser.role;
   const currentShopId = storedUser.shopId as number;
 
-  const [subscription, setSubscription] = useState<SubscriptionInfo>();
+  const { subscription } = useSubscription();
   const [shopLogo, setShopLogo] = useState<string>(
     localStorage.getItem("shopLogo") || "",
   );
@@ -754,8 +755,6 @@ function SidebarContent({
   const links = allLinks.filter((l) => !l.adminOnly || role === "ADMIN");
 
   useEffect(() => {
-    getSubscription().then(setSubscription);
-
     const handler = () => setShopLogo(localStorage.getItem("shopLogo") || "");
     window.addEventListener("shopLogoUpdated", handler);
     return () => window.removeEventListener("shopLogoUpdated", handler);
@@ -764,6 +763,7 @@ function SidebarContent({
   const handleSwitch = async (targetShopId: number, password: string) => {
     try {
       const res = await switchShop({ targetShopId, password });
+      invalidateSubscriptionCache();
       const tokenPayload = JSON.parse(atob(res.token.split(".")[1]));
 
       localStorage.setItem("token", res.token);

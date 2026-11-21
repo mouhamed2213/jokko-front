@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 import { api } from "../services/api";
 import { getStoredUser } from "../types/auth";
-import { SUPPORT_EMAIL, getSubscription } from "../services";
+import { SUPPORT_EMAIL } from "../services";
+import { useSubscription } from "../hooks/useSubscription";
 
 type Plan = {
   id: number;
@@ -134,7 +135,7 @@ export default function Settings() {
   const isAdmin = user?.role === "ADMIN";
 
   const [shop, setShop] = useState<ShopInfo | null>(null);
-  const [subscriptionInfo, setSubscriptionInfo] = useState<Awaited<ReturnType<typeof getSubscription>> | null>(null);
+  const { subscription: subscriptionInfo } = useSubscription();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -175,7 +176,6 @@ export default function Settings() {
 
   useEffect(() => {
     fetchShop();
-    getSubscription().then(setSubscriptionInfo).catch(() => undefined);
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {

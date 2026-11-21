@@ -2,7 +2,8 @@ import { AlertTriangle, Clock, LogOut, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getAccountEmailStatus, getSubscription, resendAccountVerification, type AccountEmailStatus } from "../services";
+import { getAccountEmailStatus, resendAccountVerification, type AccountEmailStatus } from "../services";
+import { useSubscription } from "../hooks/useSubscription";
 import type { SubscriptionInfo } from "../types";
 import { getStoredUser } from "../types/auth";
 import NotificationBell from "./NotificationBell";
@@ -114,15 +115,13 @@ export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const user = getStoredUser();
-   const [subscription, setSubscription] = useState<SubscriptionInfo>();
-   const [emailStatus, setEmailStatus] = useState<AccountEmailStatus | null>(null);
-   const [resendingVerification, setResendingVerification] = useState(false);
+  const { subscription } = useSubscription();
+  const [emailStatus, setEmailStatus] = useState<AccountEmailStatus | null>(null);
+  const [resendingVerification, setResendingVerification] = useState(false);
 
-  
-    useEffect(() => {
-      getSubscription().then(setSubscription).catch(() => undefined);
-      getAccountEmailStatus().then(setEmailStatus).catch(() => undefined);
-    }, []);
+  useEffect(() => {
+    getAccountEmailStatus().then(setEmailStatus).catch(() => undefined);
+  }, []);
 
     const emailVerifiedAt = emailStatus ? emailStatus.emailVerifiedAt : user?.emailVerifiedAt ?? null;
 

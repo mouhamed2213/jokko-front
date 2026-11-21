@@ -5,11 +5,11 @@ import { showModal, UpgradeModal } from "../components/upgradeModal";
 import {
   createUser,
   deleteUser,
-  getSubscription,
   getUsers,
   updateUser,
 } from "../services/index";
-import type { SubscriptionInfo, User } from "../types/index";
+import { useSubscription } from "../hooks/useSubscription";
+import type { User } from "../types/index";
 
 const emptyForm = { name: "", email: "", password: "", role: "EMPLOYEE" };
 
@@ -30,7 +30,7 @@ export default function Users() {
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-  const [subscription, setSubscription] = useState<SubscriptionInfo>();
+  const { subscription } = useSubscription();
 
   const maxUsers = subscription?.limits.users ?? 0;
   let limiteReached: boolean = false;
@@ -58,7 +58,6 @@ export default function Users() {
 
   const fetchUsers = async () => {
     try {
-      getSubscription().then(setSubscription);
       setUsers(await getUsers());
     } catch {
       toast.error("Erreur chargement utilisateurs");
