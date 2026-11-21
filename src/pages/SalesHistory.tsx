@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { deleteSale, getSales } from "../services/index";
-import { getStoredUser, isAdmin } from "../types/auth";
+import { useAuth } from "../contexts/AuthContext";
 import type { Sale } from "../types/index";
 import { exportSalesToExcel } from "../utils/exportExcel";
 import { exportSalesPDF } from "../utils/exportPDF";
@@ -30,8 +30,7 @@ export default function SalesHistory() {
   const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const admin = isAdmin();
-  const user = getStoredUser();
+  const { user, isAdmin: admin } = useAuth();
 
   const fetchData = useCallback(async () => {
     setLoading(true);

@@ -1,6 +1,7 @@
 import orangeMoneyLogo from "../../assets/om.png";
 import waveLogo from "../../assets/wave.png";
 import type { CashTransaction } from "../../types/index";
+import { aggregateCashByMethod } from "./utils";
 
 export const METHOD_CONFIG: Record<
   string,
@@ -71,18 +72,8 @@ export function MethodIcon({
 }
 
 export function getMethodBreakdown(transactions: CashTransaction[]) {
-  const byMethod: Record<string, { in: number; out: number }> = {};
-  transactions.forEach((tx: any) => {
-    const m = tx.paymentMethod || "CASH";
-    if (!byMethod[m]) byMethod[m] = { in: 0, out: 0 };
-    if (tx.type === "IN") byMethod[m].in += tx.amount;
-    else byMethod[m].out += tx.amount;
-  });
-  return Object.entries(byMethod).map(([method, amounts]) => ({
-    method,
-    config: METHOD_CONFIG[method] || METHOD_CONFIG.OTHER,
-    totalIn: amounts.in,
-    totalOut: amounts.out,
-    net: amounts.in - amounts.out,
+  return aggregateCashByMethod(transactions as any).map((item) => ({
+    ...item,
+    config: METHOD_CONFIG[item.method] || METHOD_CONFIG.OTHER,
   }));
 }

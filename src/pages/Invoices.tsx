@@ -12,7 +12,7 @@ import {
   getInvoices,
   getProducts,
 } from "../services/index";
-import { getStoredUser, isAdmin } from "../types/auth";
+import { useAuth } from "../contexts/AuthContext";
 import type { Client, Product, Sale } from "../types/index";
 import { formatMoney } from "../utils/format";
 import { printInvoice as doPrint } from "../utils/printInvoice";
@@ -49,7 +49,7 @@ export default function Invoices() {
   const [printMenuFor, setPrintMenuFor] = useState<number | null>(null);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
-  const user = getStoredUser();
+  const { user, isAdmin: admin } = useAuth();
 
   const checkCash = async () => {
     try {
@@ -88,7 +88,7 @@ export default function Invoices() {
   }, [fetchInvoices]);
 
   const canEdit = (invoice: Sale) =>
-    isAdmin() && invoice.status !== "PAID" && invoice.paidAmount === 0;
+    admin && invoice.status !== "PAID" && invoice.paidAmount === 0;
 
   const openEdit = async (invoice: Sale) => {
     if (!canEdit(invoice)) return;

@@ -9,6 +9,7 @@ import {
   METHOD_CONFIG,
   MethodIcon,
 } from "../features/cash/constants";
+import { useAuth } from "../contexts/AuthContext";
 import { useSubscription } from "../hooks/useSubscription";
 import {
   addCashTransaction,
@@ -18,7 +19,6 @@ import {
   getCurrentCash,
   openCash,
 } from "../services/index";
-import { getStoredUser } from "../types/auth";
 import type {
   CashRegister,
   CashTransaction,
@@ -28,7 +28,7 @@ import { formatMoney } from "../utils/format";
 import { hasFeatures } from "../utils/subscription.checker";
 
 export default function Cash() {
-  const user = getStoredUser();
+  const { user } = useAuth();
   const [cashState, setCashState] = useState<{
     open: boolean;
     cashRegister: CashRegister | null;

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { getProducts, getStockMovements } from "../services/index";
-import { getStoredUser } from "../types/auth";
+import { useAuth } from "../contexts/AuthContext";
 import type { Product, StockMovement } from "../types/index";
 import { exportStockToExcel } from "../utils/exportExcel";
 
@@ -17,7 +17,7 @@ const typeLabel: Record<string, { label: string; color: string }> = {
 };
 
 export default function Stock() {
-  const user = getStoredUser();
+  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [totalMovements, setTotalMovements] = useState(0);
