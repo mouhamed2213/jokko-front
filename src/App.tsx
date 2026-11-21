@@ -8,6 +8,7 @@ import SuperAdminLayout from "./layouts/SuperAdminLayout";
 import PublicLayout from "./layouts/PublicLayout";
 import MaintenanceGate from "./components/MaintenanceGate";
 import RouteSeo from "./components/RouteSeo";
+import { AuthProvider } from "./contexts/AuthContext";
 
 // Public pages (lazy loaded)
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -75,7 +76,8 @@ const NotFoundPage = () => (
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
       <RouteSeo />
       <Toaster
         position="top-right"
@@ -161,5 +163,6 @@ export default function App() {
         </Suspense>
       </MaintenanceGate>
     </BrowserRouter>
+    </AuthProvider>
   );
 }

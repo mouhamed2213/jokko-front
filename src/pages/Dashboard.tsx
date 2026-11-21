@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDashboardStats } from "../services/index";
+import { useAuth } from "../contexts/AuthContext";
 import { useSubscription } from "../hooks/useSubscription";
-import { getStoredUser } from "../types/auth";
 import type { DashboardStats } from "../types/index";
 import { formatMoney } from "../utils/format";
 
@@ -65,7 +65,7 @@ function StatCard({
 }
 
 export default function Dashboard() {
-  const user = getStoredUser();
+  const { user } = useAuth();
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);

@@ -16,8 +16,8 @@ import {
   getClients,
   updateClient,
 } from "../services/index";
+import { useAuth } from "../contexts/AuthContext";
 import { useSubscription } from "../hooks/useSubscription";
-import { getStoredUser, isAdmin } from "../types/auth";
 import type { Client, Sale, SubscriptionInfo } from "../types/index";
 import { exportClientsToExcel } from "../utils/exportExcel";
 import { formatMoney } from "../utils/format";
@@ -28,7 +28,7 @@ const emptyForm = { name: "", phone: "", email: "", address: "" };
 export default function Clients() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
-  const user = getStoredUser();
+  const { user, isAdmin: admin } = useAuth();
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -40,7 +40,6 @@ export default function Clients() {
   const [historyPage, setHistoryPage] = useState(1);
   const [historyTotalPages, setHistoryTotalPages] = useState(1);
   const [historyStatus, setHistoryStatus] = useState("");
-  const admin = isAdmin();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [limitCostumer, setLimitCostumer] = useState<number | null>(null);
   const { subscription } = useSubscription();

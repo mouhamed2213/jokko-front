@@ -15,8 +15,8 @@ import {
   getProducts,
   getSuppliers,
 } from "../services/index";
+import { useAuth } from "../contexts/AuthContext";
 import { useSubscription } from "../hooks/useSubscription";
-import { isAdmin } from "../types/auth";
 import type { Category, Product, Supplier } from "../types/index";
 
 export default function Products() {
@@ -57,7 +57,7 @@ export default function Products() {
   );
   const [loadingHighlight, setLoadingHighlight] = useState(false);
 
-  const admin = isAdmin();
+  const { isAdmin: admin } = useAuth();
   const maxProducts = subscription?.limits.products;
   const warningThreshold =
     maxProducts === null || maxProducts === undefined

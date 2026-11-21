@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getAccountEmailStatus, resendAccountVerification, type AccountEmailStatus } from "../services";
+import { useAuth } from "../contexts/AuthContext";
 import { useSubscription } from "../hooks/useSubscription";
 import type { SubscriptionInfo } from "../types";
-import { getStoredUser } from "../types/auth";
 import NotificationBell from "./NotificationBell";
 
 const pageConfig: Record<string, { title: string; description: string }> = {
@@ -114,7 +114,7 @@ function getSubscriptionAlert(
 export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
-  const user = getStoredUser();
+  const { user } = useAuth();
   const { subscription } = useSubscription();
   const [emailStatus, setEmailStatus] = useState<AccountEmailStatus | null>(null);
   const [resendingVerification, setResendingVerification] = useState(false);

@@ -14,9 +14,9 @@ import {
   type SettingsPlan,
   type SettingsSubscription,
 } from "../features/shops/components/SubscriptionPlanCard";
+import { useAuth } from "../contexts/AuthContext";
 import { useSubscription } from "../hooks/useSubscription";
 import { api } from "../services/api";
-import { getStoredUser } from "../types/auth";
 
 type ShopInfo = {
   id: number;
@@ -37,8 +37,7 @@ type ShopInfo = {
 };
 
 export default function Settings() {
-  const user = getStoredUser();
-  const isAdmin = user?.role === "ADMIN";
+  const { isAdmin, updateUser } = useAuth();
 
   const [shop, setShop] = useState<ShopInfo | null>(null);
   const { subscription: subscriptionInfo } = useSubscription();
@@ -92,13 +91,7 @@ export default function Settings() {
       const res = await api.put("/shop/settings", form);
       setShop(res.data.shop);
       localStorage.setItem("shopName", res.data.shop.name);
-      const currentUser = getStoredUser();
-      if (currentUser) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify({ ...currentUser, shopName: res.data.shop.name }),
-        );
-      }
+      updateUser({ shopName: res.data.shop.name });
       toast.success("Paramètres sauvegardés");
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Erreur");

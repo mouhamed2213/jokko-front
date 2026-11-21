@@ -13,8 +13,8 @@ import {
   getProducts,
   getSales,
 } from "../services/index";
+import { useAuth } from "../contexts/AuthContext";
 import { useSubscription } from "../hooks/useSubscription";
-import { getStoredUser, isAdmin } from "../types/auth";
 import type {
   Category,
   PackagingUnit,
@@ -28,8 +28,7 @@ import {
 } from "../utils/packaging";
 
 export default function Sales() {
-  const user = getStoredUser();
-  const admin = isAdmin();
+  const { user, isAdmin: admin } = useAuth();
 
   // Données de référence
   const [products, setProducts] = useState<Product[]>([]);

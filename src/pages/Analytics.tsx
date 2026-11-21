@@ -55,8 +55,8 @@ import {
   planRank,
   shiftDate,
 } from "../features/analytics/constants";
+import { useAuth } from "../contexts/AuthContext";
 import { useSubscription } from "../hooks/useSubscription";
-import { isAdmin } from "../types/auth";
 import { formatMoney } from "../utils/format";
 import { hasFeature } from "../utils/subscription.checker";
 
@@ -90,6 +90,7 @@ const sections: Array<{
 
 export default function Analytics() {
   const navigate = useNavigate();
+  const { isAdmin: admin } = useAuth();
   const [section, setSection] = useState<Section>("overview");
   const [startDate, setStartDate] = useState(defaultStart);
   const [endDate, setEndDate] = useState(defaultEnd);
@@ -285,7 +286,7 @@ export default function Analytics() {
           <button type="button" onClick={() => { setStartDate(defaultStart); setEndDate(defaultEnd); setPage(1); void load({ startDate: defaultStart, endDate: defaultEnd, limit: 50, page: 1, pageSize: 20 }); }} title="Réinitialiser la période" className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-100"><RotateCcw size={18} /></button>
           <button disabled={Boolean(dateError)} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">Actualiser</button>
           {section === "overview" &&
-            isAdmin() &&
+            admin &&
             subscription &&
             hasFeature(subscription, "MULTI_STORE") &&
             subscription.plan.code === "PREMIUM" && (
@@ -306,7 +307,7 @@ export default function Analytics() {
 
       <div className="flex gap-2 overflow-x-auto border-b border-slate-200 pb-2">
         {sections
-          .filter((item) => !item.adminOnly || isAdmin())
+          .filter((item) => !item.adminOnly || admin)
           .map((item) => (
           <button
             key={item.id}
@@ -391,7 +392,7 @@ export default function Analytics() {
               icon={<BarChart3 size={18} />}
             />
           </div>
-          {isAdmin() && activeKpis?.grossProfit !== undefined && (
+          {admin && activeKpis?.grossProfit !== undefined && (
             <div className="rounded-2xl bg-white p-5 shadow-sm">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
