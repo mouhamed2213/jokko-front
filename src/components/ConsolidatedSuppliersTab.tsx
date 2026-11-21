@@ -5,8 +5,7 @@ import {
   getConsolidatedSuppliers,
   type ConsolidatedSuppliers,
 } from "../services/index";
-
-const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
+import { formatMoney } from "../utils/format";
 
 type Props = {
   locked: boolean;
@@ -77,7 +76,7 @@ export default function ConsolidatedSuppliersTab({
           Dette fournisseur totale — {data.shops.length} boutique(s)
         </p>
         <p className="mt-1 text-2xl font-bold text-emerald-900">
-          {fmt(data.grandTotalDebt)}
+          {formatMoney(data.grandTotalDebt)}
         </p>
         <p className="mt-1 text-xs text-emerald-700">
           {data.grandTotalSuppliers} fournisseur(s) au total
@@ -104,7 +103,7 @@ export default function ConsolidatedSuppliersTab({
               <div>
                 <p className="text-xs text-gray-400">Acheté</p>
                 <p className="font-semibold text-slate-700">
-                  {fmt(shop.totalPurchases)}
+                  {formatMoney(shop.totalPurchases)}
                 </p>
               </div>
               <div>
@@ -112,7 +111,7 @@ export default function ConsolidatedSuppliersTab({
                 <p
                   className={`font-semibold ${shop.totalDebt > 0 ? "text-red-600" : "text-emerald-600"}`}
                 >
-                  {fmt(shop.totalDebt)}
+                  {formatMoney(shop.totalDebt)}
                 </p>
               </div>
             </div>

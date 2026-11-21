@@ -7,28 +7,27 @@ import {
   createSupplier,
   deleteSupplier,
   getCurrentCash,
-  getSubscription,
   getSupplierDebtAging,
   getSupplierById,
   getSupplierQuota,
   getSuppliers,
   updateSupplier,
 } from "../services/index";
+import { useSubscription } from "../hooks/useSubscription";
 import type {
   Supplier,
   SupplierDebt,
   SupplierDebtAging,
   SupplierHistoryResponse,
   SupplierQuota,
-  SubscriptionInfo,
 } from "../types/index";
+import { formatMoney } from "../utils/format";
 import { hasFeature } from "../utils/subscription.checker";
 import { showModal } from "../components/upgradeModal";
 import type { UpgradeFeature } from "../utils/upgradeFeaturesData";
 import SupplierAnalyticsTab from "../components/SupplierAnalyticsTab";
 import ConsolidatedSuppliersTab from "../components/ConsolidatedSuppliersTab";
 
-const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 const emptyForm = { name: "", phone: "", email: "", address: "" };
 
 export default function Suppliers() {
@@ -56,9 +55,7 @@ export default function Suppliers() {
   const [activeTab, setActiveTab] = useState<
     "list" | "analytics" | "consolidated"
   >("list");
-  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(
-    null,
-  );
+  const { subscription } = useSubscription();
   const [upgradeReason, setUpgradeReason] = useState<UpgradeFeature | null>(
     null,
   );
@@ -108,12 +105,6 @@ export default function Suppliers() {
     fetchSuppliers();
     checkCash();
   }, [selectedAgingBucket, supplierPage]);
-
-  useEffect(() => {
-    getSubscription()
-      .then(setSubscription)
-      .catch(() => toast.error("Erreur chargement abonnement"));
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -281,7 +272,7 @@ export default function Suppliers() {
                 </p>
               </div>
               <p className="text-sm font-bold text-red-800">
-                {fmt(aging.totalRemaining)} restant dû
+                {formatMoney(aging.totalRemaining)} restant dû
               </p>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -303,7 +294,7 @@ export default function Suppliers() {
                 >
                   <p className="text-xs text-gray-500">{bucket.label}</p>
                   <p className="mt-1 font-bold text-slate-900">
-                    {fmt(bucket.amount)}
+                    {formatMoney(bucket.amount)}
                   </p>
                   <p className="text-xs text-gray-400">
                     {bucket.count} dette(s)
@@ -337,7 +328,7 @@ export default function Suppliers() {
       {/* {totalDebtAll > 0 && (
         <div className="rounded-2xl bg-red-50 border border-red-200 px-5 py-4">
           <p className="text-sm font-semibold text-red-800">
-            Total dû à tous les fournisseurs : <span className="text-lg">{fmt(totalDebtAll)}</span>
+            Total dû à tous les fournisseurs : <span className="text-lg">{formatMoney(totalDebtAll)}</span>
           </p>
         </div>
       )} */}
@@ -400,7 +391,7 @@ export default function Suppliers() {
             <div>
               <h3 className="text-lg font-bold text-slate-900">Payer une dette fournisseur</h3>
               <p className="text-sm text-gray-500 mt-0.5">
-                Reste dû : <strong className="text-red-600">{fmt(payingDebt.debt.remaining)}</strong>
+                Reste dû : <strong className="text-red-600">{formatMoney(payingDebt.debt.remaining)}</strong>
                 {payingDebt.debt.note && ` • ${payingDebt.debt.note}`}
               </p>
             </div>
@@ -491,7 +482,7 @@ export default function Suppliers() {
                   <div className="flex flex-wrap items-center gap-2">
                     {(s.totalDebt ?? 0) > 0 && (
                       <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
-                        Doit : {fmt(s.totalDebt ?? 0)}
+                        Doit : {formatMoney(s.totalDebt ?? 0)}
                       </span>
                     )}
                     {(s.totalDebt ?? 0) === 0 && (s as any).totalPurchases > 0 && (
@@ -532,16 +523,16 @@ export default function Suppliers() {
                     <div className="grid grid-cols-3 gap-3 text-center text-sm">
                       <div className="rounded-xl bg-white p-3">
                         <p className="text-xs text-gray-400">Total achats</p>
-                        <p className="font-bold text-slate-900">{fmt((s as any).totalPurchases ?? 0)}</p>
+                        <p className="font-bold text-slate-900">{formatMoney((s as any).totalPurchases ?? 0)}</p>
                       </div>
                       <div className="rounded-xl bg-white p-3">
                         <p className="text-xs text-gray-400">Total payé</p>
-                        <p className="font-bold text-emerald-700">{fmt((s as any).totalPaid ?? 0)}</p>
+                        <p className="font-bold text-emerald-700">{formatMoney((s as any).totalPaid ?? 0)}</p>
                       </div>
                       <div className="rounded-xl bg-white p-3">
                         <p className="text-xs text-gray-400">Reste dû</p>
                         <p className={`font-bold ${(s.totalDebt ?? 0) > 0 ? "text-red-600" : "text-emerald-600"}`}>
-                          {fmt(s.totalDebt ?? 0)}
+                          {formatMoney(s.totalDebt ?? 0)}
                         </p>
                       </div>
                     </div>
@@ -586,7 +577,7 @@ export default function Suppliers() {
                         </div>
                         {debtTotal && Number(debtPaid) > 0 && (
                           <p className="text-xs text-yellow-600">
-                            ⚠️ Reste dû après acompte : {fmt(Number(debtTotal) - Number(debtPaid))}
+                            ⚠️ Reste dû après acompte : {formatMoney(Number(debtTotal) - Number(debtPaid))}
                           </p>
                         )}
                         <p className="text-xs text-emerald-600">
@@ -612,11 +603,11 @@ export default function Suppliers() {
                             <div key={d.id} className="flex items-center justify-between rounded-xl bg-white px-4 py-3">
                               <div>
                                 <p className="text-sm font-medium text-slate-800">
-                                  Total : {fmt(d.totalAmount)}
+                                  Total : {formatMoney(d.totalAmount)}
                                   {d.note && <span className="ml-2 text-xs text-gray-400">— {d.note}</span>}
                                 </p>
                                 <p className="text-xs text-gray-500 mt-0.5">
-                                  Payé : {fmt(d.paidAmount)} • Reste : <span className={d.remaining > 0 ? "text-red-600 font-medium" : "text-emerald-600 font-medium"}>{fmt(d.remaining)}</span>
+                                  Payé : {formatMoney(d.paidAmount)} • Reste : <span className={d.remaining > 0 ? "text-red-600 font-medium" : "text-emerald-600 font-medium"}>{formatMoney(d.remaining)}</span>
                                 </p>
                               </div>
                               <div className="flex items-center gap-2">
@@ -699,19 +690,19 @@ export default function Suppliers() {
                 <div className="rounded-xl bg-slate-50 p-3">
                   <p className="text-xs text-gray-400">Total achats</p>
                   <p className="font-bold text-slate-900">
-                    {fmt(historySupplier.totalPurchases)}
+                    {formatMoney(historySupplier.totalPurchases)}
                   </p>
                 </div>
                 <div className="rounded-xl bg-slate-50 p-3">
                   <p className="text-xs text-gray-400">Total payé</p>
                   <p className="font-bold text-emerald-700">
-                    {fmt(historySupplier.totalPaid)}
+                    {formatMoney(historySupplier.totalPaid)}
                   </p>
                 </div>
                 <div className="rounded-xl bg-slate-50 p-3">
                   <p className="text-xs text-gray-400">Reste dû</p>
                   <p className="font-bold text-red-600">
-                    {fmt(historySupplier.totalDebt ?? 0)}
+                    {formatMoney(historySupplier.totalDebt ?? 0)}
                   </p>
                 </div>
               </div>
@@ -757,12 +748,12 @@ export default function Suppliers() {
                             {movement.quantity}
                           </td>
                           <td className="px-4 py-3 text-gray-600">
-                            {movement.unitCost == null ? "—" : fmt(movement.unitCost)}
+                            {movement.unitCost == null ? "—" : formatMoney(movement.unitCost)}
                           </td>
                           <td className="px-4 py-3 font-medium text-slate-800">
                             {movement.unitCost == null
                               ? "—"
-                              : fmt(movement.unitCost * movement.quantity)}
+                              : formatMoney(movement.unitCost * movement.quantity)}
                           </td>
                         </tr>
                       ))}

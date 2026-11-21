@@ -55,8 +55,7 @@ import {
   planRank,
   shiftDate,
 } from "../features/analytics/constants";
-import { getSubscription } from "../features/shops/api";
-import type { SubscriptionInfo } from "../types";
+import { useSubscription } from "../hooks/useSubscription";
 import { isAdmin } from "../types/auth";
 import { formatMoney } from "../utils/format";
 import { hasFeature } from "../utils/subscription.checker";
@@ -98,7 +97,7 @@ export default function Analytics() {
   const [detail, setDetail] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
+  const { subscription } = useSubscription();
   const [multiStoreMode, setMultiStoreMode] = useState(false);
   const [multiStoreData, setMultiStoreData] = useState<Awaited<ReturnType<typeof getAnalyticsMultiStoreOverview>> | null>(null);
   const [page, setPage] = useState(1);
@@ -179,12 +178,6 @@ export default function Analytics() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    getSubscription()
-      .then(setSubscription)
-      .catch(() => setError("Impossible de vérifier votre abonnement."));
-  }, []);
 
   useEffect(() => {
     if (subscription) void load();

@@ -7,8 +7,7 @@ import { getStoredUser, isAdmin } from "../types/auth";
 import type { Sale } from "../types/index";
 import { exportSalesToExcel } from "../utils/exportExcel";
 import { exportSalesPDF } from "../utils/exportPDF";
-
-const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
+import { formatMoney } from "../utils/format";
 
 const statusBadge: Record<string, string> = {
   PAID: "bg-emerald-100 text-emerald-700",
@@ -181,18 +180,18 @@ export default function SalesHistory() {
                   <div className="mt-1 text-xs text-gray-400">
                     {sale.items.reduce((sum, item) => sum + item.quantity, 0)} article(s) • Total :{" "}
                     <strong className="text-slate-700">
-                      {fmt(sale.totalAmount)}
+                      {formatMoney(sale.totalAmount)}
                     </strong>{" "}
                     • Payé :{" "}
                     <strong className="text-emerald-600">
-                      {fmt(sale.paidAmount)}
+                      {formatMoney(sale.paidAmount)}
                     </strong>
                     {sale.remaining > 0 && (
                       <>
                         {" "}
                         • Reste :{" "}
                         <strong className="text-red-600">
-                          {fmt(sale.remaining)}
+                          {formatMoney(sale.remaining)}
                         </strong>
                       </>
                     )}

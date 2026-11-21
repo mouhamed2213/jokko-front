@@ -12,15 +12,14 @@ import {
   getCurrentCash,
   getProducts,
   getSales,
-  getSubscription,
 } from "../services/index";
+import { useSubscription } from "../hooks/useSubscription";
 import { getStoredUser, isAdmin } from "../types/auth";
 import type {
   Category,
   PackagingUnit,
   Product,
   Sale,
-  SubscriptionInfo,
 } from "../types/index";
 import {
   computeUnitPrice,
@@ -41,7 +40,7 @@ export default function Sales() {
 
   // Etat caisse / abonnement
   const [cashOpen, setCashOpen] = useState<boolean | null>(null);
-  const [subscription, setSubscription] = useState<SubscriptionInfo>();
+  const { subscription } = useSubscription();
   const [salesCount, setSalesCount] = useState<number>(0);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
@@ -64,12 +63,10 @@ export default function Sales() {
   const fetchProducts = async () => {
     setLoadingProducts(true);
     try {
-      const [subRes, prodRes, catRes] = await Promise.all([
-        getSubscription(),
+      const [prodRes, catRes] = await Promise.all([
         getProducts({ limit: 500 }),
         getCategories(),
       ]);
-      setSubscription(subRes);
       setProducts(prodRes.data);
       setCategories(catRes);
     } catch {

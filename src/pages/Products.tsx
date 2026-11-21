@@ -13,19 +13,14 @@ import {
   getCategories,
   getProductById,
   getProducts,
-  getSubscription,
   getSuppliers,
 } from "../services/index";
+import { useSubscription } from "../hooks/useSubscription";
 import { isAdmin } from "../types/auth";
-import type {
-  Category,
-  Product,
-  SubscriptionInfo,
-  Supplier,
-} from "../types/index";
+import type { Category, Product, Supplier } from "../types/index";
 
 export default function Products() {
-  const [subscription, setSubscription] = useState<SubscriptionInfo>();
+  const { subscription } = useSubscription();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -78,8 +73,6 @@ export default function Products() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      getSubscription().then(setSubscription);
-
       const [prodRes, cats, sups] = await Promise.all([
         getProducts({ search, categoryId: categoryFilter, page, limit: 25 }),
         getCategories(),

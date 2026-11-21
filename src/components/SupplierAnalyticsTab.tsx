@@ -8,8 +8,7 @@ import {
   type SupplierProducts,
   type SupplierRankingEntry,
 } from "../services/index";
-
-const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
+import { formatMoney } from "../utils/format";
 
 type Props = {
   locked: boolean;
@@ -146,7 +145,7 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
                   <div className="text-right text-sm">
                     <p className="text-xs text-gray-400">Acheté</p>
                     <p className="font-semibold text-slate-700">
-                      {fmt(s.totalPurchases)}
+                      {formatMoney(s.totalPurchases)}
                     </p>
                   </div>
                   <div className="text-right text-sm">
@@ -154,7 +153,7 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
                     <p
                       className={`font-semibold ${s.totalDebt > 0 ? "text-red-600" : "text-emerald-600"}`}
                     >
-                      {fmt(s.totalDebt)}
+                      {formatMoney(s.totalDebt)}
                     </p>
                   </div>
                   <div className="text-right text-sm">
@@ -261,7 +260,7 @@ export default function SupplierAnalyticsTab({ locked, onUpgradeClick }: Props) 
                           </p>
                           <p className="font-semibold text-slate-700">
                             {p.lastUnitCost !== null
-                              ? fmt(p.lastUnitCost)
+                              ? formatMoney(p.lastUnitCost)
                               : "-"}
                           </p>
                         </div>

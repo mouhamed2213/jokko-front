@@ -11,9 +11,11 @@ import {
   Wallet,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getDashboardStats, getSubscription } from "../services/index";
+import { getDashboardStats } from "../services/index";
+import { useSubscription } from "../hooks/useSubscription";
 import { getStoredUser } from "../types/auth";
-import type { DashboardStats, SubscriptionInfo } from "../types/index";
+import type { DashboardStats } from "../types/index";
+import { formatMoney } from "../utils/format";
 
 function StatCard({
   title,
@@ -62,19 +64,14 @@ function StatCard({
   );
 }
 
-const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
-
 export default function Dashboard() {
   const user = getStoredUser();
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(
-    null,
-  );
+  const { subscription } = useSubscription();
 
   useEffect(() => {
-    getSubscription().then(setSubscription);
     getDashboardStats()
       .then(setStats)
       .catch(console.error)
@@ -141,7 +138,7 @@ export default function Dashboard() {
           />
           <StatCard
             title="Valeur du stock"
-            value={fmt(stats?.stockValue ?? 0)}
+            value={formatMoney(stats?.stockValue ?? 0)}
             subtitle="Prix d'achat total"
             icon={<Wallet size={20} />}
             color="emerald"
@@ -172,7 +169,7 @@ export default function Dashboard() {
           {/* 1. CHIFFRE D'AFFAIRES MENSUEL */}
           <StatCard
             title="CA du mois"
-            value={fmt(currentMonthCA)}
+            value={formatMoney(currentMonthCA)}
             subtitle="Chiffre d'affaires du mois en cours"
             icon={<BarChart3 size={20} />}
             color="yellow"
@@ -182,12 +179,12 @@ export default function Dashboard() {
           {user.role === "ADMIN" && stats?.currentMonthGrossProfit !== undefined && (
             <StatCard
               title="Bénéfice brut du mois"
-              value={fmt(stats.currentMonthGrossProfit)}
+              value={formatMoney(stats.currentMonthGrossProfit)}
               subtitle={
                 stats.currentMonthMarginRate !== null &&
                 stats.currentMonthMarginRate !== undefined
-                  ? `Marge ${stats.currentMonthMarginRate}% · Résultat net : ${fmt(stats.currentMonthNetProfit ?? stats.currentMonthGrossProfit)}`
-                  : `Résultat net : ${fmt(stats.currentMonthNetProfit ?? stats.currentMonthGrossProfit)}`
+                  ? `Marge ${stats.currentMonthMarginRate}% · Résultat net : ${formatMoney(stats.currentMonthNetProfit ?? stats.currentMonthGrossProfit)}`
+                  : `Résultat net : ${formatMoney(stats.currentMonthNetProfit ?? stats.currentMonthGrossProfit)}`
               }
               icon={<Wallet size={20} />}
               color="emerald"
@@ -197,7 +194,7 @@ export default function Dashboard() {
           {/* 2. CHIFFRE D'AFFAIRES HISTORIQUE / GLOBAL */}
           <StatCard
             title="CA Global"
-            value={fmt(stats?.totalSalesAmount ?? 0)}
+            value={formatMoney(stats?.totalSalesAmount ?? 0)}
             subtitle="Montant total facturé"
             icon={<TrendingUp size={20} />}
             color="emerald"
@@ -205,14 +202,14 @@ export default function Dashboard() {
 
           <StatCard
             title="Créances clients"
-            value={fmt(stats?.totalClientDebt ?? 0)}
+            value={formatMoney(stats?.totalClientDebt ?? 0)}
             subtitle="Montants non encaissés"
             icon={<CreditCard size={20} />}
             color="orange"
           />
           <StatCard
             title="Dettes fournisseurs"
-            value={fmt(stats?.totalSupplierDebt ?? 0)}
+            value={formatMoney(stats?.totalSupplierDebt ?? 0)}
             subtitle="Montants à payer"
             icon={<TrendingUp size={20} />}
             color="red"
@@ -260,7 +257,7 @@ export default function Dashboard() {
             <div className="rounded-xl bg-slate-900 p-4 text-white">
               <p className="text-xs text-white/60">Valeur du stock</p>
               <p className="mt-1 text-xl font-bold">
-                {fmt(stats?.stockValue ?? 0)}
+                {formatMoney(stats?.stockValue ?? 0)}
               </p>
             </div>
             <div className="rounded-xl bg-emerald-50 p-4">
@@ -268,14 +265,14 @@ export default function Dashboard() {
                 Chiffre d'affaires total
               </p>
               <p className="mt-1 text-xl font-bold text-emerald-800 flex items-center gap-1.5">
-                {fmt(stats?.totalSalesAmount ?? 0)}
+                {formatMoney(stats?.totalSalesAmount ?? 0)}
               </p>
             </div>
             {stats?.cashOpen && stats.currentBalance !== null && (
               <div className="rounded-xl bg-blue-50 p-4">
                 <p className="text-xs text-blue-700">Solde caisse actuel</p>
                 <p className="mt-1 text-xl font-bold text-blue-800">
-                  {fmt(stats.currentBalance ?? 0)}
+                  {formatMoney(stats.currentBalance ?? 0)}
                 </p>
               </div>
             )}
@@ -284,7 +281,7 @@ export default function Dashboard() {
                 Ventes des 7 derniers jours
               </p>
               <p className="mt-1 text-xl font-bold text-orange-800">
-                {fmt(stats?.recentSalesAmount ?? 0)}
+                {formatMoney(stats?.recentSalesAmount ?? 0)}
               </p>
             </div>
           </div>

@@ -14,16 +14,16 @@ import {
   deleteClient,
   getClientById,
   getClients,
-  getSubscription,
   updateClient,
 } from "../services/index";
+import { useSubscription } from "../hooks/useSubscription";
 import { getStoredUser, isAdmin } from "../types/auth";
 import type { Client, Sale, SubscriptionInfo } from "../types/index";
 import { exportClientsToExcel } from "../utils/exportExcel";
+import { formatMoney } from "../utils/format";
 import { hasFeature } from "../utils/subscription.checker";
 
 const emptyForm = { name: "", phone: "", email: "", address: "" };
-const fmt = (v: number) => `${v.toLocaleString("fr-FR")} FCFA`;
 
 export default function Clients() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -43,7 +43,7 @@ export default function Clients() {
   const admin = isAdmin();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [limitCostumer, setLimitCostumer] = useState<number | null>(null);
-  const [subscription, setSubscription] = useState<SubscriptionInfo>();
+  const { subscription } = useSubscription();
   const maxCustomers = subscription?.limits.customers;
   const [page, setPage] = useState(1);
   const [totalClients, setTotalClients] = useState(0);
@@ -78,12 +78,6 @@ export default function Clients() {
     subscription as SubscriptionInfo,
     "EXPORT_EXCEL",
   );
-
-  useEffect(() => {
-    getSubscription().then(setSubscription).catch(() => {
-      toast.error("Erreur chargement abonnement");
-    });
-  }, []);
 
   useEffect(() => {
     const timeout = window.setTimeout(fetchClients, 300);
@@ -502,14 +496,14 @@ export default function Clients() {
                     <div className="mt-3 space-y-1 text-sm text-gray-600">
                       {sale.items.map((item) => (
                         <p key={item.id}>
-                          {item.productName} × {item.quantity} — {fmt(item.totalAmount)}
+                          {item.productName} × {item.quantity} — {formatMoney(item.totalAmount)}
                         </p>
                       ))}
                     </div>
                     <div className="mt-3 flex flex-wrap gap-4 border-t pt-3 text-xs">
-                      <span>Total : <strong>{fmt(sale.totalAmount)}</strong></span>
-                      <span>Payé : <strong className="text-emerald-700">{fmt(sale.paidAmount)}</strong></span>
-                      <span>Reste : <strong className="text-red-600">{fmt(sale.remaining)}</strong></span>
+                      <span>Total : <strong>{formatMoney(sale.totalAmount)}</strong></span>
+                      <span>Payé : <strong className="text-emerald-700">{formatMoney(sale.paidAmount)}</strong></span>
+                      <span>Reste : <strong className="text-red-600">{formatMoney(sale.remaining)}</strong></span>
                       <button
                         onClick={() => {
                           window.location.href = `/invoices?search=${encodeURIComponent(sale.invoiceNumber || String(sale.id))}`;
