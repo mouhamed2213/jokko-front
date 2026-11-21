@@ -1,4 +1,49 @@
-import type { PackagingUnit } from "../../types/index";
+import type { Client } from "../clients/types";
+import type { PackagingUnit, Product } from "../products/types";
+
+export type SaleItem = {
+  id: number;
+  saleId: number;
+  productId?: number | null;
+  productName: string;
+  productImageUrl?: string | null;
+  quantity: number;
+  unitPrice: number;
+  soldUnit?: PackagingUnit;
+  soldQuantity?: number | null;
+  soldUnitPrice?: number | null;
+  totalAmount: number;
+  product?: Product | null;
+};
+
+export type SalePayment = {
+  id: number;
+  saleId: number;
+  amount: number;
+  note?: string | null;
+  paidAt: string;
+};
+
+export type Sale = {
+  id: number;
+  shopId: number;
+  userId?: number | null;
+  clientId?: number | null;
+  shop?: { phone: string };
+  invoiceNumber?: string | null;
+  customerName?: string | null;
+  totalAmount: number;
+  paidAmount: number;
+  remaining: number;
+  status: "PAID" | "PARTIAL" | "UNPAID" | "CANCELLED";
+  note?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  client?: Client | null;
+  items: SaleItem[];
+  payments: SalePayment[];
+  meta: any;
+};
 
 export type CartItem = {
   productId: number;
@@ -7,9 +52,9 @@ export type CartItem = {
   soldUnit: PackagingUnit;
   unitType: PackagingUnit;
   unitsPerPack: number;
-  quantity: number; // quantité dans soldUnit
-  unitPrice: number; // prix par soldUnit
-  stock: number; // stock total du produit en pièces
+  quantity: number;
+  unitPrice: number;
+  stock: number;
   salePrice: number;
   packSalePrice?: number | null;
   semiWholesalePrice?: number | null;
