@@ -1,4 +1,4 @@
-import { Download, TrendingDown, TrendingUp, Wallet, X } from "lucide-react";
+import { Download, Lock, TrendingDown, TrendingUp, Wallet, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import PaymentMethodSelect from "../components/Paymentmethodselect";
@@ -107,7 +107,7 @@ export default function Cash() {
       return;
     try {
       const res = await closeCash(cashState.cashRegister.id);
-      toast.success("Caisse fermée ✅");
+      toast.success("Caisse fermée");
       if (res.summary) setClosureSummary(res.summary);
       await fetchData();
     } catch (error: any) {
@@ -352,7 +352,7 @@ export default function Cash() {
               onClick={handleCloseCash}
               className="flex items-center gap-2 rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
             >
-              🔒 Fermer la caisse
+              <Lock size={15} /> Fermer la caisse
             </button>
             {cr && (
               <button className="hidden items-center gap-2 rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">

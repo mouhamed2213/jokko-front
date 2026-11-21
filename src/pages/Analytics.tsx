@@ -6,6 +6,7 @@ import {
   ChevronRight,
   CreditCard,
   Lightbulb,
+  Lock,
   PackageSearch,
   RotateCcw,
   TrendingUp,
@@ -340,8 +341,9 @@ export default function Analytics() {
             {subscription &&
               (planRank[subscription.plan.code] < planRank[minimumPlan[item.id]] ||
                 (item.id === "insights" &&
-                  !hasFeature(subscription, "ADVANCED_REPORTS"))) &&
-              " 🔒"}
+                  !hasFeature(subscription, "ADVANCED_REPORTS"))) && (
+                <Lock size={13} className="shrink-0 opacity-75" />
+              )}
           </button>
         ))}
       </div>
@@ -473,8 +475,11 @@ export default function Analytics() {
                 </div>
               </div>
               {(activeKpis.itemsWithoutCost ?? 0) > 0 && (
-                <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs text-amber-800">
-                  ⚠️ {activeKpis.itemsWithoutCost} ligne(s) vendue(s) sur cette période avaient un prix d'achat à 0 FCFA. Renseignez les prix d'achat de vos produits pour un bénéfice encore plus précis.
+                <p className="mt-3 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs text-amber-800">
+                  <AlertTriangle size={14} className="shrink-0 text-amber-600" />
+                  <span>
+                    {activeKpis.itemsWithoutCost} ligne(s) vendue(s) sur cette période avaient un prix d'achat à 0 FCFA. Renseignez les prix d'achat de vos produits pour un bénéfice encore plus précis.
+                  </span>
                 </p>
               )}
             </div>

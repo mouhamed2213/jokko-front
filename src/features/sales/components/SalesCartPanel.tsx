@@ -155,7 +155,7 @@ export function SalesCartPanel({
     e.preventDefault();
     if (!cashOpen) {
       return toast.error(
-        "⚠️ La caisse est fermée. Ouvrez la caisse avant d'enregistrer une vente.",
+        "La caisse est fermée. Ouvrez la caisse avant d'enregistrer une vente.",
         { duration: 5000 },
       );
     }

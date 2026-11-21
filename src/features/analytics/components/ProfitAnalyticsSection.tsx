@@ -1,3 +1,4 @@
+import { AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { formatDateTime, formatMoney } from "../../../utils/format";
 import { readableStatus } from "../constants";
@@ -229,8 +230,11 @@ export function ProfitAnalyticsSection({
 
         {summary.itemsWithoutCost > 0 && (
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
-            <span>
-              ⚠️ <strong>{summary.itemsWithoutCost} ligne(s) vendue(s)</strong> n'avaient pas de prix d'achat renseigné (0 FCFA). Complétez-les dans votre catalogue pour garantir un bénéfice exact au franc près.
+            <span className="flex items-center gap-2">
+              <AlertTriangle size={14} className="shrink-0 text-amber-600" />
+              <span>
+                <strong>{summary.itemsWithoutCost} ligne(s) vendue(s)</strong> n'avaient pas de prix d'achat renseigné (0 FCFA). Complétez-les dans votre catalogue pour garantir un bénéfice exact au franc près.
+              </span>
             </span>
             <button
               type="button"
@@ -507,9 +511,9 @@ export function ProfitAnalyticsSection({
                           {s.hasMissingCost && (
                             <span
                               title="Un ou plusieurs articles de cette vente n'avaient pas de prix d'achat"
-                              className="ml-1.5 text-amber-600"
+                              className="ml-1.5 inline-flex align-middle text-amber-600"
                             >
-                              ⚠️
+                              <AlertTriangle size={13} />
                             </span>
                           )}
                         </td>

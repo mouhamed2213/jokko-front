@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, CreditCard } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronUp, CreditCard, Lightbulb } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { addSupplierDebt } from "../api";
@@ -45,7 +45,7 @@ export function SupplierCard({
     }
     if (Number(debtPaid) > 0 && !cashOpen) {
       return toast.error(
-        "⚠️ La caisse est fermée. Impossible de verser un acompte.",
+        "La caisse est fermée. Impossible de verser un acompte.",
         { duration: 5000 },
       );
     }
@@ -103,7 +103,7 @@ export function SupplierCard({
             <button
               onClick={() => {
                 if (!cashOpen) {
-                  toast.error("⚠️ La caisse est fermée.", { duration: 4000 });
+                  toast.error("La caisse est fermée.", { duration: 4000 });
                   return;
                 }
                 onPayDebt(s.id, unpaidDebts[0]);
@@ -231,14 +231,15 @@ export function SupplierCard({
                 </div>
               </div>
               {debtTotal && Number(debtPaid) > 0 && (
-                <p className="text-xs text-yellow-600">
-                  ⚠️ Reste dû après acompte :{" "}
+                <p className="flex items-center gap-1.5 text-xs text-yellow-600">
+                  <AlertTriangle size={13} className="shrink-0" />
+                  Reste dû après acompte :{" "}
                   {formatMoney(Number(debtTotal) - Number(debtPaid))}
                 </p>
               )}
-              <p className="text-xs text-emerald-600">
-                💡 Si acompte &gt; 0, il sera automatiquement décaissé de la
-                caisse si elle est ouverte.
+              <p className="flex items-center gap-1.5 text-xs text-emerald-600">
+                <Lightbulb size={13} className="shrink-0" />
+                Si acompte &gt; 0, il sera automatiquement décaissé de la caisse si elle est ouverte.
               </p>
               <div className="flex gap-2">
                 <button
@@ -311,7 +312,7 @@ export function SupplierCard({
                         <button
                           onClick={() => {
                             if (!cashOpen) {
-                              toast.error("⚠️ La caisse est fermée.", {
+                              toast.error("La caisse est fermée.", {
                                 duration: 4000,
                               });
                               return;

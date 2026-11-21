@@ -1,4 +1,4 @@
-import { Plus, Trash2, X } from "lucide-react";
+import { Check, Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { updateSale } from "../../sales/api";
@@ -414,11 +414,12 @@ export function InvoiceEditModal({
             type="button"
             onClick={handleUpdateSale}
             disabled={submitting}
-            className="flex-1 rounded-xl bg-emerald-600 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 transition"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 transition"
           >
+            {!submitting && <Check size={15} />}
             {submitting
               ? "Enregistrement..."
-              : "✓ Enregistrer les modifications"}
+              : "Enregistrer les modifications"}
           </button>
           <button
             type="button"

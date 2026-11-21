@@ -5,12 +5,12 @@ type Props = {
 };
 
 const PAYMENT_METHODS = [
-  { value: "CASH",         label: "💵 Espèces" },
-  { value: "WAVE",         label: "🔵 Wave" },
-  { value: "ORANGE_MONEY", label: "🟠 Orange Money" },
-  { value: "FREE_MONEY",   label: "🟣 Free Money" },
-  { value: "BANK",         label: "🏦 Virement bancaire" },
-  { value: "OTHER",        label: "📱 Autre" },
+  { value: "CASH",         label: "Espèces" },
+  { value: "WAVE",         label: "Wave" },
+  { value: "ORANGE_MONEY", label: "Orange Money" },
+  { value: "FREE_MONEY",   label: "Free Money" },
+  { value: "BANK",         label: "Virement bancaire" },
+  { value: "OTHER",        label: "Autre" },
 ];
 
 export default function PaymentMethodSelect({ value, onChange, className = "" }: Props) {

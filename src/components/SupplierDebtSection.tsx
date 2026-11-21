@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import type { Supplier } from "../types/index";
 import { formatMoney } from "../utils/format";
 
@@ -161,15 +161,23 @@ export default function SupplierDebtSection({
               </div>
               {totalCost > 0 && (
                 <div
-                  className={`col-span-2 rounded-xl px-4 py-3 text-sm font-medium ${
+                  className={`col-span-2 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium ${
                     reste > 0
                       ? "bg-yellow-50 text-yellow-700"
                       : "bg-emerald-50 text-emerald-700"
                   }`}
                 >
-                  {reste > 0
-                    ? `⚠️ Reste dû : ${formatMoney(reste)}`
-                    : "✅ Entièrement payé"}
+                  {reste > 0 ? (
+                    <>
+                      <AlertTriangle size={15} className="shrink-0" />
+                      <span>Reste dû : {formatMoney(reste)}</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={15} className="shrink-0" />
+                      <span>Entièrement payé</span>
+                    </>
+                  )}
                 </div>
               )}
             </div>

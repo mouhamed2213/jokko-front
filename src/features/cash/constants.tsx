@@ -1,3 +1,4 @@
+import { Banknote, Landmark, Smartphone, Wallet, type LucideIcon } from "lucide-react";
 import orangeMoneyLogo from "../../assets/om.png";
 import waveLogo from "../../assets/wave.png";
 import type { CashTransaction } from "../../types/index";
@@ -5,11 +6,11 @@ import { aggregateCashByMethod } from "./utils";
 
 export const METHOD_CONFIG: Record<
   string,
-  { name: string; logo?: string; emoji?: string; bg: string; text: string }
+  { name: string; logo?: string; icon?: LucideIcon; bg: string; text: string }
 > = {
   CASH: {
     name: "Espèces",
-    emoji: "💵",
+    icon: Banknote,
     bg: "bg-green-50",
     text: "text-green-700",
   },
@@ -27,19 +28,19 @@ export const METHOD_CONFIG: Record<
   },
   FREE_MONEY: {
     name: "Free Money",
-    emoji: "🟣",
+    icon: Smartphone,
     bg: "bg-purple-50",
     text: "text-purple-700",
   },
   BANK: {
     name: "Virement",
-    emoji: "🏦",
+    icon: Landmark,
     bg: "bg-slate-50",
     text: "text-slate-700",
   },
   OTHER: {
     name: "Autre",
-    emoji: "📱",
+    icon: Wallet,
     bg: "bg-gray-50",
     text: "text-gray-700",
   },
@@ -62,11 +63,12 @@ export function MethodIcon({
       />
     );
   }
+  const Icon = config.icon ?? Wallet;
   return (
     <div
-      className={`${cls} rounded-xl ${config.bg} border border-gray-200 flex items-center justify-center shrink-0 text-xl`}
+      className={`${cls} rounded-xl ${config.bg} ${config.text} border border-gray-200 flex items-center justify-center shrink-0 p-1.5`}
     >
-      {config.emoji}
+      <Icon className="h-full w-full" />
     </div>
   );
 }

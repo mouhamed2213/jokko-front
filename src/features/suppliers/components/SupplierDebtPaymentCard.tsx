@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Check, Lightbulb, X } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import PaymentMethodSelect from "../../../components/Paymentmethodselect";
@@ -29,7 +29,7 @@ export function SupplierDebtPaymentCard({
   const handlePayment = async () => {
     if (!cashOpen) {
       return toast.error(
-        "⚠️ La caisse est fermée. Ouvrez la caisse avant de payer un fournisseur.",
+        "La caisse est fermée. Ouvrez la caisse avant de payer un fournisseur.",
         { duration: 5000 },
       );
     }
@@ -112,15 +112,16 @@ export function SupplierDebtPaymentCard({
             type="button"
             onClick={handlePayment}
             disabled={submitting}
-            className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
           >
-            {submitting ? "Paiement..." : "✓ Confirmer le paiement"}
+            {!submitting && <Check size={15} />}
+            {submitting ? "Paiement..." : "Confirmer le paiement"}
           </button>
         </div>
       </div>
-      <p className="mt-3 text-xs text-emerald-600">
-        💡 Ce paiement sera automatiquement décaissé de la caisse si elle est
-        ouverte.
+      <p className="mt-3 flex items-center gap-1.5 text-xs text-emerald-600">
+        <Lightbulb size={13} className="shrink-0" />
+        Ce paiement sera automatiquement décaissé de la caisse si elle est ouverte.
       </p>
     </div>
   );

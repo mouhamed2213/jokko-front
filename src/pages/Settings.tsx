@@ -1,5 +1,6 @@
 import {
   Building2,
+  Lightbulb,
   MapPin,
   Phone,
   Save,
@@ -276,9 +277,9 @@ export default function Settings() {
               <p className="text-xs text-gray-400">
                 JPG, PNG, WebP ou SVG — max 3MB
               </p>
-              <p className="text-xs text-emerald-600 font-medium">
-                💡 Le logo sera immédiatement visible sur vos nouvelles
-                factures.
+              <p className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+                <Lightbulb size={13} className="shrink-0" />
+                Le logo sera immédiatement visible sur vos nouvelles factures.
               </p>
             </div>
           )}
