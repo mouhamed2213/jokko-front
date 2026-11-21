@@ -1,19 +1,15 @@
-import {
-  ChevronDown,
-  ChevronUp,
-  Download,
-  Lock,
-  TrendingDown,
-  TrendingUp,
-  Wallet,
-  X,
-} from "lucide-react";
+import { Download, TrendingDown, TrendingUp, Wallet, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import orangeMoneyLogo from "../assets/om.png";
-import waveLogo from "../assets/wave.png";
 import PaymentMethodSelect from "../components/Paymentmethodselect";
-import { showModal } from "../components/upgradeModal";
+import { CashHistorySection } from "../features/cash/components/CashHistorySection";
+import { ClosureSummaryCard } from "../features/cash/components/ClosureSummaryCard";
+import {
+  getMethodBreakdown,
+  METHOD_CONFIG,
+  MethodIcon,
+} from "../features/cash/constants";
+import { useSubscription } from "../hooks/useSubscription";
 import {
   addCashTransaction,
   closeCash,
@@ -22,84 +18,14 @@ import {
   getCurrentCash,
   openCash,
 } from "../services/index";
-import { useSubscription } from "../hooks/useSubscription";
 import { getStoredUser } from "../types/auth";
 import type {
   CashRegister,
   CashTransaction,
   SubscriptionInfo,
 } from "../types/index";
-import { exportCashReportPDF } from "../utils/exportPDF";
 import { formatMoney } from "../utils/format";
 import { hasFeatures } from "../utils/subscription.checker";
-
-const METHOD_CONFIG: Record<
-  string,
-  { name: string; logo?: string; emoji?: string; bg: string; text: string }
-> = {
-  CASH: {
-    name: "Espèces",
-    emoji: "💵",
-    bg: "bg-green-50",
-    text: "text-green-700",
-  },
-  WAVE: {
-    name: "Wave",
-    logo: waveLogo,
-    bg: "bg-blue-50",
-    text: "text-blue-700",
-  },
-  ORANGE_MONEY: {
-    name: "Orange Money",
-    logo: orangeMoneyLogo,
-    bg: "bg-orange-50",
-    text: "text-orange-700",
-  },
-  FREE_MONEY: {
-    name: "Free Money",
-    emoji: "🟣",
-    bg: "bg-purple-50",
-    text: "text-purple-700",
-  },
-  BANK: {
-    name: "Virement",
-    emoji: "🏦",
-    bg: "bg-slate-50",
-    text: "text-slate-700",
-  },
-  OTHER: {
-    name: "Autre",
-    emoji: "📱",
-    bg: "bg-gray-50",
-    text: "text-gray-700",
-  },
-};
-
-const MethodIcon = ({
-  method,
-  cls = "h-10 w-10",
-}: {
-  method: string;
-  cls?: string;
-}) => {
-  const config = METHOD_CONFIG[method] || METHOD_CONFIG.OTHER;
-  if (config.logo) {
-    return (
-      <img
-        src={config.logo}
-        alt={config.name}
-        className={`${cls} rounded-xl object-contain bg-white p-1 shadow-sm shrink-0 border border-gray-100`}
-      />
-    );
-  }
-  return (
-    <div
-      className={`${cls} rounded-xl ${config.bg} border border-gray-200 flex items-center justify-center shrink-0 text-xl`}
-    >
-      {config.emoji}
-    </div>
-  );
-};
 
 export default function Cash() {
   const user = getStoredUser();
@@ -228,34 +154,18 @@ export default function Cash() {
     }
   };
 
-  const getMethodBreakdown = (transactions: CashTransaction[]) => {
-    const byMethod: Record<string, { in: number; out: number }> = {};
-    transactions.forEach((tx: any) => {
-      const m = tx.paymentMethod || "CASH";
-      if (!byMethod[m]) byMethod[m] = { in: 0, out: 0 };
-      if (tx.type === "IN") byMethod[m].in += tx.amount;
-      else byMethod[m].out += tx.amount;
-    });
-    return Object.entries(byMethod).map(([method, amounts]) => ({
-      method,
-      config: METHOD_CONFIG[method] || METHOD_CONFIG.OTHER,
-      totalIn: amounts.in,
-      totalOut: amounts.out,
-      net: amounts.in - amounts.out,
-    }));
-  };
-
   if (!user) {
     toast.error("User Not found");
-    return;
+    return null;
   }
 
-  if (loading)
+  if (loading) {
     return (
       <div className="rounded-2xl bg-white p-8 text-center text-gray-400">
         Chargement...
       </div>
     );
+  }
 
   const cr = cashState.cashRegister;
 
@@ -263,122 +173,10 @@ export default function Cash() {
     <section className="space-y-6">
       {/* Rapport de clôture */}
       {closureSummary && (
-        <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
-          <div className="bg-emerald-600 px-6 py-4 flex items-center justify-between">
-            <h3 className="text-lg font-bold text-white">
-              📊 Rapport de clôture
-            </h3>
-            <button
-              onClick={() => setClosureSummary(null)}
-              className="text-white/70 hover:text-white text-2xl leading-none"
-            >
-              ×
-            </button>
-          </div>
-          <div className="p-6 space-y-5">
-            <p className="text-sm text-gray-500">
-              {closureSummary.date} • Ouvert à{" "}
-              {new Date(closureSummary.openedAt).toLocaleTimeString("fr-FR", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}{" "}
-              — Fermé à{" "}
-              {new Date(closureSummary.closedAt).toLocaleTimeString("fr-FR", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[
-                {
-                  label: "Ouverture",
-                  value: formatMoney(closureSummary.openingAmount),
-                  bg: "bg-slate-100",
-                  text: "text-slate-700",
-                },
-                {
-                  label: "Entrées",
-                  value: formatMoney(closureSummary.totalIn),
-                  bg: "bg-emerald-100",
-                  text: "text-emerald-700",
-                },
-                {
-                  label: "Sorties",
-                  value: formatMoney(closureSummary.totalOut),
-                  bg: "bg-red-100",
-                  text: "text-red-700",
-                },
-                {
-                  label: "Clôture",
-                  value: formatMoney(closureSummary.closingAmount),
-                  bg: "bg-slate-900",
-                  text: "text-white",
-                },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className={`rounded-2xl p-4 text-center ${s.bg}`}
-                >
-                  <p
-                    className={`text-xs font-medium opacity-70 mb-1 ${s.text}`}
-                  >
-                    {s.label}
-                  </p>
-                  <p className={`font-bold text-base ${s.text}`}>{s.value}</p>
-                </div>
-              ))}
-            </div>
-            {closureSummary.paymentMethodSummary?.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-                  Répartition par moyen de paiement
-                </p>
-                <div className="space-y-2">
-                  {closureSummary.paymentMethodSummary.map((m: any) => {
-                    const config =
-                      METHOD_CONFIG[m.method] || METHOD_CONFIG.OTHER;
-                    return (
-                      <div
-                        key={m.method}
-                        className={`flex items-center justify-between rounded-2xl px-4 py-3 ${config.bg}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <MethodIcon method={m.method} cls="h-10 w-10" />
-                          <div>
-                            <p
-                              className={`font-semibold text-sm ${config.text}`}
-                            >
-                              {config.name}
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              +{formatMoney(m.totalIn)} entré
-                              {m.totalOut > 0
-                                ? ` • -${formatMoney(m.totalOut)} sorti`
-                                : ""}
-                            </p>
-                          </div>
-                        </div>
-                        <p className={`font-bold text-base ${config.text}`}>
-                          {formatMoney(m.net)}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="mt-3 flex items-center justify-between rounded-2xl bg-slate-900 px-5 py-4 text-white">
-                  <span className="font-semibold">Total encaissé net</span>
-                  <span className="font-bold text-lg">
-                    {formatMoney(closureSummary.totalIn - closureSummary.totalOut)}
-                  </span>
-                </div>
-              </div>
-            )}
-            <p className="text-xs text-gray-400 text-center">
-              {closureSummary.transactionCount} transaction(s) •{" "}
-              {closureSummary.openedBy}
-            </p>
-          </div>
-        </div>
+        <ClosureSummaryCard
+          summary={closureSummary}
+          onClose={() => setClosureSummary(null)}
+        />
       )}
 
       {/* Caisse fermée */}
@@ -512,8 +310,9 @@ export default function Cash() {
                           {formatMoney(m.net)}
                         </p>
                         {m.totalOut > 0 && (
-                          <p className="text-xs text-gray-400 ">
-                            +{formatMoney(m.totalIn)} entré • -{formatMoney(m.totalOut)} sorti
+                          <p className="text-xs text-gray-400">
+                            +{formatMoney(m.totalIn)} entré • -
+                            {formatMoney(m.totalOut)} sorti
                           </p>
                         )}
                       </div>
@@ -522,7 +321,9 @@ export default function Cash() {
               </div>
               <div className="mt-4 flex items-center justify-between rounded-2xl bg-slate-900 px-5 py-4 text-white">
                 <span className="font-semibold">Total encaissé</span>
-                <span className="font-bold text-xl">{formatMoney(cr.totalIn)}</span>
+                <span className="font-bold text-xl">
+                  {formatMoney(cr.totalIn)}
+                </span>
               </div>
             </div>
           ) : null}
@@ -554,10 +355,7 @@ export default function Cash() {
               🔒 Fermer la caisse
             </button>
             {cr && (
-              <button
-                // onClick={() => exportCashReportPDF(cr, user)}
-                className=" hidden items-center gap-2 rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
-              >
+              <button className="hidden items-center gap-2 rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
                 <Download size={15} /> Rapport PDF
               </button>
             )}
@@ -621,7 +419,11 @@ export default function Cash() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className={`rounded-xl px-5 py-2.5 text-sm font-medium text-white disabled:opacity-60 transition ${txType === "IN" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-500 hover:bg-red-600"}`}
+                    className={`rounded-xl px-5 py-2.5 text-sm font-medium text-white disabled:opacity-60 transition ${
+                      txType === "IN"
+                        ? "bg-emerald-600 hover:bg-emerald-700"
+                        : "bg-red-500 hover:bg-red-600"
+                    }`}
                   >
                     {submitting ? "Enregistrement..." : "Confirmer"}
                   </button>
@@ -658,7 +460,9 @@ export default function Cash() {
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className={`rounded-full p-1.5 ${tx.type === "IN" ? "bg-emerald-100" : "bg-red-100"}`}
+                          className={`rounded-full p-1.5 ${
+                            tx.type === "IN" ? "bg-emerald-100" : "bg-red-100"
+                          }`}
                         >
                           {tx.type === "IN" ? (
                             <TrendingUp
@@ -686,7 +490,9 @@ export default function Cash() {
                         </div>
                       </div>
                       <span
-                        className={`text-sm font-bold ${tx.type === "IN" ? "text-emerald-600" : "text-red-600"}`}
+                        className={`text-sm font-bold ${
+                          tx.type === "IN" ? "text-emerald-600" : "text-red-600"
+                        }`}
                       >
                         {tx.type === "IN" ? "+" : "-"}
                         {formatMoney(tx.amount)}
@@ -701,273 +507,21 @@ export default function Cash() {
       )}
 
       {/* Historique journalier */}
-      <div className="rounded-2xl bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-slate-900">
-            Historique journalier
-          </h3>
-          <span className="text-sm text-gray-400">
-            {historyTotal} session(s)
-          </span>
-        </div>
-        {!history.length ? (
-          <p className="text-sm text-gray-400">Aucun historique disponible.</p>
-        ) : (
-          <div className="space-y-3">
-            {history.map((session) => (
-              <div
-                key={session.id}
-                className="rounded-2xl border border-gray-200 overflow-hidden"
-              >
-                <div
-                  className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 cursor-pointer hover:bg-gray-50 transition"
-                  onClick={() => {
-                    if (!hasFeature.exportPdf) {
-                      setIsUpgradeModalOpen(true);
-                      return;
-                    }
-
-                    loadSessionDetail(session.id);
-                  }}
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-slate-900">
-                        {new Date(session.openedAt).toLocaleDateString(
-                          "fr-FR",
-                          {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          },
-                        )}
-                      </p>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${session.status === "OPEN" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"}`}
-                      >
-                        {session.status === "OPEN" ? "En cours" : "Clôturée"}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      Ouvert{" "}
-                      {new Date(session.openedAt).toLocaleTimeString("fr-FR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                      {session.closedAt &&
-                        ` • Fermé ${new Date(session.closedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`}
-                      {(session as any).user?.name &&
-                        ` • ${(session as any).user.name}`}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right text-sm">
-                      <p className="text-gray-400 text-xs">Ouverture</p>
-                      <p className="font-medium">
-                        {formatMoney(session.openingAmount)}
-                      </p>
-                    </div>
-                    <div className="text-right text-sm">
-                      <p className="text-emerald-600 text-xs">+Entrées</p>
-                      <p className="font-medium text-emerald-700">
-                        {formatMoney(session.totalIn)}
-                      </p>
-                    </div>
-                    <div className="text-right text-sm">
-                      <p className="text-red-500 text-xs">-Sorties</p>
-                      <p className="font-medium text-red-600">
-                        {formatMoney(session.totalOut)}
-                      </p>
-                    </div>
-                    <div className="text-right text-sm">
-                      <p className="text-gray-400 text-xs">Clôture</p>
-                      <p className="font-bold text-slate-900">
-                        {session.closingAmount != null
-                          ? formatMoney(session.closingAmount)
-                          : formatMoney((session as any).currentBalance ?? 0)}
-                      </p>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!hasFeature.exportPdf) {
-                          setIsUpgradeModalOpen(true);
-                          return;
-                        }
-
-                        // Comportement normal pour les plans payants
-                        if (sessionDetail[session.id]) {
-                          exportCashReportPDF(sessionDetail[session.id], user);
-                        } else {
-                          loadSessionDetail(session.id);
-                          toast("Cliquez à nouveau pour télécharger", {
-                            icon: "ℹ️",
-                            duration: 3000,
-                          });
-                        }
-                      }}
-                      className={`flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs transition ${
-                        !hasFeature.exportPdf
-                          ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
-                          : "border-gray-200 text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {!hasFeature.exportPdf ? (
-                        <Lock size={12} className="text-amber-600" />
-                      ) : (
-                        <Download size={12} />
-                      )}
-                      <span>PDF</span>
-                    </button>
-                    {expandedSession === session.id ? (
-                      <ChevronUp size={18} className="text-gray-400" />
-                    ) : (
-                      <ChevronDown size={18} className="text-gray-400" />
-                    )}
-                  </div>
-                </div>
-
-                {expandedSession === session.id &&
-                  sessionDetail[session.id] && (
-                    <div className="border-t bg-slate-50 px-5 py-4">
-                      {sessionDetail[session.id].transactions?.length ? (
-                        <div className="mb-4">
-                          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-                            Par moyen de paiement
-                          </p>
-                          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                            {getMethodBreakdown(
-                              sessionDetail[session.id].transactions!,
-                            )
-                              .filter((m) => m.totalIn > 0)
-                              .map((m) => (
-                                <div
-                                  key={m.method}
-                                  className={`flex items-center gap-3 rounded-xl p-3 ${m.config.bg}`}
-                                >
-                                  <MethodIcon method={m.method} cls="h-8 w-8" />
-                                  <div>
-                                    <p
-                                      className={`text-xs font-semibold ${m.config.text}`}
-                                    >
-                                      {m.config.name}
-                                    </p>
-                                    <p
-                                      className={`text-sm font-bold ${m.config.text}`}
-                                    >
-                                      {formatMoney(m.net)}
-                                    </p>
-                                  </div>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      ) : null}
-                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-                        Transactions (
-                        {sessionDetail[session.id].transactions?.length || 0})
-                      </p>
-                      {!sessionDetail[session.id].transactions?.length ? (
-                        <p className="text-sm text-gray-400">
-                          Aucune transaction.
-                        </p>
-                      ) : (
-                        <div className="space-y-2 max-h-64 overflow-y-auto">
-                          {sessionDetail[session.id].transactions?.map(
-                            (tx: CashTransaction) => {
-                              const method =
-                                (tx as any).paymentMethod || "CASH";
-                              const config =
-                                METHOD_CONFIG[method] || METHOD_CONFIG.OTHER;
-                              return (
-                                <div
-                                  key={tx.id}
-                                  className="flex items-center justify-between rounded-xl bg-white px-4 py-2.5"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div
-                                      className={`rounded-full p-1 ${tx.type === "IN" ? "bg-emerald-100" : "bg-red-100"}`}
-                                    >
-                                      {tx.type === "IN" ? (
-                                        <TrendingUp
-                                          size={12}
-                                          className="text-emerald-600"
-                                        />
-                                      ) : (
-                                        <TrendingDown
-                                          size={12}
-                                          className="text-red-600"
-                                        />
-                                      )}
-                                    </div>
-                                    <div>
-                                      <p className="text-xs font-medium text-slate-800">
-                                        {tx.label}
-                                      </p>
-                                      <div className="flex items-center gap-1 mt-0.5">
-                                        <MethodIcon
-                                          method={method}
-                                          cls="h-3 w-3"
-                                        />
-                                        <p className="text-xs text-gray-400">
-                                          {config.name} •{" "}
-                                          {new Date(
-                                            tx.createdAt,
-                                          ).toLocaleTimeString("fr-FR", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                          })}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <span
-                                    className={`text-xs font-bold ${tx.type === "IN" ? "text-emerald-600" : "text-red-600"}`}
-                                  >
-                                    {tx.type === "IN" ? "+" : "-"}
-                                    {formatMoney(tx.amount)}
-                                  </span>
-                                </div>
-                              );
-                            },
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-              </div>
-            ))}
-          </div>
-        )}
-        {historyTotalPages > 1 && (
-          <div className="mt-4 flex items-center justify-center gap-3">
-            <button
-              onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
-              disabled={historyPage === 1}
-              className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40"
-            >
-              ← Précédent
-            </button>
-            <span className="text-sm text-gray-500">
-              Page {historyPage} / {historyTotalPages}
-            </span>
-            <button
-              onClick={() =>
-                setHistoryPage((p) => Math.min(historyTotalPages, p + 1))
-              }
-              disabled={historyPage === historyTotalPages}
-              className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40"
-            >
-              Suivant →
-            </button>
-          </div>
-        )}
-        {!hasFeature.exportPdf && (
-          showModal( isUpgradeModalOpen, () => setIsUpgradeModalOpen(false),  "cashExportAndhistoique")
-        )}
-    
-      </div>
+      <CashHistorySection
+        history={history}
+        historyTotal={historyTotal}
+        historyPage={historyPage}
+        historyTotalPages={historyTotalPages}
+        expandedSession={expandedSession}
+        sessionDetail={sessionDetail}
+        canExportPdf={hasFeature.exportPdf}
+        isUpgradeModalOpen={isUpgradeModalOpen}
+        user={user}
+        onPageChange={setHistoryPage}
+        onLoadSessionDetail={loadSessionDetail}
+        onOpenUpgradeModal={() => setIsUpgradeModalOpen(true)}
+        onCloseUpgradeModal={() => setIsUpgradeModalOpen(false)}
+      />
     </section>
   );
 }
