@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useState } from "react";
 import { getSuggestedPrice } from "../../products/api";
 import type { PackagingUnit, Product } from "../../../types/index";
@@ -243,7 +243,7 @@ export function AddToCartModal({
 
         {modalSuggestion && (
           <p
-            className={`mt-2 text-xs font-medium ${
+            className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${
               modalTier === "wholesale"
                 ? "text-purple-600"
                 : modalTier === "semiWholesale"
@@ -251,7 +251,8 @@ export function AddToCartModal({
                   : "text-gray-400"
             }`}
           >
-            ✓ {modalSuggestion}
+            <Check size={13} className="shrink-0" />
+            {modalSuggestion}
           </p>
         )}
 

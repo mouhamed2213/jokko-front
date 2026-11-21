@@ -1,4 +1,4 @@
-import { History, Search } from "lucide-react";
+import { AlertTriangle, Ban, History, Lock, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { showModal } from "../components/upgradeModal";
@@ -274,7 +274,9 @@ export default function Sales() {
       {cashOpen === false && (
         <div className="rounded-2xl bg-red-50 border border-red-200 px-5 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🔒</span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+              <Lock size={20} />
+            </div>
             <div>
               <p className="font-semibold text-red-800">
                 Caisse fermée — Ventes bloquées
@@ -296,7 +298,9 @@ export default function Sales() {
       {isLimitReachedApproche && !isLimitReached && (
         <div className="rounded-2xl bg-yellow-50 border border-yellow-200 px-5 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">⚠️</span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-yellow-100 text-yellow-700">
+              <AlertTriangle size={20} />
+            </div>
             <div>
               <p className="font-semibold text-yellow-800">
                 Plus que {(maxLimit as number) - salesCount} ventes disponibles
@@ -321,7 +325,9 @@ export default function Sales() {
       {isLimitReached && (
         <div className="rounded-2xl bg-red-50 border border-red-200 px-5 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🚫</span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+              <Ban size={20} />
+            </div>
             <div>
               <p className="font-semibold text-red-800">
                 Limite mensuelle atteinte — Ventes bloquées

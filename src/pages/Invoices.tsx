@@ -1,4 +1,4 @@
-import { CreditCard, Filter, Pencil, Printer, Search } from "lucide-react";
+import { CreditCard, Filter, Lock, Pencil, Printer, Search } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { showModal } from "../components/upgradeModal";
@@ -120,7 +120,9 @@ export default function Invoices() {
       {cashOpen === false && (
         <div className="rounded-2xl bg-red-50 border border-red-200 px-5 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🔒</span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+              <Lock size={20} />
+            </div>
             <div>
               <p className="font-semibold text-red-800">
                 Caisse fermée — Paiements bloqués
@@ -436,7 +438,7 @@ export default function Invoices() {
                         <button
                           onClick={() => {
                             if (!cashOpen) {
-                              toast.error("⚠️ La caisse est fermée.", {
+                              toast.error("La caisse est fermée.", {
                                 duration: 4000,
                               });
                               return;

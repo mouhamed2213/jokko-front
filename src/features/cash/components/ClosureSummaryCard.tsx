@@ -1,3 +1,4 @@
+import { BarChart3 } from "lucide-react";
 import { formatMoney } from "../../../utils/format";
 import { METHOD_CONFIG, MethodIcon } from "../constants";
 
@@ -13,7 +14,9 @@ export function ClosureSummaryCard({
   return (
     <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
       <div className="bg-emerald-600 px-6 py-4 flex items-center justify-between">
-        <h3 className="text-lg font-bold text-white">📊 Rapport de clôture</h3>
+        <h3 className="flex items-center gap-2 text-lg font-bold text-white">
+          <BarChart3 size={20} /> Rapport de clôture
+        </h3>
         <button
           type="button"
           onClick={onClose}

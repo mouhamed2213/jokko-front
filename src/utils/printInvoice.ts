@@ -135,8 +135,8 @@ function buildA4(invoice: Sale, shopName: string, logoUrl?: string): string {
       <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;
         font-weight:700;margin-bottom:9px">Client</div>
       <div style="font-size:15px;font-weight:700">${clientName}</div>
-      ${clientPhone ? `<div style="font-size:13px;color:#64748b;margin-top:3px">📞 ${clientPhone}</div>` : ""}
-      ${clientAddress ? `<div style="font-size:13px;color:#64748b;margin-top:2px">📍 ${clientAddress}</div>` : ""}
+      ${clientPhone ? `<div style="font-size:13px;color:#64748b;margin-top:3px">Tél : ${clientPhone}</div>` : ""}
+      ${clientAddress ? `<div style="font-size:13px;color:#64748b;margin-top:2px">Adresse : ${clientAddress}</div>` : ""}
     </div>
     <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:16px">
       <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#4ade80;

@@ -147,7 +147,6 @@ export function CashHistorySection({
                       } else {
                         onLoadSessionDetail(session.id);
                         toast("Cliquez à nouveau pour télécharger", {
-                          icon: "ℹ️",
                           duration: 3000,
                         });
                       }

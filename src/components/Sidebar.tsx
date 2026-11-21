@@ -8,6 +8,7 @@ import {
   Eye,
   EyeOff,
   FileText,
+  Handshake,
   LayoutDashboard,
   Mail,
   Menu,
@@ -1048,13 +1049,16 @@ export default function Sidebar() {
               </p>
               <ul className="space-y-2 text-sm text-slate-700">
                 <li className="flex items-center gap-2">
-                  🤝 Gestion fournisseurs complète
+                  <Handshake size={16} className="shrink-0 text-emerald-600" />
+                  Gestion fournisseurs complète
                 </li>
                 <li className="flex items-center gap-2">
-                  📊 Rapports & statistiques avancés
+                  <BarChart3 size={16} className="shrink-0 text-emerald-600" />
+                  Rapports & statistiques avancés
                 </li>
                 <li className="flex items-center gap-2">
-                  🏪 Multi-boutiques (jusqu'à 5)
+                  <Store size={16} className="shrink-0 text-emerald-600" />
+                  Multi-boutiques (jusqu'à 5)
                 </li>
               </ul>
             </div>

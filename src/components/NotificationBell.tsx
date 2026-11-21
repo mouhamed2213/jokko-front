@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   Ban,
   Bell,
+  CheckCircle2,
   Wifi,
   WifiOff,
   X,
@@ -97,8 +98,9 @@ export default function NotificationBell() {
                   <Bell size={20} className="text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-700">
-                    Tout est en ordre ✅
+                  <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-slate-700">
+                    <CheckCircle2 size={15} className="text-emerald-600" />
+                    Tout est en ordre
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">
                     Aucune alerte de stock.
